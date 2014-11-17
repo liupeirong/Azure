@@ -1,0 +1,22 @@
+﻿<div ng-controller="latestReportsController">
+    <h3>Latest Reports</h3>
+    <div class="gridStyle" ui-grid="latestReports" ui-grid-resize-columns></div>
+
+    <div class="modal" id="msgModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">{{message}}</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="autoModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">{{autoMessage}}</div>
+            </div>
+        </div>
+    </div>
+</div>

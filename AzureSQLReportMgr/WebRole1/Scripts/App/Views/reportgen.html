@@ -1,0 +1,41 @@
+﻿<div ng-controller="reportsGenerateController">
+    <br />
+    <button type="button" class="btn btn-success" ng-disabled="!gridApi.grid.options.multiSelect" ng-click="selectAll()">Select All</button>
+    <button type="button" class="btn btn-success" ng-click="clearAll()">Clear All</button>
+    <button type="button" class="btn btn-danger" style="float: right" ng-disabled="noSelection()" 
+            data-toggle="modal" data-target="#confirmModal">Generate Selected Reports</button>
+    <br />
+    <br />
+    <div class="gridStyle" ui-grid="reportsToGenerate" ui-grid-selection ></div>
+
+    <div class="modal" id="confirmModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    Are you sure you want to generate the selected reports?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="btnYes" ng-click="generateSelected()">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="msgModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">{{message}}</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="autoModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">{{autoMessage}}</div>
+            </div>
+        </div>
+    </div>
+</div>
