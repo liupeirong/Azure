@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+***********************************************************************************************
+webjobs.console.targets
+
+WARNING:  DO NOT MODIFY this file, this file is added to your project automatically
+          through the WebJobs Publishing NuGet package. If you modify this file it may
+          get out of sync when you update the package at a later date.
+
+This file extends the publish process to enable support for WebJobs in Console Applications
+
+Copyright (C) Microsoft Corporation. All rights reserved..
+***********************************************************************************************
+-->
+
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="ReadWebJobConfigFile" AssemblyFile="Microsoft.Web.WebJobs.Publish.Tasks.dll"/>
+  <UsingTask TaskName="CreateScheduledWebJob" AssemblyFile="Microsoft.Web.WebJobs.Publish.Tasks.dll" TaskFactory="TaskHostFactory"/>
+  
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+
+  <UsingTask TaskName="EscapeTextForRegularExpressions" AssemblyFile="$(VSToolsPath)\Web\Microsoft.Web.Publishing.Tasks.dll" Condition="Exists('$(VSToolsPath)\Web\Microsoft.Web.Publishing.Tasks.dll')"/>
+
+  <PropertyGroup>
+      <WebSiteName Condition="'$(WebSiteName)' == ''">$(DeployIisAppPath)</WebSiteName>
+      <WebSiteUrl Condition="'$(WebSiteUrl)' == ''">$(SiteUrlToLaunchAfterPublish)</WebSiteUrl>
+      <LastUsedBuildConfiguration Condition="'$(LastUsedBuildConfiguration)' == ''">Release</LastUsedBuildConfiguration>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(WebJobsExtendWebPublish)' == 'true' ">  
+    <MSDeployPublishDependsOn>
+      RemoveWebJobFilesFromBinFolder;
+      $(MSDeployPublishDependsOn);
+    </MSDeployPublishDependsOn>
+    
+    <CopyAllFilesToSingleFolderForMsdeploy>
+      PublishWebJob;
+      $(CopyAllFilesToSingleFolderForMsdeploy);
+    </CopyAllFilesToSingleFolderForMsdeploy>
+
+    <!-- For VS2012 -->
+    <PipelineCopyAllFilesToOneFolderForMsdeployDependsOn>
+      PublishWebJob;
+      $(PipelineCopyAllFilesToOneFolderForMsdeployDependsOn);
+    </PipelineCopyAllFilesToOneFolderForMsdeployDependsOn>
+
+    <!-- Required for File System -->
+    <PipelinePreDeployCopyAllFilesToOneFolderDependsOn>
+      PublishWebJob;
+      $(PipelinePreDeployCopyAllFilesToOneFolderDependsOn);
+    </PipelinePreDeployCopyAllFilesToOneFolderDependsOn>
+    
+    <!-- required for FS support from the VS publish dialog -->
+    <OnAfterCopyAllFilesToSingleFolderForPackage>
+      PublishWebJob;
+      $(OnAfterCopyAllFilesToSingleFolderForPackage);
+    </OnAfterCopyAllFilesToSingleFolderForPackage>
+  </PropertyGroup>
+
+  <Target Name="ResolveWebJobConfig" 
+          Condition=" Exists('$(WebJobConfigFile)') "
+          Outputs="@(JobConfig)">
+    
+    <ReadWebJobConfigFile ConfigFile="$(WebJobConfigFile)">
+      <Output TaskParameter="JobConfig" ItemName="JobConfig"/>
+    </ReadWebJobConfigFile>
+  </Target>
+
+  <Target Name="AddScheduledJob"
+          DependsOnTargets="ResolveWebJobConfig"
+          AfterTargets="MSDeployPublish"
+          Condition="'$(FilePreview)' == 'false' and ('$(WebJobPublishFromWAP)' == 'true' or '$(_DestinationType)' == 'AzureWebSite')">
+
+    <CreateScheduledWebJob JobConfig="@(JobConfig)"  
+                           WebSiteName="$(WebSiteName)" 
+                           WebSiteUrl="$(WebSiteUrl)"
+                           ManagementUri="$(WebJobManagementUri)"
+                           Condition="'%(JobConfig.RunMode)' == 'Scheduled'"/>          
+  </Target>
+
+  <Target Name="PublishWebJob"
+          DependsOnTargets="ResolveWebJobFiles;ResolveWebJobConfig"
+          Condition="'$(FilePreview)' == 'false'">
+          
+    <PropertyGroup Condition=" '@(JobConfig)' != '' ">
+      <_runMode>%(JobConfig.RunMode)</_runMode>
+      <_jobPath>%(JobConfig.JobPath)</_jobPath>
+      <_projName>%(JobConfig.WebJobName)</_projName>
+    </PropertyGroup>
+
+    <Error Text="Run Mode metadata is missing from webjob [$(WebJobConfigFile)]" Condition=" '$(_runMode)' == '' and '@(JobConfig)' != '' " />
+
+    <ItemGroup Condition=" '@(WebJobs)' != '' and '$(_DestinationType)' == 'AzureWebSite'">
+      <_projectRefFiles Remove="_projectRefFiles"/>
+      <_projectRefFiles Include="@(ReferenceCopyLocalPaths)"
+                      Condition=" '%(ReferenceCopyLocalPaths.MSBuildSourceProjectFile)' == '$(MSBuildProjectFile)' " />
+    </ItemGroup>
+    
+    <Message Text="WebJobs: Reference files for publishing _projectRefFiles: [@(_projectRefFiles,'%0a%0d')]" Importance="low" Condition=" '@(WebJobs)' != '' and '$(_DestinationType)' == 'AzureWebSite' "/>
+
+    <ItemGroup Condition="'@(JobConfig)' != '' and '$(_DestinationType)' == 'AzureWebSite'">
+      <!-- Add references from the project -->
+      <FilesForPackagingFromProject Include="%(_projectRefFiles.Identity)">
+        <DestinationRelativePath>app_data\jobs\$(_jobPath)\$(_projName)\%(Filename)%(Extension)</DestinationRelativePath>
+        <FromTarget>PublishWebJob</FromTarget>
+      </FilesForPackagingFromProject>
+      
+      <!-- Add outputs from the project -->
+      <FilesForPackagingFromProject Include="%(WebJobProjectOutputs.Identity)"
+                                    Condition=" '%(WebJobProjectOutputs.TargetPath)' != '' " >
+        <DestinationRelativePath>app_data\jobs\$(_jobPath)\$(_projName)\%(WebJobProjectOutputs.TargetPath)</DestinationRelativePath>
+        <FromTarget>PublishWebJob</FromTarget>
+      </FilesForPackagingFromProject>
+      <FilesForPackagingFromProject Include="%(WebJobProjectOutputs.Identity)"
+                                    Condition=" '%(WebJobProjectOutputs.TargetPath)' == '' " >
+        <DestinationRelativePath>app_data\jobs\$(_jobPath)\$(_projName)\%(RecursiveDir)%(Filename)%(Extension)</DestinationRelativePath>
+        <FromTarget>PublishWebJob</FromTarget>
+      </FilesForPackagingFromProject>
+    </ItemGroup>
+  </Target>
+  
+  <Target Name="RemoveWebJobFilesFromBinFolder"
+          DependsOnTargets="AddDeclareParametersItemsForContentPath"
+          Condition="'$(WebJobPublishFromWAP)' == 'true' or '$(_DestinationType)' == 'AzureWebSite'">
+    <EscapeTextForRegularExpressions Text="$(WPPAllFilesInSingleFolder)">
+      <Output TaskParameter="Result" PropertyName="_Escaped_WPPAllFilesInSingleFolder" />
+    </EscapeTextForRegularExpressions>
+    <EscapeTextForRegularExpressions Text="$(_DestinationContentPath)">
+      <Output TaskParameter="Result" PropertyName="_Escaped_DestinationContentPath" />
+    </EscapeTextForRegularExpressions>
+    <ItemGroup>
+      <MsDeploySkipRules Include="SkipBinFolderOnDeploy">
+        <SkipAction></SkipAction>
+        <ObjectName>dirPath</ObjectName>
+        <AbsolutePath>$(_Escaped_WPPAllFilesInSingleFolder)\\bin$</AbsolutePath>
+        <Apply>Source</Apply>
+        <XPath></XPath>
+      </MsDeploySkipRules>
+      <MsDeploySkipRules Include="SkipBinFolderOnDeploy">
+        <SkipAction></SkipAction>
+        <ObjectName>dirPath</ObjectName>
+        <AbsolutePath>$(_Escaped_DestinationContentPath)\\bin$</AbsolutePath>
+        <Apply>Destination</Apply>
+        <XPath></XPath>
+      </MsDeploySkipRules>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ResolveWebJobFiles"
+          Outputs="@(WebJobProjectOutputs)"> 
+
+    <ItemGroup>
+        <WebJobProjectOutputs Remove="@(WebJobProjectOutputs)"/>
+    </ItemGroup>
+
+    <!-- Build the project references of the webjob -->
+    <MSBuild Projects="@(ProjectReference)"
+             Targets="ResolveProjectReferences;Build"
+             Properties="Configuration=$(LastUsedBuildConfiguration)"
+             Condition="'$(WebJobPublishFromWAP)' == 'true' or '$(_DestinationType)' == 'AzureWebSite'"  
+             BuildInParallel="$(BuildInParallel)">
+      <Output ItemName="WebJobProjectOutputs" TaskParameter="TargetOutputs" />
+    </MSBuild>
+
+    <!-- Get all the build outputs from the project -->
+    <MSBuild Projects="$(MSBuildProjectFile)" 
+             Targets="ResolveProjectReferences;Build;BuiltProjectOutputGroup;DebugSymbolsProjectOutputGroup;SatelliteDllsProjectOutputGroup;ContentFilesProjectOutputGroup;SGenFilesOutputGroup"
+             Properties="Configuration=$(LastUsedBuildConfiguration)"
+             Condition="'$(WebJobPublishFromWAP)' == 'true' or '$(_DestinationType)' == 'AzureWebSite'">
+      <Output ItemName="WebJobProjectOutputs" TaskParameter="TargetOutputs" />
+    </MSBuild>
+
+    <!-- Get copy local files -->
+    <MSBuild Projects="$(MSBuildProjectFile)"  
+             Targets="WebJobsGetCopyLocalFiles"
+             Properties="Configuration=$(LastUsedBuildConfiguration);CustomBeforeMicrosoftCommonTargets=$(WebJobsExtensionTargetsPath)"
+             Condition="'$(WebJobPublishFromWAP)' == 'true' or '$(_DestinationType)' == 'AzureWebSite'">             
+      <Output ItemName="WebJobProjectOutputs" TaskParameter="TargetOutputs" />
+    </MSBuild>
+    
+    <Message Text="WebJobs: Output files for publishing (WebJobProjectOutputs) [@(WebJobProjectOutputs->'%(Identity): TargetPath=[%(TargetPath)]','%0a%0d')]" 
+             Importance="low"
+             Condition="'$(WebJobPublishFromWAP)' == 'true' or '$(_DestinationType)' == 'AzureWebSite'"/>
+  </Target>
+</Project>

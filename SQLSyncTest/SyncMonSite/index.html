@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html ng-app="mainApp" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="treeGrid.css">    
+    <link rel="stylesheet" href="site.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-resource.min.js"></script>
+    <script src="tree-grid-directive.js"></script>
+    <script src="app.js"></script>
+</head>
+<body ng-controller="syncGridController" style="margin:20px">
+    <button ng-click="my_tree.expand_all()" class="btn btn-default btn-sm">Expand All</button>
+    <button ng-click="my_tree.collapse_all()" class="btn btn-default btn-sm">Collapse All</button>
+    <br />
+    <br />
+    <tree-grid tree-data="tree_data" tree-control="my_tree" col-defs="col_defs"
+               expand-on="expanding_property" 
+               class="tree_table" icon-leaf="glyphicon glyphicon-globe">
+    </tree-grid>
+    <div class="modal" id="msgModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">{{message}}</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

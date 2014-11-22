@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+***********************************************************************************************
+webjobs.ext.targets
+
+WARNING:  DO NOT MODIFY this file, this file is added to your project automatically
+          through the WebJobs Publish NuGet package. If you modify this file it may
+          get out of sync when you update the package at a later date.
+
+This file is used as a CustomBeforeMicrosoftCommonTargets in the publish process for WebJobs.
+
+Copyright (C) Microsoft Corporation. All rights reserved..
+***********************************************************************************************
+-->
+
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="WebJobsGetCopyLocalFiles" 
+          Returns="@(ReferenceCopyLocalPaths)" 
+          DependsOnTargets="ResolveAssemblyReferences">
+    <Message Text="ReferenceCopyLocalPaths: [@(ReferenceCopyLocalPaths)]" Importance="high"/>
+  </Target>
+</Project>
