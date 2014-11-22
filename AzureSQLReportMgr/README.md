@@ -17,7 +17,7 @@ Download the Visual Studio solution and update the following configurations. The
 
 Provide the following configurations:
 
-```sh
+```java
 reportServerURL        //this is the URL of the SQL Server Reporting Service (SSRS)
 reportServiceUser      //this is user name to be used to access SSRS
 reportServicePassword  //this is the password for the user to access SSRS
@@ -31,7 +31,7 @@ blobEndPoint           //this is the blob endpoint URL that forms the links to t
 
 The SSRS must have reports defined and loaded.  There is no custom code running on SSRS, however, SSRS must be configured to allow [URL access].  You can configure multiple SSRS servers to balance the load.  The reporting manager will randomly choose one if all SSRS servers are healthy or unhealthy.  Otherwise, it will quarantine the unhealthy ones for a certain period of time before putting them back to service. 
 
-Date and time are stored internally as UTC, but rendered as local time in the browser based on the end user’s locale settings. 
+Date and time are stored internally as UTC, but rendered as local time in the browser based on the end userâ€™s locale settings. 
 
 ### Todo's
 
