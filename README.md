@@ -1,4 +1,4 @@
 Azure
 =====
 
-Sample applications built in Microsoft Azure.
+Sample applications built to showcase Microsoft Azure technologies.
