@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="AzureReportManager" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2014-06.2.4">
+  <Role name="ReportManagerWebRole">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="cloudTraceLevel" value="Information" />
+      <Setting name="reportServiceUser" value="youruser" />
+      <Setting name="reportServicePassword" value="yourpassword" />
+      <!-- queue will be created if not already exists-->
+      <Setting name="queuePath" value="myqueue" />
+      <Setting name="queueConnectionString" value="yourQueueConnectionString" />
+      <!-- blob will be created if not already exists-->
+      <Setting name="reportBlobContainer" value="myreports" />
+      <Setting name="blobConnectionString" value="yourBlobConnectionString" />
+      <!-- this will be pre-pended to the retrieved blobs to form the full url of the blob-->
+      <Setting name="blobEndPoint" value="https://yourblob.blob.core.windows.net/" />
+    </ConfigurationSettings>
+  </Role>
+  <Role name="ReportManagerWorkerRole">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="cloudTraceLevel" value="Information" />
+      <!-- multiple report servers can be added with ";" saparting them -->
+      <Setting name="reportServerURL" value="http://yourssrs.cloudapp.net/reportserver?/" />
+      <Setting name="reportServerUser" value="youruser" />
+      <Setting name="reportServerPassword" value="yourpassword" />
+      <!-- blob will be created if not already exists-->
+      <Setting name="reportBlobContainer" value="myreports" />
+      <!-- how many versions of the same report should be stored in archive folder-->
+      <Setting name="maxNumOfReportsArchived" value="2" />
+      <!-- queue will be created if not already exists-->
+      <Setting name="queuePath" value="myqueue" />
+      <Setting name="queueConnectionString" value="yourQueueConnectionString" />
+      <Setting name="blobConnectionString" value="yourBlobConnectionString" />
+    </ConfigurationSettings>
+  </Role>
+</ServiceConfiguration>

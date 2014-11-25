@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceDefinition name="AzureReportManager" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
+  <WebRole name="ReportManagerWebRole" vmsize="ExtraSmall">
+    <Runtime executionContext="elevated" />
+    <Startup>
+      <Task commandLine="RegisterMessagingPerfCounter.cmd" executionContext="elevated" taskType="simple" />
+    </Startup>
+    <Sites>
+      <Site name="Web">
+        <Bindings>
+          <Binding name="Endpoint1" endpointName="Endpoint1" />
+        </Bindings>
+      </Site>
+    </Sites>
+    <Endpoints>
+      <InputEndpoint name="Endpoint1" protocol="http" port="80" />
+    </Endpoints>
+    <Imports>
+    </Imports>
+    <ConfigurationSettings>
+      <Setting name="cloudTraceLevel" />
+      <Setting name="reportServiceUser" />
+      <Setting name="reportServicePassword" />
+      <Setting name="queuePath" />
+      <Setting name="queueConnectionString" />
+      <Setting name="reportBlobContainer" />
+      <Setting name="blobConnectionString" />
+      <Setting name="blobEndPoint" />
+    </ConfigurationSettings>
+  </WebRole>
+  <WorkerRole name="ReportManagerWorkerRole" vmsize="ExtraSmall">
+    <Runtime executionContext="elevated" />
+    <Startup>
+      <Task commandLine="RegisterMessagingPerfCounter.cmd" executionContext="elevated" taskType="simple" />
+    </Startup>
+    <Imports>
+    </Imports>
+    <ConfigurationSettings>
+      <Setting name="cloudTraceLevel" />
+      <Setting name="reportServerURL" />
+      <Setting name="reportServerUser" />
+      <Setting name="reportServerPassword" />
+      <Setting name="reportBlobContainer" />
+      <Setting name="maxNumOfReportsArchived" />
+      <Setting name="queuePath" />
+      <Setting name="queueConnectionString" />
+      <Setting name="blobConnectionString" />
+    </ConfigurationSettings>
+  </WorkerRole>
+</ServiceDefinition>
