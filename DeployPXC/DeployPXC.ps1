@@ -1,90 +1,129 @@
 ﻿#
 # DeployPXC.ps1
 #
+param (
+        [parameter(Mandatory=$true)]
+        [String]$CredentialName = "pliu@microsoft.com",
+        [parameter(Mandatory=$true)]
+        [String]$SubscriptionName = "pliu@ted",
+        [parameter(Mandatory=$true)]
+        [String]$StoragenAccountName = "pliueuro",
+        [parameter(Mandatory=$true)]
+        [String]$ServiceName = "azurepxc",
+        [parameter(Mandatory=$true)]
+        [String]$VNetName = "peieuro",
+        [parameter(Mandatory=$true)]
+        [String]$DBSubnet = "dbsubnet",
+        [parameter(Mandatory=$true)]
+        [String]$2ndNICName = "",  #this indicates the need for 2nd NIC. leave this empty if you don't have 2nd NIC
+        [parameter(Mandatory=$true)]
+        [String]$ClusterSubnet = "", #leave this empty if you don't need 2nd NIC
+        [parameter(Mandatory=$true)]
+        [String[]]$NodeDBIPs = @("10.11.0.4", "10.11.0.5", "10.11.0.6"),
+        [parameter(Mandatory=$true)]
+        [String[]]$NodeClusterIPs = @(), #leave this empty if you don't have 2nd NIC
+        [parameter(Mandatory=$true)]
+        [String]$LoadBalancerIP = "10.11.0.8",
+        [parameter(Mandatory=$true)]
+        [String]$VMSize = "Standard_A3",
+        [parameter(Mandatory=$true)]
+        [Int]$NumOfDisks = 4, #if greater than 1, then the disks will be provisioned as raid0
+        [parameter(Mandatory=$true)]
+        [Int]$DiskSizeInGB = 10,
+        [parameter(Mandatory=$true)]
+        [String]$VMNamePrefix = "azpxc",
+        [parameter(Mandatory=$true)]
+        [String]$DataDriveName = "/datadrive",
+        [parameter(Mandatory=$true)]
+        [String]$ConfigTemplate = "c:\temp\my.cnf"
+)
 
-# the following resources must already exist
-$SubscirptionName="pliu@ted"
-$StorageAccountName="portalvhds57np6vhvvd1mq"
-$VNetName="peivm"
-$DBSubnet="Subnet-1" #this is the subnet where the nodes will expose their MySQL endpoint (3306) to clients
-$EnableDualNIC=0 #will attach 2nd NIC for inter-cluster communication if set to non-zero
-$2ndNICName="" #something like "eth1" if EnableDualNIC is non-zero
-$ClusterSubnet="" #this is the subnet that the nodes communicate state with each other if EnableDualNIC is not 0
-# the following resources will be created
-$LoadBalancerIP="10.11.0.5" #static IP, make sure it's available in DBSubnet
-$NodeDBIPs=@("10.11.0.6", "10.11.0.7", "10.11.0.8") #static IP, make sure they are available in DBSubnet
-$NodeClusterIPs=@() #static IP, make sure they are available in ClusterSubnet if EnableDualNIC=1
-$CloudServiceName="contosopxc"
-$VMSize="Large"
-$VMNamePrefix="azpxc"
-$EnableRaid0=1 #will stripe the attached disks if set to non-zero and $NumberOfDisks > 1
-$NumberOfDisks=1
-$DataDiskSize=128
-$OSName="OpenLogic 6.5" # the script is only tested on this OS, if you change it, you may need to change some parts of the script
-$MyCnfTemplate="c:\temp\my.conf" # this is the template you want to use for my.conf, leave Node names and IPs empty
-# you can leave these parameters as default
-$DataDriveName="/datadrive" #this is the folder name of mounted disk
-$LoadBalancerName="pxcilb"
-$AvailabilitySetName="pxcset"
+Set-StrictMode -Version Latest 
 
-# internal variables
-$ExitError=1
-$ExitSuccess=0
+$OSName="OpenLogic 6.5" # this script is only tested on this OS
+$LoadBalancerName=$VMNamePrefix + "ilb"
+$AvailabilitySetName=$VMNamePrefix + "set"
 
-# validate the configuration as much as possbile before we create anything
 Select-AzureSubscription -SubscriptionName $SubscirptionName
 Set-AzureSubscription -SubscriptionName $SubscirptionName -CurrentStorageAccountName $StorageAccountName
+
 # check VNet and subnet exist
 $VNet = get-azurevnetsite | where-object {$_.Name -eq $VNetName}
 if (!$VNet) {
-	Write-Host ("You must create the VNet {0} and its subnet(s) for the cluster VMs." -f $VNetName) -ForegroundColor  Red
-	Exit $ExitError
+	Write-Output ("You must create the VNet {0} and its subnet(s) for the cluster VMs." -f $VNetName)
+	Exit
 }
 $DBSubnetObj = $VNet.Subnets | where-object {$_.Name -eq $DBSubnet}
 if (!$DBSubnetObj) {
-	Write-Host ("You must create the subnet {0} for {1} for the cluster VMs." -f $DBSubnet, $VNetName) -ForegroundColor  Red
-	Exit $ExitError
+	Write-Output ("You must create the subnet {0} in {1} for the cluster nodes." -f $DBSubnet, $VNetName)
+	Exit
 }
 # check storage account is in the same region as the VNet where nodes will be located
-$StorageLocation = Get-AzureStorageAccount -StorageAccountName "portalvhds57np6vhvvd1mq" | Select -ExpandProperty "Location"
+$StorageAccount = Get-AzureStorageAccount -StorageAccountName $StoragenAccountName
+$StorageLocation = $StorageAccount | Select -ExpandProperty "Location"
 $VNetLocation = $VNet.Location
 if ($StorageLocation -ne $VNetLocation) {
-	Write-Host "Storage account should be in the same region as the cluster VMs." -ForegroundColor  Red
-	Exit $ExitError
+	Write-Output ("Storage account in {0} should be in the same region as the VNet {1}." -f $StorageLocation, $VNetLocation)
+	Exit
+}
+# check if storage account has global replication disabled
+if ($StorageAccount | where-object {$_.AccountType -ne "Standard_LRS"}) {
+	Write-Output ("Storage account {0} should be configured to use local instead of geo replication." -f $StorageAccountName)
+    Exit
 }
 # check if cloud service already exists in the same region or create one
 $CloudService = Get-AzureService -ServiceName  $CloudServiceName -ErrorAction silentlycontinue
-if (!$?) {
-	New-AzureService -ServiceName  $CloudServiceName -Location $VNetLocation
-} elseif ($CloudService.Location -ne $VNetLocation) {
-	Write-Host ("Cloud Service {0} exists in {1}, not in VNet's region {2}."  `
-	            -f $CloudServiceName, $CloudService.Location, $VNetLocation) -ForegroundColor  Red	
-	Exit $ExitError
+if ($? -and ($CloudService.Location -ne $VNetLocation)) {
+	Write-Output ("Cloud Service {0} exists in {1}, not in VNet's region {2}."  `
+	            -f $CloudServiceName, $CloudService.Location, $VNetLocation)	
+	Exit
 }
 # check if load balancer IP is available in DBSubnet
 if (!(checkSubnet $DBSubnetObj.AddressPrefix $LoadBalancerIP) -or 
    !((Test-AzureStaticVNetIP -VNetName $VNetName -IPAddress $LoadBalancerIP).IsAvailable))
 {
-	Write-Host ("Load Balancer IP {0} is not available in subnet {1}." -f $LoadBalancerIP, $DBSubnet) -ForegroundColor  Red	
-	Exit $ExitError
+	Write-Output ("Load Balancer IP {0} is not available in subnet {1}." -f $LoadBalancerIP, $DBSubnet)	
+	Exit
 }
 # check if NodeDBIPs are available in DBSubnet
+if ($NodeDBIPs.Count -lt 3)
+{
+	Write-Output ("Need at least 3 nodes in NodeDBIPs.")	
+	Exit
+}
 foreach ($NodeIP in $NodeDBIPs)
 {
 	if (!(checkSubnet $DBSubnetObj.AddressPrefix $NodeIP) -or 
 		!((Test-AzureStaticVNetIP -VNetName $VNetName -IPAddress $NodeIP).IsAvailable))
 	{
-		Write-Host ("Node IP {0} is not available in subnet {1}." -f $NodeIP, $DBSubnet) -ForegroundColor  Red	
-		Exit $ExitError
+		Write-Output ("Node IP {0} is not available in subnet {1}." -f $NodeIP, $DBSubnet)	
+		Exit
 	}
 }
-# check if EnableRaid0 is non-zero, then NumberOfDisks > 1
-if ($EnableRaid0 -and $NumberOfDisks -le 1)
-{
-	Write-Host ("Raid is enabled but you specified only one disk to be attached.") -ForegroundColor  Red	
-	Exit $ExitError
+# check if 2nd NIC is needed
+if ($2ndNICName -ne "") {
+    # check if ClusterSubnet exits
+    $ClusterSubnetObj = $VNet.Subnets | where-object {$_.Name -eq $ClusterSubnet}
+    if (!$ClusterSubnetObj) {
+	    Write-Output ("You must create the subnet {0} in {1} for the 2nd NIC of cluster nodes." -f $ClusterSubnet, $VNetName)
+	    Exit
+    }
+    # check if ClusterNodeIPs are avilable in ClusterSubnet
+    if ($NodeClusterIPs.Count -lt 3)
+    {
+	    Write-Output ("Need at least 3 nodes in NodeClusterIPs.")	
+	    Exit
+    }
+    foreach ($NodeIP in $NodeClusterIPs)
+    {
+	    if (!(checkSubnet $ClusterSubnetObj.AddressPrefix $NodeIP) -or 
+		    !((Test-AzureStaticVNetIP -VNetName $VNetName -IPAddress $NodeIP).IsAvailable))
+	    {
+		    Write-Output ("Node IP {0} is not available in subnet {1}." -f $NodeIP, $ClusterSubnet)	
+		    Exit
+	    }
+    }
 }
-# TODO: if EnableDualNIC is non-zero, check if 2ndNICName is non-zero and NodeClusterIPs are available in DBSubnet
 
 function checkSubnet ([string]$cidr, [string]$ip)
 {
@@ -99,5 +138,3 @@ function checkSubnet ([string]$cidr, [string]$ip)
 
     return ($unetwork -eq ($mask -band $uip))
 }
-
-
