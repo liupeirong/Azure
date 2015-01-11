@@ -14,7 +14,7 @@ RAIDDISK="/dev/md/data"
 RAIDPARTITION="/dev/md127p1"
 RAIDCHUNKSIZE=64
 
-MYCNFTEMPLATE="https://pliueuro.blob.core.windows.net/scripts/my.cnf.template"
+MYCNFTEMPLATE="https://github.com/liupeirong/Azure/blob/master/DeployPXC/my.cnf.template"
 
 scan_for_new_disks() {
     # Looks for unpartitioned disks
