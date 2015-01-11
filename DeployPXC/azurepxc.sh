@@ -4,7 +4,8 @@ CLUSTERADDRESS=${1}
 NODEADDRESS=${2}
 NODENAME=$(hostname)
 MYSQLSTARTUP=${3}
-SECONDNIC=${4}
+MYCNFTEMPLATE=${4}
+SECONDNIC=${5}
 
 # An set of disks to ignore from partitioning and formatting
 BLACKLIST="/dev/sda|/dev/sdb"
@@ -13,8 +14,6 @@ MOUNTPOINT="/datadrive"
 RAIDDISK="/dev/md/data"
 RAIDPARTITION="/dev/md127p1"
 RAIDCHUNKSIZE=64
-
-MYCNFTEMPLATE="https://github.com/liupeirong/Azure/blob/master/DeployPXC/my.cnf.template"
 
 scan_for_new_disks() {
     # Looks for unpartitioned disks

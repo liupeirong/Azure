@@ -3,43 +3,45 @@
 #
 param (
         [parameter(Mandatory=$false)]
-        [String]$CredentialName = "", #only used with Azure automation, leave empty in standalone Powershell script
+        [String]$CredentialName, #only used with Azure automation, leave empty in standalone Powershell script
         [parameter(Mandatory=$true)]
-        [String]$SubscriptionName = "contosoSubscription",
+        [String]$SubscriptionName,
         [parameter(Mandatory=$true)]
-        [String]$StorageAccountName = "contosoStorage",
+        [String]$StorageAccountName,
         [parameter(Mandatory=$true)]
-        [String]$ServiceName = "azurepxc", #Azure cloud service that the cluster nodes will be deployed to, will create if not already exist
         [parameter(Mandatory=$true)]
-        [String]$VNetName = "contosoVNet", #Azure vnet that the cluster nodes will be deployed to, must already exist
+        [String]$ServiceName, #Azure cloud service that the cluster nodes will be deployed to, will create if not already exist
+        [String]$VNetName, #Azure vnet that the cluster nodes will be deployed to, must already exist
         [parameter(Mandatory=$true)]
-        [String]$DBSubnet = "dbsubnet", #the subnet inside the vnet that the primary NIC of the cluster nodes belong to
+        [String]$DBSubnet, #the subnet inside the vnet that the primary NIC of the cluster nodes belong to
         [parameter(Mandatory=$true)]
-        [String]$DBNodeIPs = "10.0.0.4,10.0.0.5,10.0.0.6", #the IPs of the primary NIC of the cluster nodes
+        [String]$DBNodeIPs, #the IPs of the primary NIC of the cluster nodes
         [parameter(Mandatory=$true)]
-        [String]$LoadBalancerIP = "10.0.0.7", #the IP of the load balancer for the cluster nodes
+        [String]$LoadBalancerIP, #the IP of the load balancer for the cluster nodes
         [parameter(Mandatory=$true)]
         [String]$VMSize = "Large", #Azure VM size for the cluster nodes
         [parameter(Mandatory=$true)]
-        [Int]$NumOfDisks = 4, #data disks attached to each cluster node, if greater than 1, then the disks will be provisioned as raid0
+        [Int]$NumOfDisks, #data disks attached to each cluster node, if greater than 1, then the disks will be provisioned as raid0
         [parameter(Mandatory=$true)]
-        [Int]$DiskSizeInGB = 10, #size of each data disk attached to cluster node
+        [Int]$DiskSizeInGB, #size of each data disk attached to cluster node
         [parameter(Mandatory=$true)]
-        [String]$VMNamePrefix = "azpxc", #the prefix of the host name for each cluster node, a number will be appended to the prefix to distiguish each node, for example,azpxc1,azpxc2...
+        [String]$VMNamePrefix, #the prefix of the host name for each cluster node, a number will be appended to the prefix to distiguish each node, for example,azpxc1,azpxc2...
         [parameter(Mandatory=$true)]
-        [String]$VMUser = "azureuser", #the user name that can be used to ssh into the cluster node
+        [String]$VMUser, #the user name that can be used to ssh into the cluster node
         [parameter(Mandatory=$true)]
-        [String]$VMPassword = "s3cret#", #the password for the ssh user
-        [parameter(Mandatory=$true)]
+        [String]$VMPassword, #the password for the ssh user
+        [parameter(Mandatory=$false)]
         [String]$VMExtLocation = "https://github.com/liupeirong/Azure/blob/master/DeployPXC/azurepxc.sh", #the location of the VM extension script that will run as part of the cluster node creation
         [parameter(Mandatory=$false)]
-        [String]$SecondNICName = "",  #this indicates the need for 2nd NIC. leave this empty if you don't have 2nd NIC, all other 2nd NIC settings will have no effect if this is empty
+        [String]$MyCnfLocation = "https://github.com/liupeirong/Azure/blob/master/DeployPXC/my.cnf.template", #the location of MySQL my.cnf template, IP and hostname will be substituted by the script, you configure everything else to your liking
         [parameter(Mandatory=$false)]
-        [String]$SecondNICSubnet = "clustersubnet", #the subnet inside the vnet that the second NIC of the cluster nodes belong to
+        [String]$SecondNICName,  #this indicates the need for 2nd NIC. leave this empty if you don't have 2nd NIC, all other 2nd NIC settings will have no effect if this is empty
         [parameter(Mandatory=$false)]
-        [String]$SecondNICIPs = "10.1.0.4,10.1.0.5,10.1.0.6", #the IPs of the second NIC of the cluster nodes
+        [String]$SecondNICSubnet, #the subnet inside the vnet that the second NIC of the cluster nodes belong to
         [parameter(Mandatory=$false)]
-        [String]$PrivateVMExtConfig = ""  #leave this empty if your VM extension script is publicly accessible
+        [String]$SecondNICIPs, #the IPs of the second NIC of the cluster nodes
+        [parameter(Mandatory=$false)]
+        [String]$PrivateVMExtConfig  #leave this empty if your VM extension script is publicly accessible
 )
 
 $ErrorActionPreference = "Stop"
@@ -253,6 +255,7 @@ function deployCluster
         {
             $extParams += "start "
         }
+        $extParams += $MyCnfLocation + " "
         $extParams += $SECONDNICName
         $PublicVMExtConfig = '{"fileUris":["' + $VMExtLocation +'"], "commandToExecute": "bash azurepxc.sh ' + $extParams + '" }' 
         if ($PrivateVMExtConfig -and $PrivateVMExtConfig -ne "")
