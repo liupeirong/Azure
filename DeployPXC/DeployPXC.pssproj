@@ -27,10 +27,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="my.conf" />
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="azurepxc.sh" />
     <Compile Include="DeployPXC.ps1" />
+    <Compile Include="my.cnf.template" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />

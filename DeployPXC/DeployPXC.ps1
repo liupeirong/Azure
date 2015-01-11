@@ -247,12 +247,13 @@ function deployCluster
         }
         if ($i -eq 0)
         {
-            $extParams += "bootstrap-pxc"
+            $extParams += "bootstrap-pxc "
         }
         else
         {
-            $extParams += "start"
+            $extParams += "start "
         }
+        $extParams += $SECONDNICName
         $PublicVMExtConfig = '{"fileUris":["' + $VMExtLocation +'"], "commandToExecute": "bash azurepxc.sh ' + $extParams + '" }' 
         if ($PrivateVMExtConfig -and $PrivateVMExtConfig -ne "")
         {
