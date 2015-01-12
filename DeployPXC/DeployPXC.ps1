@@ -1,11 +1,11 @@
 ﻿<#
 .SYNOPSIS
-    This script/runbook provides a way to deploy a MySQL Percona XtraDB Cluster (PXC) in the specified Azure environment. 
+    This script/runbook deploys a fully customizable MySQL Percona XtraDB Cluster (PXC) in the specified Azure environment. 
 	It provisions network, storage and compute resources for the cluster, and leverages Azure Linux custom script
-	VM extension to run a bash script to install and configure MySQL on each node.  It also optionally stripes the disks and 
+	VM extension to run a bash script to install and configure MySQL on each node.  It also optionally stripes disks and 
     configures a second NIC for each node. 
     
-    After the cluster is deployed, access the internal load balancer with the user 'test' and the password specified in 
+    Once the cluster is deployed, access the internal load balancer with the user 'test' and the password specified in 
     my.cnf template by default. For example, "mysql -h 10.0.0.7 -u test --password=s3cret". Then inside the MySQL environment, 
     run "show status like 'wsrep%';" to make sure wsrep_cluster_size shows the number of
     cluster nodes specified, and wsrep_ready is "ON". 
