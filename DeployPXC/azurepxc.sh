@@ -55,23 +55,23 @@ add_to_fstab() {
 get_disk_count() {
     DISKCOUNT=0
     for DISK in "${DISKS[@]}";
-	do 
-	    DISKCOUNT+=1
-	done;
-	echo "$DISKCOUNT"
+    do 
+        DISKCOUNT+=1
+    done;
+    echo "$DISKCOUNT"
 }
 
 create_raid0() {
     echo "Creating raid0"
-	yes | mdadm --create "$RAIDDISK" --name=data --level=0 --chunk="$RAIDCHUNKSIZE" --raid-devices="$DISKCOUNT" "${DISKS[@]}"
-	mdadm --detail --verbose --scan > /etc/mdadm.conf
+    yes | mdadm --create "$RAIDDISK" --name=data --level=0 --chunk="$RAIDCHUNKSIZE" --raid-devices="$DISKCOUNT" "${DISKS[@]}"
+    mdadm --detail --verbose --scan > /etc/mdadm.conf
 }
 
 do_partition() {
 # This function creates one (1) primary partition on the
 # disk, using all available space
     DISK=${1}
-	echo "Partitioning disk $DISK"
+    echo "Partitioning disk $DISK"
     echo "n
 p
 1
@@ -91,38 +91,38 @@ fi
 }
 
 configure_disks() {
-	DISKS=($(scan_for_new_disks))
-	echo "Disks are ${DISKS[@]}"
-	declare -i DISKCOUNT
-	DISKCOUNT=$(get_disk_count) 
-	echo "Disk count is $DISKCOUNT"
-	if [ $DISKCOUNT -gt 1 ];
-	then
-		create_raid0
-		do_partition ${RAIDDISK}
-		PARTITION="${RAIDPARTITION}"
-	else
-		DISK="${DISKS[0]}"
-		do_partition ${DISK}
-		PARTITION=$(fdisk -l ${DISK}|grep -A 1 Device|tail -n 1|awk '{print $1}')
-	fi
+    DISKS=($(scan_for_new_disks))
+    echo "Disks are ${DISKS[@]}"
+    declare -i DISKCOUNT
+    DISKCOUNT=$(get_disk_count) 
+    echo "Disk count is $DISKCOUNT"
+    if [ $DISKCOUNT -gt 1 ];
+    then
+        create_raid0
+        do_partition ${RAIDDISK}
+        PARTITION="${RAIDPARTITION}"
+    else
+        DISK="${DISKS[0]}"
+        do_partition ${DISK}
+        PARTITION=$(fdisk -l ${DISK}|grep -A 1 Device|tail -n 1|awk '{print $1}')
+    fi
 
-	echo "Creating filesystem on ${PARTITION}."
-	mkfs -t ext4 ${PARTITION}
-	mkdir "${MOUNTPOINT}"
-	read UUID FS_TYPE < <(blkid -u filesystem ${PARTITION}|awk -F "[= ]" '{print $3" "$5}'|tr -d "\"")
-	add_to_fstab "${UUID}" "${MOUNTPOINT}"
-	echo "Mounting disk ${PARTITION} on ${MOUNTPOINT}"
-	mount "${MOUNTPOINT}"
+    echo "Creating filesystem on ${PARTITION}."
+    mkfs -t ext4 ${PARTITION}
+    mkdir "${MOUNTPOINT}"
+    read UUID FS_TYPE < <(blkid -u filesystem ${PARTITION}|awk -F "[= ]" '{print $3" "$5}'|tr -d "\"")
+    add_to_fstab "${UUID}" "${MOUNTPOINT}"
+    echo "Mounting disk ${PARTITION} on ${MOUNTPOINT}"
+    mount "${MOUNTPOINT}"
 }
 
 open_ports() {
-	iptables -A INPUT -p tcp -m tcp --dport 3306 -j ACCEPT
-	iptables -A INPUT -p tcp -m tcp --dport 4444 -j ACCEPT
-	iptables -A INPUT -p tcp -m tcp --dport 4567 -j ACCEPT
-	iptables -A INPUT -p tcp -m tcp --dport 4568 -j ACCEPT
-	iptables -A INPUT -p tcp -m tcp --dport 9200 -j ACCEPT
-	/etc/init.d/iptables save
+    iptables -A INPUT -p tcp -m tcp --dport 3306 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 4444 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 4567 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 4568 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 9200 -j ACCEPT
+    /etc/init.d/iptables save
 }
 
 disable_selinux() {
@@ -132,19 +132,19 @@ disable_selinux() {
 
 activate_secondnic() {
     if [ -n "$SECONDNIC" ];
-	then
-	    cp /etc/sysconfig/network-scripts/ifcfg-eth0 "/etc/sysconfig/network-scripts/ifcfg-${SECONDNIC}"
-		sed -i "s/^DEVICE=.*/DEVICE=${SECONDNIC}/I" "/etc/sysconfig/network-scripts/ifcfg-${SECONDNIC}"
-		defaultgw=$(ip route show |sed -n "s/^default via //p")
-		declare -a gateway=(${defaultgw// / })
-		sed -i "\$aGATEWAY=${gateway[0]}" /etc/sysconfig/network
-		service network restart
-	fi
+    then
+        cp /etc/sysconfig/network-scripts/ifcfg-eth0 "/etc/sysconfig/network-scripts/ifcfg-${SECONDNIC}"
+        sed -i "s/^DEVICE=.*/DEVICE=${SECONDNIC}/I" "/etc/sysconfig/network-scripts/ifcfg-${SECONDNIC}"
+        defaultgw=$(ip route show |sed -n "s/^default via //p")
+        declare -a gateway=(${defaultgw// / })
+        sed -i "\$aGATEWAY=${gateway[0]}" /etc/sysconfig/network
+        service network restart
+    fi
 }
 
 configure_network() {
     open_ports
-	activate_secondnic
+    activate_secondnic
     disable_selinux
 }
 
@@ -159,7 +159,7 @@ configure_mysql() {
     yum -y install xinetd
 
     sed -i "\$amysqlchk  9200\/tcp  #mysqlchk" /etc/services
-	service xinetd start
+    service xinetd start
     wget "${MYCNFTEMPLATE}" -O /etc/my.cnf
     sed -i "s/^wsrep_cluster_address=.*/wsrep_cluster_address=gcomm:\/\/${CLUSTERADDRESS}/I" /etc/my.cnf
     sed -i "s/^wsrep_node_address=.*/wsrep_node_address=${NODEADDRESS}/I" /etc/my.cnf
@@ -167,8 +167,8 @@ configure_mysql() {
     /etc/init.d/mysql $MYSQLSTARTUP
     if [ $MYSQLSTARTUP == "bootstrap-pxc" ];
     then
-	    sst=$(sed -n "s/^wsrep_sst_auth=//p" /etc/my.cnf | cut -d'"' -f2)
-		declare -a sstauth=(${sst//:/ })
+        sst=$(sed -n "s/^wsrep_sst_auth=//p" /etc/my.cnf | cut -d'"' -f2)
+        declare -a sstauth=(${sst//:/ })
         echo "CREATE USER '${sstauth[0]}'@'localhost' IDENTIFIED BY '${sstauth[1]}';" > /tmp/bootstrap-pxc.sql
         echo "GRANT RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO '${sstauth[0]}'@'localhost';" >> /tmp/bootstrap-pxc.sql
         echo "CREATE USER 'clustercheckuser'@'localhost' identified by 'clustercheckpassword!';" >> /tmp/bootstrap-pxc.sql
