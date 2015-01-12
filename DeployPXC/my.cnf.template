@@ -1,3 +1,7 @@
+# Leave wsrep_cluster_address, wsrep_cluster_name, and wsrep_node_address empty to be replaced by the 
+# Azure DeployPXC script.  Everything else can be customized.  After you customize this template, 
+# place it in a location that can be wget from the Linux VM it's deployed to, then specify that location
+# in the parameter of DeployPXC script/runbook.
 [mysqld]
 datadir=/var/lib/mysql
 socket=/var/lib/mysql/mysql.sock

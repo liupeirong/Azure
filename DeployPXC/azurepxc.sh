@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# This script is only tested on CentOS 6.5 with Percona XtraDB Cluster 5.6.
+# You can customize variables such as MOUNTPOINT, RAIDCHUNKSIZE and so on to your needs.
+# You can also customize it to work with other Linux flavours and versions.
+# If you customize it, copy it to either Azure blob storage or Github so that Azure
+# custom script Linux VM extension can access it, and specify its location in the 
+# parameters of DeployPXC powershell script or runbook.   
+
 CLUSTERADDRESS=${1}
 NODEADDRESS=${2}
 NODENAME=$(hostname)
@@ -7,13 +14,14 @@ MYSQLSTARTUP=${3}
 MYCNFTEMPLATE=${4}
 SECONDNIC=${5}
 
-# An set of disks to ignore from partitioning and formatting
-BLACKLIST="/dev/sda|/dev/sdb"
-# directory to hold the data* files
 MOUNTPOINT="/datadrive"
+RAIDCHUNKSIZE=64
+
 RAIDDISK="/dev/md/data"
 RAIDPARTITION="/dev/md127p1"
-RAIDCHUNKSIZE=64
+
+# An set of disks to ignore from partitioning and formatting
+BLACKLIST="/dev/sda|/dev/sdb"
 
 scan_for_new_disks() {
     # Looks for unpartitioned disks
@@ -113,6 +121,7 @@ open_ports() {
 	iptables -A INPUT -p tcp -m tcp --dport 4444 -j ACCEPT
 	iptables -A INPUT -p tcp -m tcp --dport 4567 -j ACCEPT
 	iptables -A INPUT -p tcp -m tcp --dport 4568 -j ACCEPT
+	iptables -A INPUT -p tcp -m tcp --dport 9200 -j ACCEPT
 	/etc/init.d/iptables save
 }
 
@@ -150,6 +159,7 @@ configure_mysql() {
     yum -y install xinetd
 
     sed -i "\$amysqlchk  9200\/tcp  #mysqlchk" /etc/services
+	service xinetd start
     wget "${MYCNFTEMPLATE}" -O /etc/my.cnf
     sed -i "s/^wsrep_cluster_address=.*/wsrep_cluster_address=gcomm:\/\/${CLUSTERADDRESS}/I" /etc/my.cnf
     sed -i "s/^wsrep_node_address=.*/wsrep_node_address=${NODEADDRESS}/I" /etc/my.cnf
@@ -163,6 +173,8 @@ configure_mysql() {
         echo "GRANT RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO '${sstauth[0]}'@'localhost';" >> /tmp/bootstrap-pxc.sql
         echo "CREATE USER 'clustercheckuser'@'localhost' identified by 'clustercheckpassword!';" >> /tmp/bootstrap-pxc.sql
         echo "GRANT PROCESS on *.* to 'clustercheckuser'@'localhost';" >> /tmp/bootstrap-pxc.sql
+        echo "CREATE USER 'test'@'%' identified by '${sstauth[1]}';" >> /tmp/bootstrap-pxc.sql
+        echo "GRANT select on *.* to 'test'@'%';" >> /tmp/bootstrap-pxc.sql
         echo "FLUSH PRIVILEGES;" >> /tmp/bootstrap-pxc.sql
         mysql < /tmp/bootstrap-pxc.sql
     fi

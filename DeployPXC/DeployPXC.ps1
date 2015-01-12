@@ -1,6 +1,67 @@
-﻿#
-# DeployPXC.ps1
-#
+﻿<#
+.SYNOPSIS
+    This script/runbook provides a way to deploy a MySQL Percona XtraDB Cluster (PXC) in the specified Azure environment. 
+	It provisions network, storage and compute resources for the cluster, and leverages Azure Linux custom script
+	VM extension to run a bash script to install and configure MySQL on each node.  It also optionally stripes the disks and 
+    configures a second NIC for each node. 
+    
+    After the cluster is deployed, access the internal load balancer with the user 'test' and the password specified in 
+    my.cnf template by default. For example, "mysql -h 10.0.0.7 -u test --password=s3cret". Then inside the MySQL environment, 
+    run "show status like 'wsrep%';" to make sure wsrep_cluster_size shows the number of
+    cluster nodes specified, and wsrep_ready is "ON". 
+    
+    You should customize MySQL configuration file to your needs, especially the account for SST, checkcluster, and the account that
+    can access the database from the load balancer or other IPs.  See the CUSTOMIZATION section below for details.
+	
+.SUPPORTED ENVIRONMENT
+    Percona XtraDB Cluster 5.6
+	CentOS 6.5
+	
+.DEPLOYMENT SPECIFICATION
+    Network
+	    You must create an Azure virtual network and subnet that the cluster should be deployed to.  The virtual network, 
+		the storage account, and the cloud service must belong to the same region.  You can also specify the use of a second NIC 
+		for the cluster nodes.  If you use a second NIC, you must create the subnet for the second NIC.  The IP addresses 
+		you specify for the cluster nodes must be available in their respective subnet. Only PowerShell SDK versions 0.8.12 
+		and above support the creation of a second NIC.
+		
+		You also need to specify the IP address of an Azure internal load balancer for the cluster, so that your application
+		can access MySQL using the load balancer instead of individual nodes.  The load balancer IP should be available in 
+		the virtual network.
+		
+	Storage
+	    The storage account you specify will host the disks of the cluster nodes.  Therefore it must be in the same region
+		as the virtual network to ensure good performance.  You may specify the number of disks and disk size to be attached
+		to each cluster node.  If the number of disks is greater than 1, the disks will be stripped into a raid0 array.  
+		
+	Virtual Machines
+	    You may specify the number of nodes to be deployed to the cluster, the size of each node, and the prefix of the node's
+		host name.  A number, starting from 1, will be attached to the prefix to form the full host name, for example if the prefix
+		is azpxc, then the node names will be azpxc1, azpxc2 and so on.
+		
+.CUSTOMIZATION
+    In addition to providing the parameters for this script/runbook, you can customize MySQL my.cnf file to your needs. You can 
+	leave cluster address, node address and node name empty in your template as these will be replaced by the VM extension script, 
+	everything else can be customized.  By default, the VM extension script is located at 
+	https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/azurepxc.sh, and the my.cnf template is located at 
+	https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/my.cnf.template.  You can copy them to another location,
+	provide your own customization, and then specify their location in the parameters of this script/runbook. 
+
+.EXAMPLE
+    To deploy a 3 node cluster without disk striping or 2nd NIC: 
+
+	.\DeployPXC.ps1 -SubscriptionName "mysubscription" -StorageAccountName "mystorage" -ServiceName "myservice" -VNetName "myvnet" `
+	                -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.1,10.0.0.2,10.0.0.3" -LoadBalancerIP "10.0.0.4" `
+					-VMSize "Large" -NumOfDisks 1 -DiskSizeInGB 10 -VMNamePrefix "azpxc" -VMUser "azureuser" -VMPassword "s3cret#" 
+					
+	To deploy a 3 node cluster with disk striping and 2nd NIC:
+
+    .\DeployPXC.ps1 -SubscriptionName "mysubscription" -StorageAccountName "mystorage" -ServiceName "myservice" -VNetName "myvnet" `
+	                -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.1,10.0.0.2,10.0.0.3" -LoadBalancerIP "10.0.0.4" `
+					-VMSize "Large" -NumOfDisks 4 -DiskSizeInGB 10 -VMNamePrefix "azpxc" -VMUser "azureuser" -VMPassword "s3cret#" 
+				    -SecondNICName "eth1" -SecondNICSubnet "clustersubnet" -SecondNICIPs "10.1.0.4,10.1.0.5,10.1.0.6"
+#>
+
 param (
         [parameter(Mandatory=$false)]
         [String]$CredentialName, #only used with Azure automation, leave empty in standalone Powershell script
@@ -9,15 +70,15 @@ param (
         [parameter(Mandatory=$true)]
         [String]$StorageAccountName,
         [parameter(Mandatory=$true)]
-        [parameter(Mandatory=$true)]
         [String]$ServiceName, #Azure cloud service that the cluster nodes will be deployed to, will create if not already exist
+        [parameter(Mandatory=$true)]
         [String]$VNetName, #Azure vnet that the cluster nodes will be deployed to, must already exist
         [parameter(Mandatory=$true)]
         [String]$DBSubnet, #the subnet inside the vnet that the primary NIC of the cluster nodes belong to
         [parameter(Mandatory=$true)]
-        [String]$DBNodeIPs, #the IPs of the primary NIC of the cluster nodes
+        [String]$DBNodeIPs, #the IPs of the primary NIC of the cluster nodes, comma separated, ex: "10.0.0.1,10.0.0.2,10.0.0.3"
         [parameter(Mandatory=$true)]
-        [String]$LoadBalancerIP, #the IP of the load balancer for the cluster nodes
+        [String]$LoadBalancerIP, #the IP of the load balancer for the cluster nodes, must be in the VNet
         [parameter(Mandatory=$true)]
         [String]$VMSize = "Large", #Azure VM size for the cluster nodes
         [parameter(Mandatory=$true)]
@@ -31,15 +92,15 @@ param (
         [parameter(Mandatory=$true)]
         [String]$VMPassword, #the password for the ssh user
         [parameter(Mandatory=$false)]
-        [String]$VMExtLocation = "https://github.com/liupeirong/Azure/blob/master/DeployPXC/azurepxc.sh", #the location of the VM extension script that will run as part of the cluster node creation
+        [String]$VMExtLocation = "https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/azurepxc.sh", #the location of the VM extension script that will run as part of the cluster node creation
         [parameter(Mandatory=$false)]
-        [String]$MyCnfLocation = "https://github.com/liupeirong/Azure/blob/master/DeployPXC/my.cnf.template", #the location of MySQL my.cnf template, IP and hostname will be substituted by the script, you configure everything else to your liking
+        [String]$MyCnfLocation = "https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/my.cnf.template", #the location of MySQL my.cnf template, IP and hostname will be substituted by the script, you configure everything else to your liking
         [parameter(Mandatory=$false)]
         [String]$SecondNICName,  #this indicates the need for 2nd NIC. leave this empty if you don't have 2nd NIC, all other 2nd NIC settings will have no effect if this is empty
         [parameter(Mandatory=$false)]
         [String]$SecondNICSubnet, #the subnet inside the vnet that the second NIC of the cluster nodes belong to
         [parameter(Mandatory=$false)]
-        [String]$SecondNICIPs, #the IPs of the second NIC of the cluster nodes
+        [String]$SecondNICIPs, #the IPs of the second NIC of the cluster nodes, comma separated, ex: "10.1.0.1,10.1.0.2,10.1.0.3"
         [parameter(Mandatory=$false)]
         [String]$PrivateVMExtConfig  #leave this empty if your VM extension script is publicly accessible
 )
@@ -126,10 +187,9 @@ function validateInput
 	    Exit
     }
     # check if load balancer IP is available in DBSubnet
-    if (!(checkSubnet $DBSubnetObj.AddressPrefix $LoadBalancerIP) -or 
-       !((Test-AzureStaticVNetIP -VNetName $VNetName -IPAddress $LoadBalancerIP).IsAvailable))
+    if (!((Test-AzureStaticVNetIP -VNetName $VNetName -IPAddress $LoadBalancerIP).IsAvailable))
     {
-	    Write-Error ("Load Balancer IP {0} is not available in subnet {1}." -f $LoadBalancerIP, $DBSubnet)	
+	    Write-Error ("Load Balancer IP {0} is not available in VNet {1}." -f $LoadBalancerIP, $VNetName)	
 	    Exit
     }
     # check if DBNodeIPs are available in DBSubnet
