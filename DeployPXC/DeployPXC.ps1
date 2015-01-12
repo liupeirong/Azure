@@ -340,6 +340,11 @@ function deployCluster
     }
 
     Write-Verbose -Verbose ("Done deploying cluster")
+	Write-Verbose -Verbose ("Run this command in a node to verify the cluster is working, user is 'test' and password is 's3cret' by default, or use your customized user:")
+	Write-Verbose -Verbose ("    mysql -h {0} -u test -p", $LoadBalancerIP)
+	Write-Verbose -Verbose ("then in MySQL, run:")
+	Write-Verbose -Verbose ("    show status like 'wsrep%';")
+	Write-Verbose -Verbose ("verify wsrep_cluster_size is {0}, and wsrep_ready is ON", $script:NodeIPs.Count)
 }
 
 $AzureVersion = (Get-Module -Name Azure).Version
