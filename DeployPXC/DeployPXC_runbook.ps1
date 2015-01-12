@@ -62,7 +62,8 @@
 				    -SecondNICName "eth1" -SecondNICSubnet "clustersubnet" -SecondNICIPs "10.1.0.4,10.1.0.5,10.1.0.6"
 #>
 
-param (
+workflow DeployPXC {
+    param (
         [parameter(Mandatory=$false)]
         [String]$CredentialName, #only used with Azure automation, leave empty in standalone Powershell script
         [parameter(Mandatory=$true)]
@@ -103,8 +104,33 @@ param (
         [String]$SecondNICIPs, #the IPs of the second NIC of the cluster nodes, comma separated, ex: "10.1.0.1,10.1.0.2,10.1.0.3"
         [parameter(Mandatory=$false)]
         [String]$PrivateVMExtConfig  #leave this empty if your VM extension script is publicly accessible
-)
+    )
 
+$cred = Get-AutomationPSCredential -Name $CredentialName
+Add-AzureAccount -Credential $cred
+
+InlineScript {
+$SubscriptionName = $using:SubscriptionName
+$StorageAccountName = $using:StorageAccountName
+$ServiceName = $using:ServiceName
+$VNetName = $using:VNetName
+$DBSubnet = $using:DBSubnet
+$DBNodeIPs = $using:DBNodeIPs
+$LoadBalancerIP = $using:LoadBalancerIP
+$VMSize = $using:VMSize
+$NumOfDisks = $using:NumOfDisks 
+$DiskSizeInGB = $using:DiskSizeInGB
+$VMNamePrefix = $using:VMNamePrefix
+$VMUser = $using:VMUser
+$VMPassword = $using:VMPassword
+$VMExtLocation = $using:VMExtLocation
+$MyCnfLocation = $using:MyCnfLocation
+$SecondNICName = $using:SecondNICName  
+$SecondNICSubnet = $using:SecondNICSubnet 
+$SecondNICIPs = $using:SecondNICIPs 
+$PrivateVMExtConfig = $using:PrivateVMExtConfig
+
+# from here below, it's exactly same as the standalone script
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest 
 
@@ -353,4 +379,5 @@ Set-AzureSubscription -SubscriptionName $SubscriptionName -CurrentStorageAccount
 validateInput
 deployCluster
 
-
+} #end of inlinescript
+} #end of workflow
