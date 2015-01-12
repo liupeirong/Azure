@@ -1,42 +1,66 @@
 ﻿<#
 .SYNOPSIS
-    This script/runbook deploys a fully customizable MySQL Percona XtraDB Cluster (PXC) in the specified Azure environment. It provisions network, storage and compute resources for the cluster, and leverages Azure Linux custom script VM extension to run a bash script to install and configure MySQL on each node.  It also optionally stripes disks and configures a second NIC for each node. 
+    This script/runbook deploys a fully customizable MySQL Percona XtraDB Cluster (PXC) in the specified Azure environment. 
+    It provisions network, storage and compute resources for the cluster, and leverages Azure Linux custom script
+    VM extension to run a bash script to install and configure MySQL on each node.  It also optionally stripes disks and 
+    configures a second NIC for each node. 
     
-    Once the cluster is deployed, access the internal load balancer with the user 'test' and the password specified in my.cnf template by default. For example, "mysql -h 10.0.0.7 -u test --password=s3cret". Then inside the MySQL environment, run "show status like 'wsrep%';" to make sure wsrep_cluster_size shows the number of cluster nodes specified, and wsrep_ready is "ON". 
+    Once the cluster is deployed, access the internal load balancer with the user 'test' and the password specified in 
+    my.cnf template by default. For example, "mysql -h 10.0.0.7 -u test --password=s3cret". Then inside the MySQL environment, 
+    run "show status like 'wsrep%';" to make sure wsrep_cluster_size shows the number of
+    cluster nodes specified, and wsrep_ready is "ON". 
     
-    You should customize MySQL configuration file to your needs, especially the account for SST, checkcluster, and the account that can access the database from the load balancer or other IPs.  See the CUSTOMIZATION section below for details.
-
+    You should customize MySQL configuration file to your needs, especially the account for SST, checkcluster, and the account 
+    that can access the database from the load balancer or other IPs.  See the CUSTOMIZATION section below for details.
+    
 .SUPPORTED ENVIRONMENT
     Percona XtraDB Cluster 5.6
     CentOS 6.5
     
 .DEPLOYMENT SPECIFICATION
     Network
-        You must create an Azure virtual network and subnet that the cluster should be deployed to.  The virtual network, the storage account, and the cloud service must belong to the same region.  You can also specify the use of a second NIC for the cluster nodes.  If you use a second NIC, you must create the subnet for the second NIC.  The IP addresses you specify for the cluster nodes must be available in their respective subnet. Only PowerShell SDK versions 0.8.12 and above support the creation of a second NIC.
-
-        You also need to specify the IP address of an Azure internal load balancer for the cluster, so that your application can access MySQL using the load balancer instead of individual nodes.  The load balancer IP should be available in the virtual network.
-
+        You must create an Azure virtual network and subnet that the cluster should be deployed to.  The virtual network, 
+        the storage account, and the cloud service must belong to the same region.  You can also specify the use of a second NIC 
+        for the cluster nodes.  If you use a second NIC, you must create the subnet for the second NIC.  The IP addresses 
+        you specify for the cluster nodes must be available in their respective subnet. Only PowerShell SDK versions 0.8.12 
+        and above support the creation of a second NIC.
+        
+        You also need to specify the IP address of an Azure internal load balancer for the cluster, so that your application
+        can access MySQL using the load balancer instead of individual nodes.  The load balancer IP should be available in 
+        the virtual network.
+        
     Storage
-        The storage account you specify will host the disks of the cluster nodes.  Therefore it must be in the same region as the virtual network to ensure good performance.  You may specify the number of disks and disk size to be attached    to each cluster node.  If the number of disks is greater than 1, the disks will be stripped into a raid0 array.  
-
+        The storage account you specify will host the disks of the cluster nodes.  Therefore it must be in the same region
+        as the virtual network to ensure good performance.  You may specify the number of disks and disk size to be attached
+        to each cluster node.  If the number of disks is greater than 1, the disks will be stripped into a raid0 array.  
+        
     Virtual Machines
-        You may specify the number of nodes to be deployed to the cluster, the size of each node, and the prefix of the node's host name.  A number, starting from 1, will be attached to the prefix to form the full host name, for example if the prefix is azpxc, then the node names will be azpxc1, azpxc2 and so on.
-
+        You may specify the number of nodes to be deployed to the cluster, the size of each node, and the prefix of the node's
+        host name.  A number, starting from 1, will be attached to the prefix to form the full host name, for example if the 
+        prefix is azpxc, then the node names will be azpxc1, azpxc2 and so on.
+        
 .CUSTOMIZATION
-    In addition to providing the parameters for this script/runbook, you can customize MySQL my.cnf file to your needs. You can leave cluster address, node address and node name empty in your template as these will be replaced by the VM extension script, everything else can be customized.  By default, the VM extension script is located at https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/azurepxc.sh, and the my.cnf template is located at https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/my.cnf.template.  You can copy them to another location, provide your own customization, and then specify their location in the parameters of this script/runbook. 
+    In addition to providing the parameters for this script/runbook, you can customize MySQL my.cnf file to your needs. You can 
+    leave cluster address, node address and node name empty in your template as these will be replaced by the VM extension script, 
+    everything else can be customized.  By default, the VM extension script is located at 
+    https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/azurepxc.sh, and the my.cnf template is located at 
+    https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/my.cnf.template.  You can copy them to another location,
+    provide your own customization, and then specify their location in the parameters of this script/runbook. 
 
 .EXAMPLE
     To deploy a 3 node cluster without disk striping or 2nd NIC: 
 
-    .\DeployPXC.ps1 -SubscriptionName "mysubscription" -StorageAccountName "mystorage" -ServiceName "myservice" -VNetName "myvnet" `
-                    -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.1,10.0.0.2,10.0.0.3" -LoadBalancerIP "10.0.0.4" `
-                    -VMSize "Large" -NumOfDisks 1 -DiskSizeInGB 10 -VMNamePrefix "azpxc" -VMUser "azureuser" -VMPassword "s3cret#" 
-
+    .\DeployPXC.ps1 -SubscriptionName "mysubscription" -StorageAccountName "mystorage" -ServiceName "myservice" `
+                    -VNetName "myvnet" -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.1,10.0.0.2,10.0.0.3" `
+                    -LoadBalancerIP "10.0.0.4" -VMSize "Large" -NumOfDisks 1 -DiskSizeInGB 10 -VMNamePrefix "azpxc" `
+                    -VMUser "azureuser" -VMPassword "s3cret#" 
+                    
     To deploy a 3 node cluster with disk striping and 2nd NIC:
 
-    .\DeployPXC.ps1 -SubscriptionName "mysubscription" -StorageAccountName "mystorage" -ServiceName "myservice" -VNetName "myvnet" `
-                    -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.1,10.0.0.2,10.0.0.3" -LoadBalancerIP "10.0.0.4" `
-                    -VMSize "Large" -NumOfDisks 4 -DiskSizeInGB 10 -VMNamePrefix "azpxc" -VMUser "azureuser" -VMPassword "s3cret#" 
+    .\DeployPXC.ps1 -SubscriptionName "mysubscription" -StorageAccountName "mystorage" -ServiceName "myservice" `
+                    -VNetName "myvnet" -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.1,10.0.0.2,10.0.0.3" `
+                    -LoadBalancerIP "10.0.0.4" -VMSize "Large" -NumOfDisks 1 -DiskSizeInGB 10 -VMNamePrefix "azpxc" `
+                    -VMUser "azureuser" -VMPassword "s3cret#" `
                     -SecondNICName "eth1" -SecondNICSubnet "clustersubnet" -SecondNICIPs "10.1.0.4,10.1.0.5,10.1.0.6"
 #>
 
