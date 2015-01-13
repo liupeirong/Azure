@@ -172,7 +172,7 @@ configure_mysql() {
         /etc/init.d/mysql bootstrap-pxc
         echo "CREATE USER '${sstauth[0]}'@'localhost' IDENTIFIED BY '${sstauth[1]}';" > /tmp/mysqldump-pxc.sql
         echo "GRANT ALL PRIVILEGES ON *.* TO '${sstauth[0]}'@'localhost' with GRANT OPTION;" >> /tmp/mysqldump-pxc.sql
-        echo "CREATE USER '${sstauth[0]}'@'%' IDENTIFIED BY '${sstauth[1]}';" > /tmp/mysqldump-pxc.sql
+        echo "CREATE USER '${sstauth[0]}'@'%' IDENTIFIED BY '${sstauth[1]}';" >> /tmp/mysqldump-pxc.sql
         echo "GRANT ALL PRIVILEGES ON *.* TO '${sstauth[0]}'@'%' with GRANT OPTION;" >> /tmp/mysqldump-pxc.sql
         echo "FLUSH PRIVILEGES;" >> /tmp/mysqldump-pxc.sql
         mysql < /tmp/mysqldump-pxc.sql
