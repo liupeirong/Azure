@@ -9,7 +9,9 @@ This PowerShell script and the corresponding Azure automation runbook deploys a 
   - optionally provision a second NIC for each node so that the intra-cluster traffic can be separated from application traffic
   - automatically place the cluster nodes in an availability set to ensure high availability
   - you can fully customize MySQL configuration file my.cnf, and just leave IP addresses and host names for the script to automatically fill
+
 ### Usage
+
 You can either run DeployPXC.ps1 as a standalone PowerShell script in an Azure PowerShell environment, or you can go to the Azure portal, create an Automation account, and import this runbook from the automation gallery.  This runbook is in the category "Provisioning".  The benefit of running it as automation is that you don't need another machine to run PowerShell.  If you run it as automation, your will need to create a user to execute the runbook.  If you have never done that before, you can refer to this [blog](http://azure.microsoft.com/blog/2014/08/27/azure-automation-authenticating-to-azure-using-azure-active-directory/) for details.  Other than this difference, both use cases share the same basic steps:
 
  1. Plan your environment, including: 
@@ -31,7 +33,9 @@ You can either run DeployPXC.ps1 as a standalone PowerShell script in an Azure P
  - mysql -h <load balancer ip> -u test --password=<same as sst by default>
  - mysql> show status like 'wsrep%' 
  make sure wsrep_cluster_size is the number of the nodes provisioned.
+
 ### Known Issues
+
 These are the known issues at the time of this writing - 
 
  - Azure Automation runbook is running on a version of Azure Powershell
@@ -42,7 +46,9 @@ These are the known issues at the time of this writing -
  - Provisioning of second NIC may fail in some regions. 
    North Europe is the first region to support multiple NICs.  As this
    feature is rolled out to other regions, this problem will go away.
+
 ### Todo's
+
  - Support for Ubuntu is coming soon
 
 License
