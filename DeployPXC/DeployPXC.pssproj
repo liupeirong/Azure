@@ -31,6 +31,7 @@
     <Compile Include="DeployPXC.ps1" />
     <Compile Include="DeployPXC_runbook.ps1" />
     <Compile Include="my.cnf.template" />
+    <Compile Include="readme.md" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
