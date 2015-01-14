@@ -2,13 +2,13 @@
 
 This PowerShell script and the corresponding Azure automation runbook deploys a fully customizable MySQL Percona XtraDB Cluster (PXC) in the Microsoft Azure cloud.  It provides the following capabilities:
 
-  - supports provisioning of PXC 5.6 on Cent OS 6.5.  Ubuntu support is coming soon.  If you use a different Linux flavor/version, chances are you can make some small modifications to the custom script that runs at VM provision time to work for you
-  - automatically provision PXC nodes with specified VM size, region, virtual network, IP and hostname in Azure
-  - automatically add data disks to the VM for MySQL data folder.  If multiple data disks are specified, the script will automatically create a raid 0 volume
-  - automatically provision Azure internal load balancer for the cluster nodes with a probe that checks the health of each node
-  - optionally provision a second NIC for each node so that the intra-cluster traffic can be separated from application traffic
-  - automatically place the cluster nodes in an availability set to ensure high availability
-  - you can fully customize MySQL configuration file my.cnf, and just leave IP addresses and host names for the script to automatically fill
+  - Supports provisioning of PXC 5.6 on Cent OS 6.5.  Ubuntu support is coming soon.  If you use a different Linux flavor/version, chances are you can make some small modifications to the custom script that runs at VM provision time to work for you
+  - Provisions PXC nodes with specified VM size, region, virtual network, IP and hostname in Azure
+  - Adds data disks to the VM for MySQL data folder.  If multiple data disks are specified, the script will automatically create a raid 0 volume
+  - Provisions Azure internal load balancer for the cluster nodes with a probe that checks the health of each node
+  - Optionally provision a second NIC for each node so that the intra-cluster traffic can be separated from application traffic
+  - Automatically place the cluster nodes in an availability set to ensure high availability
+  - You can fully customize MySQL configuration file my.cnf, and just leave IP addresses and host names for the script to automatically fill
 
 ### Usage
 
@@ -30,8 +30,8 @@ You can either run DeployPXC.ps1 as a standalone PowerShell script in an Azure P
  5. Azurepxc.sh configures network, disks, and MySQL.  If you need to make any changes, for example, customize it to work for another Linux version or flavor, just upload your copy to either a GitHub location or Azure blob storage, and provide the URL and access info as parameters for the script. 
  6. Provide the parameters and run the script or runbook.  The script will exit and the runbook will stop if an error occurred.  A lot of sanity checks are done before any resources are provisioned.  So likely you can rerun it after fixing any issues.  If resources are already provisioned and you want to clean up and restart, the easiest way is to delete the entire cloud service if the cloud service is created by this script or doesn't have any other resources in it.  Otherwise, you will need to delete the VMs. 
  7. Once the deployment finishes, access the cluster from the IP of the load balancer with the 'test' account:
- - mysql -h <load balancer ip> -u test --password=<same as sst by default>
- - mysql> show status like 'wsrep%' 
+- mysql -h <load balancer ip> -u test --password=<same as sst by default>
+- mysql> show status like 'wsrep%' 
  make sure wsrep_cluster_size is the number of the nodes provisioned.
 
 ### Known Issues
