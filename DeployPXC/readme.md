@@ -30,7 +30,7 @@ You can either run DeployPXC.ps1 as a standalone PowerShell script in an Azure P
  5. Azurepxc.sh configures network, disks, and MySQL.  If you need to make any changes, for example, customize it to work for another Linux version or flavor, just upload your copy to either a GitHub location or Azure blob storage, and provide the URL and access info as parameters for the script. 
  6. Provide the parameters and run the script or runbook.  The script will exit and the runbook will stop if an error occurred.  A lot of sanity checks are done before any resources are provisioned.  So likely you can rerun it after fixing any issues.  If resources are already provisioned and you want to clean up and restart, the easiest way is to delete the entire cloud service if the cloud service is created by this script or doesn't have any other resources in it.  Otherwise, you will need to delete the VMs. 
  7. Once the deployment finishes, access the cluster from the IP of the load balancer with the 'test' account:
-- mysql -h <load balancer ip> -u test --password=<same as sst by default>
+- mysql -h (load balancer ip) -u test --password=(same as sst by default)
 - mysql> show status like 'wsrep%' 
  make sure wsrep_cluster_size is the number of the nodes provisioned.
 
