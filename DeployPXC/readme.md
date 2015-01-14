@@ -2,12 +2,12 @@
 
 This PowerShell script and the corresponding Azure automation runbook deploys a fully customizable MySQL Percona XtraDB Cluster (PXC) in the Microsoft Azure cloud.  It provides the following capabilities:
 
-  - Supports provisioning of PXC 5.6 on Cent OS 6.5.  Ubuntu support is coming soon.  If you use a different Linux flavor/version, chances are you can make some small modifications to the custom script that runs at VM provision time to work for you
-  - Provisions PXC nodes with specified VM size, region, virtual network, IP and hostname in Azure
+  - Supports provisioning of PXC 5.6 on Cent OS 6.5.  Ubuntu support is coming soon.  If you use a different Linux flavor/version, chances are you can make some small modifications to azurepxc.sh that runs at VM provision time to work for you
+  - Provisions desired number of PXC nodes with specified VM size, region, virtual network, IP and hostname in Azure
   - Adds data disks to the VM for MySQL data folder.  If multiple data disks are specified, the script will automatically create a raid 0 volume
   - Provisions Azure internal load balancer for the cluster nodes with a probe that checks the health of each node
-  - Optionally provision a second NIC for each node so that the intra-cluster traffic can be separated from application traffic
-  - Automatically place the cluster nodes in an availability set to ensure high availability
+  - Optionally provisions a second NIC for each node so that the intra-cluster traffic can be separated from application traffic
+  - Automatically places the cluster nodes in an availability set to ensure high availability
   - You can fully customize MySQL configuration file my.cnf, and just leave IP addresses and host names for the script to automatically fill
 
 ### Usage
@@ -20,19 +20,18 @@ You can either run DeployPXC.ps1 as a standalone PowerShell script in an Azure P
 - subnet and IPs for the cluster nodes
 - IP for the load balancer 
 - cluster node VM size 
-- number of data disks to attach to each node, note that the number of disks that can be attached to a VM    
-- vary based on VM size, see [Azure VM    sizes](http://msdn.microsoft.com/en-us/library/azure/dn197896.aspx)    for details 
+- number of data disks to attach to each node, note that the number of disks that can be attached to a VM varies based on VM size, see [Azure VM    sizes](http://msdn.microsoft.com/en-us/library/azure/dn197896.aspx)    for details 
 - size of data disks 
 - whether the cluster nodes should have a second NIC, and if so, the subnet and IP addresses for the second  NIC
  2. Provision the virtual network and subnets in Azure if they don't already exist (this step is not automated as many times you already have network configured and only need to deploy the cluster to your existing network).  Ensure the VMs don't already exist, and the IP addresses are available in the specified subnets.
- 3. Download the my.cnf.template and customize it to your needs, especially, wsrep_sst_auth and innodb_buffer_pool_size.  Leave wsrep_cluster_address, wsrep_node_name and wsrep_node_address empty as they will be filled by the script.  Note that the sst user will be automatically created, and a 'test' user with the same password as the sst user will be created that can access the cluster from the load balancer.  Modify the azurepxc.sh script if you need to modify this behavior.
- 4. Upload modified my.cnf.template to a location that azurepxc.sh can download with "wget" from the deployed VM. 
- 5. Azurepxc.sh configures network, disks, and MySQL.  If you need to make any changes, for example, customize it to work for another Linux version or flavor, just upload your copy to either a GitHub location or Azure blob storage, and provide the URL and access info as parameters for the script. 
- 6. Provide the parameters and run the script or runbook.  The script will exit and the runbook will stop if an error occurred.  A lot of sanity checks are done before any resources are provisioned.  So likely you can rerun it after fixing any issues.  If resources are already provisioned and you want to clean up and restart, the easiest way is to delete the entire cloud service if the cloud service is created by this script or doesn't have any other resources in it.  Otherwise, you will need to delete the VMs. 
+ 3. Download my.cnf.template and customize it to your needs, especially, wsrep_sst_auth and innodb_buffer_pool_size.  Leave wsrep_cluster_address, wsrep_node_name and wsrep_node_address empty as they will be filled by the script.  Note that the sst user will be automatically created, and a 'test' user with the same password as the sst user will be created that can access the cluster from the load balancer.  Modify azurepxc.sh script if you need to change this behavior.
+ 4. Upload your copy of my.cnf.template to a location that azurepxc.sh can download with "wget" from the deployed VM. 
+ 5. Azurepxc.sh configures network, disks, and MySQL.  If you need to make any changes, for example, customize it to work for another Linux version or flavor, just upload your copy to either a GitHub location or Azure blob storage, and provide the URL and access info as parameters to the script. 
+ 6. Provide the parameters and run the script or runbook.  The script will exit and the runbook will stop if an error occurrs.  A lot of sanity checks are done before any resources are provisioned.  So likely you can rerun it after fixing any issues.  If resources are already provisioned and you want to clean up and restart, the easiest way is to delete the entire cloud service if the cloud service is created by this script or doesn't have any other resources in it.  Otherwise, you will need to delete the VMs. 
  7. Once the deployment finishes, access the cluster from the IP of the load balancer with the 'test' account:
 - mysql -h (load balancer ip) -u test --password=(same as sst by default)
-- mysql> show status like 'wsrep%' 
- make sure wsrep_cluster_size is the number of the nodes provisioned.
+- mysql> show status like 'wsrep%';
+ make sure wsrep_cluster_size is the number of nodes provisioned.
 
 ### Known Issues
 
@@ -40,7 +39,7 @@ These are the known issues at the time of this writing -
 
  - Azure Automation runbook is running on a version of Azure Powershell
    SDK that doesn't support the provision of multiple NICs yet.  To
-   provision a 2nd NIC, you will need to run the script in PowerShell
+   provision a second NIC, you will need to run the script in PowerShell
    right now.  Once the SDK is updated in Azure Automation, this problem
    will go away.
  - Provisioning of second NIC may fail in some regions. 
