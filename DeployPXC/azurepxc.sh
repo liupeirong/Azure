@@ -47,7 +47,7 @@ add_to_fstab() {
     then
         echo "Not adding ${UUID} to fstab again (it's already there!)"
     else
-        LINE="UUID=${UUID} ${MOUNTPOINT} ext4 defaults,noatime 0 0"
+        LINE="UUID=${UUID} ${MOUNTPOINT} ext4 defaults 0 0"
         echo -e "${LINE}" >> /etc/fstab
     fi
 }
