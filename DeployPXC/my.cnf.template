@@ -13,6 +13,8 @@ wsrep_cluster_address=gcomm://
 wsrep_node_name=
 wsrep_node_address=
 innodb_buffer_pool_size=2G
+innodb_log_file_size=512M
+innodb_log_buffer_size=128M
 wsrep_sst_auth="sstuser:s3cret"
 
 wsrep_cluster_name="azurepxc"
