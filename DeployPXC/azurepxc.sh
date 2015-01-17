@@ -15,7 +15,7 @@ MYCNFTEMPLATE=${4}
 SECONDNIC=${5}
 
 MOUNTPOINT="/datadrive"
-RAIDCHUNKSIZE=64
+RAIDCHUNKSIZE=512
 
 RAIDDISK="/dev/md/data"
 RAIDPARTITION="/dev/md127p1"
@@ -47,7 +47,7 @@ add_to_fstab() {
     then
         echo "Not adding ${UUID} to fstab again (it's already there!)"
     else
-        LINE="UUID=${UUID} ${MOUNTPOINT} ext4 defaults 0 0"
+        LINE="UUID=${UUID} ${MOUNTPOINT} ext4 defaults,noatime 0 0"
         echo -e "${LINE}" >> /etc/fstab
     fi
 }
