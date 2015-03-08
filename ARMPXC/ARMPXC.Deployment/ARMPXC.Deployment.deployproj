@@ -26,6 +26,7 @@
     <None Include="Deployment.targets">
       <Visible>False</Visible>
     </None>
+    <Content Include="Scripts\testext.sh" />
     <Content Include="Scripts\Publish-PXC.ps1" />
     <Content Include="Templates\PXC.json" />
     <None Include="Templates\PXC.param.dev.json" />
