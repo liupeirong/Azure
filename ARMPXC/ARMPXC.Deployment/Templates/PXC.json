@@ -1,0 +1,458 @@
+﻿{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "East US",
+            "allowedValues": [ "East US" ]
+        },
+        "storageAccountName": {
+            "type": "string"
+        },
+        "publicIPAddressName": {
+            "type": "string"
+        },
+        "publicIPAddressType": {
+            "type": "string",
+            "defaultValue": "Dynamic",
+            "allowedValues": [
+                "Dynamic"
+            ]
+        },
+        "dnsName": {
+            "type": "string"
+        },
+        "virtualNetworkName": {
+            "type": "string"
+        },
+        "addressPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16"
+        },
+        "subnet1Name": {
+            "type": "string",
+            "defaultValue": "frontend"
+        },
+        "subnet2Name": {
+            "type": "string",
+            "defaultValue": "backend"
+        },
+        "subnet1Prefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24"
+        },
+        "subnet2Prefix": {
+            "type": "string",
+            "defaultValue": "10.0.1.0/24"
+        },
+        "vmNamePrefix": {
+            "type": "string"
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_A2",
+            "allowedValues": [
+                "Standard_A2",
+                "Standard_A3",
+                "Standard_A4"
+            ]
+        },
+        "userName": {
+            "type": "string"
+        },
+        "password": {
+            "type": "securestring"
+        },
+        "vmSourceImageName": {
+            "type": "string",
+            "defaultValue": "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04-LTS-amd64-server-20140724-en-us-30GB",
+            "allowedValues": [
+                "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-65-20150128",
+                "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04-LTS-amd64-server-20140724-en-us-30GB"
+            ]
+        },
+        "subscriptionId": {
+            "type": "string"
+        },
+        "availabilitySetName": {
+            "type": "string"
+        },
+        "lbName": {
+            "type": "string"
+        },
+        "ilbIPConfigName": {
+            "type": "string",
+            "defaultValue": "ilbIPConfig1"
+        },
+        "ilbBackendAddressPoolName": {
+            "type": "string",
+            "defaultValue": "ilbPool1"
+        },
+        "ilbRuleName": {
+            "type": "string",
+            "defaultValue": "ilbRule1"
+        },
+        "ilbRuleFrontEndPort": {
+            "type": "int",
+            "defaultValue": 3306
+        },
+        "ilbRuleBackEndPort": {
+            "type": "int",
+            "defaultValue": 3306
+        },
+        "idleTimeoutInMinutesforILBRule": {
+            "type": "int",
+            "defaultValue": 4
+        },
+        "probeName": {
+            "type": "string",
+            "defaultValue": "probe-pxc"
+        },
+        "probePort": {
+            "type": "int",
+            "defaultValue": 9200
+        },
+        "probeRequestPath": {
+            "type": "string",
+            "defaultValue": "/"
+        },
+        "probeIntervalInSeconds": {
+            "type": "int",
+            "defaultValue": 10
+        },
+        "numberOfProbes": {
+            "type": "int",
+            "defaultValue": 20
+        },
+        "sshIPConfigName": {
+            "type": "string",
+            "defaultValue": "sshIPConfig1"
+        },
+        "sshNatRuleName": {
+            "type": "string",
+            "defaultValue": "sshNatRule"
+        },
+        "sshNatRuleFrontEndPort1": {
+            "type": "int",
+            "defaultValue": 64001
+        },
+        "sshNatRuleFrontEndPort2": {
+            "type": "int",
+            "defaultValue": 64002
+        },
+        "sshNatRuleFrontEndPort3": {
+            "type": "int",
+            "defaultValue": 64003
+        },
+        "sshNatRuleBackEndPort": {
+            "type": "int",
+            "defaultValue": 22
+        },
+        "vmExtensionName": {
+            "type": "string",
+            "defaultValue": "pxcext"
+        },
+        "customScriptFilePath": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "customScriptCommandToExecute": {
+            "type": "string",
+            "defaultValue": ""
+        }
+    },
+    "variables": {
+        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
+        "subnetFrontRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnet1Name'))]",
+        "subnetBackRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnet2Name'))]",
+
+        "publicIPAddrRef": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]",
+
+        "lbID": "[resourceId('Microsoft.Network/loadBalancers',parameters('lbName'))]",
+        "ilbIPConfig": "[concat(variables('lbID'),'/frontendIPConfigurations/',parameters('ilbIPConfigName'))]",
+        "ilbPoolID": "[concat(variables('lbID'),'/backendAddressPools/',parameters('ilbBackendAddressPoolName'))]",
+
+        "ilbRuleID": "[concat(variables('lbID'),'/loadBalancingRules/',parameters('ilbRuleName'))]",
+        "probeID": "[concat(variables('lbID'),'/probes/',parameters('probeName'))]",
+        "sshIPConfig": "[concat(variables('lbID'),'/frontendIPConfigurations/',parameters('sshIPConfigName'))]",
+        "sshNatRuleName1": "[concat(parameters('sshNatRuleName'), '-1')]",
+        "sshNatRuleName2": "[concat(parameters('sshNatRuleName'), '-2')]",
+        "sshNatRuleName3": "[concat(parameters('sshNatRuleName'), '-3')]",
+        "sshNatRuleID1": "[concat(variables('lbID'),'/ilbMySQLNatRules/',variables('sshNatRuleName1'))]",
+        "sshNatRuleID2": "[concat(variables('lbID'),'/ilbMySQLNatRules/',variables('sshNatRuleName2'))]",
+        "sshNatRuleID3": "[concat(variables('lbID'),'/ilbMySQLNatRules/',variables('sshNatRuleName3'))]",
+
+        "nicName": "[concat(parameters('vmNamePrefix'), '-nic')]",
+        "nicName1": "[concat(variables('nicName'),'-1')]",
+        "nicName2": "[concat(variables('nicName'),'-2')]",
+        "nicName3": "[concat(variables('nicName'),'-3')]",
+        "nicId1": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName1'))]",
+        "nicId2": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName2'))]",
+        "nicId3": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName3'))]",
+        "backEndIPConfigNic1": "[concat(variables('nicId1'),'/ipConfigurations/ipconfig1')]",  
+        "backEndIPConfigNic2": "[concat(variables('nicId2'),'/ipConfigurations/ipconfig1')]",  
+        "backEndIPConfigNic3": "[concat(variables('nicId3'),'/ipConfigurations/ipconfig1')]",  
+
+        "vmName1": "[concat(parameters('vmNamePrefix'), '-1')]",
+        "vmName2": "[concat(parameters('vmNamePrefix'), '-2')]",
+        "vmName3": "[concat(parameters('vmNamePrefix'), '-3')]",
+
+        "sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]",
+
+        "vhdContainer": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/')]",
+
+        "osDiskVhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'osDisk.vhd')]",
+        "dataDisk1VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk1.vhd')]",
+        "dataDisk2VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk2.vhd')]",
+        "dataDisk3VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk3.vhd')]",
+        "dataDisk4VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk4.vhd')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageAccountName')]",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "properties": {
+                "accountType": "Standard_LRS"
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('publicIPAddressName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "[parameters('publicIPAddressType')]",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('dnsName')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('addressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnet1Name')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnet1Prefix')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('subnet2Name')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnet2Prefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[parameters('availabilitySetName')]",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "properties": {
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[parameters('lbName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName1'))]"
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[parameters('sshIPConfigName')]",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[variables('publicIPAddrRef')]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[parameters('ilbBackendAddressPoolName')]",
+                        "properties": {
+                            "backendIPConfigurations": [
+                                {
+                                    "id": "[variables('backEndIPConfigNic1')]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "inboundNatRules": [
+                    {
+                        "name": "[variables('sshNatRuleName1')]",
+                        "properties": {
+                            "frontendIPConfigurations": [
+                                {
+                                    "id": "[variables('sshIPConfig')]"
+                                }
+                            ],
+                            "backendIPConfiguration": {
+                                "id": "[variables('backEndIPConfigNic1')]"
+                            },
+                            "protocol": "tcp",
+                            "frontendPort": "[parameters('sshNatRuleFrontEndPort1')]",
+                            "backendPort": "[parameters('sshNatRuleBackEndPort')]",
+                            "enableFloatingIP": false
+                        }
+                    },
+                    {
+                        "name": "[variables('sshNatRuleName2')]",
+                        "properties": {
+                            "frontendIPConfigurations": [
+                                {
+                                    "id": "[variables('sshIPConfig')]"
+                                }
+                            ],
+                            "protocol": "tcp",
+                            "frontendPort": "[parameters('sshNatRuleFrontEndPort2')]",
+                            "backendPort": "[parameters('sshNatRuleBackEndPort')]",
+                            "enableFloatingIP": false
+                        }
+                    },
+                    {
+                        "name": "[variables('sshNatRuleName3')]",
+                        "properties": {
+                            "frontendIPConfigurations": [
+                                {
+                                    "id": "[variables('sshIPConfig')]"
+                                }
+                            ],
+                            "protocol": "tcp",
+                            "frontendPort": "[parameters('sshNatRuleFrontEndPort3')]",
+                            "backendPort": "[parameters('sshNatRuleBackEndPort')]",
+                            "enableFloatingIP": false
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName1')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress":  "10.0.1.5",
+                            "subnet": {
+                                "id": "[variables('subnetBackRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('vmName1')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName1'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computername": "[variables('vmName1')]",
+                    "adminUsername": "[parameters('userName')]",
+                    "adminPassword": "[parameters('password')]"
+                },
+                "storageProfile": {
+                    "sourceImage": {
+                        "id": "[variables('sourceImageName')]"
+                    },
+                    "destinationVhdsContainer": "[variables('vhdContainer')]",
+                    "dataDisks": [
+                        {
+                            "name": "datadisk1",
+                            "diskSizeGB": "1000",
+                            "lun": 0,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk1VhdName1')]"
+                            }
+                        },
+                        {
+                            "name": "datadisk2",
+                            "diskSizeGB": "1000",
+                            "lun": 1,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk2VhdName1')]"
+                            }
+                        },
+                        {
+                            "name": "datadisk3",
+                            "diskSizeGB": "1000",
+                            "lun": 2,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk3VhdName1')]"
+                            }
+                        },
+                        {
+                            "name": "datadisk4",
+                            "diskSizeGB": "1000",
+                            "lun": 3,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk4VhdName1')]"
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('nicId1')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(variables('vmName1'),'/', parameters('vmExtensionName'))]",
+        "apiVersion": "2014-12-01-preview",
+        "location": "[parameters('location')]",
+        "dependsOn": [            
+            "[concat('Microsoft.Compute/virtualMachines/', variables('vmName1'))]"
+        ],
+        "properties": {
+            "publisher": "Microsoft.OSTCExtensions",
+            "type" : "CustomScriptForLinux",
+            "typeHandlerVersion": "1.2",
+            "settings" : {
+                "fileUris": "[parameters('customScriptFilePath')]",
+                "commandToExecute": "[parameters('customScriptCommandToExecute')]"
+            }
+        }
+    }
+    ]
+}

@@ -1,0 +1,36 @@
+﻿{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "publicIPAddressName": {
+            "value": "pxcPublicIPAddr"
+        },
+        "storageAccountName": {
+            "value": "PXCStorage"
+        },
+        "dnsName": {
+            "value": "armpxc"
+        },
+        "virtualNetworkName": {
+            "value": "pxcvnet"
+        },
+        "userName": {
+            "value": "pliu"
+        },
+        "password": {
+            "value": "MicrosoftDx1"
+        },
+        "subscriptionId": {
+            "value": "8d3766f2-c136-4ffe-94b3-046a01ac3239"
+        },
+        "availabilitySetName": {
+            "value": "pxcset"
+        },
+        "lbName": { 
+            "value": "pxclb"
+        },
+        "vmNamePrefix": {
+            "value": "pxctest"
+        }
+    }
+}
