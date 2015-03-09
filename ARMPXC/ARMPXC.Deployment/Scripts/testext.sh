@@ -23,7 +23,7 @@ open_ports() {
 }
 
 disable_apparmor() {
-	/etc/init.d/apparmor stop
+	/etc/init.d/apparmor teardown
 	update-rc.d -f apparmor remove
 }
 
