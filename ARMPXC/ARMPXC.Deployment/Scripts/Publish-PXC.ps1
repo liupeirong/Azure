@@ -11,6 +11,7 @@ Param(
 )
 
 Set-StrictMode -Version 3
+#Switch-AzureMode AzureResourceManager
 #New-AzureResourceGroup -Name $ResourceGroupName -Location 'East US'
 
 # Convert relative paths to absolute paths if needed
@@ -18,7 +19,6 @@ $TemplateFile = [System.IO.Path]::Combine($PSScriptRoot, $TemplateFile)
 $TemplateParametersFile = [System.IO.Path]::Combine($PSScriptRoot, $TemplateParametersFile)
 
 # Create or update the resource group using the specified template file and template parameters file
-Switch-AzureMode AzureResourceManager
 New-AzureResourceGroupDeployment `
                        -ResourceGroupName $ResourceGroupName `
                        -TemplateFile $TemplateFile `

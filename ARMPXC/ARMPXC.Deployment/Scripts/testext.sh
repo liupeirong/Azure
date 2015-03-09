@@ -12,3 +12,4 @@ NODEADDRESS=${2}
 NODENAME=$(hostname)
 
 echo "${CLUSTERADDRESS}, ${NODEADDRESS}, ${NODENAME}" >/tmp/testext.log
+

@@ -10,41 +10,23 @@
         "storageAccountName": {
             "type": "string"
         },
-        "publicIPAddressName": {
-            "type": "string"
-        },
-        "publicIPAddressType": {
-            "type": "string",
-            "defaultValue": "Dynamic",
-            "allowedValues": [
-                "Dynamic"
-            ]
-        },
         "dnsName": {
             "type": "string"
         },
         "virtualNetworkName": {
             "type": "string"
         },
-        "addressPrefix": {
-            "type": "string",
-            "defaultValue": "10.0.0.0/16"
+        "dbSubnetName": {
+            "type": "string"
         },
-        "subnet1Name": {
-            "type": "string",
-            "defaultValue": "frontend"
+        "vmIP1": { 
+            "type": "string"
         },
-        "subnet2Name": {
-            "type": "string",
-            "defaultValue": "backend"
+        "vmIP2": { 
+            "type": "string"
         },
-        "subnet1Prefix": {
-            "type": "string",
-            "defaultValue": "10.0.0.0/24"
-        },
-        "subnet2Prefix": {
-            "type": "string",
-            "defaultValue": "10.0.1.0/24"
+        "vmIP3": { 
+            "type": "string"
         },
         "vmNamePrefix": {
             "type": "string"
@@ -75,24 +57,6 @@
         "subscriptionId": {
             "type": "string"
         },
-        "availabilitySetName": {
-            "type": "string"
-        },
-        "lbName": {
-            "type": "string"
-        },
-        "ilbIPConfigName": {
-            "type": "string",
-            "defaultValue": "ilbIPConfig1"
-        },
-        "ilbBackendAddressPoolName": {
-            "type": "string",
-            "defaultValue": "ilbPool1"
-        },
-        "ilbRuleName": {
-            "type": "string",
-            "defaultValue": "ilbRule1"
-        },
         "ilbRuleFrontEndPort": {
             "type": "int",
             "defaultValue": 3306
@@ -104,10 +68,6 @@
         "idleTimeoutInMinutesforILBRule": {
             "type": "int",
             "defaultValue": 4
-        },
-        "probeName": {
-            "type": "string",
-            "defaultValue": "probe-pxc"
         },
         "probePort": {
             "type": "int",
@@ -125,14 +85,6 @@
             "type": "int",
             "defaultValue": 20
         },
-        "sshIPConfigName": {
-            "type": "string",
-            "defaultValue": "sshIPConfig1"
-        },
-        "sshNatRuleName": {
-            "type": "string",
-            "defaultValue": "sshNatRule"
-        },
         "sshNatRuleFrontEndPort1": {
             "type": "int",
             "defaultValue": 64001
@@ -149,36 +101,38 @@
             "type": "int",
             "defaultValue": 22
         },
-        "vmExtensionName": {
-            "type": "string",
-            "defaultValue": "pxcext"
-        },
         "customScriptFilePath": {
             "type": "string",
-            "defaultValue": ""
+            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/ARMPXC/ARMPXC.Deployment/Scripts/testext.sh"
         },
         "customScriptCommandToExecute": {
             "type": "string",
-            "defaultValue": ""
+            "defaultValue": "bash testext.sh pxctest 10.0.1.5"
         }
     },
     "variables": {
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
-        "subnetFrontRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnet1Name'))]",
-        "subnetBackRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnet2Name'))]",
+        "dbSubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('dbSubnetName'))]",
+        "lbPublicIPName": "[concat(variables('lbName'), '-publicIP')]",
+        "lbPublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses',variables('lbPublicIPName'))]",
 
-        "publicIPAddrRef": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]",
+        "lbName": "[concat(parameters('vmNamePrefix'), '-lb')]",
+        "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]",
+        "ilbIPConfigName": "[concat(parameters('vmNamePrefix'), '-ilbIPCfg')]",
+        "ilbIPConfig": "[concat(variables('lbID'),'/frontendIPConfigurations/',variables('ilbIPConfigName'))]",
+        "ilbBackendAddressPoolName": "[concat(parameters('vmNamePrefix'), '-ilbBackendPool')]",
+        "ilbPoolID": "[concat(variables('lbID'),'/backendAddressPools/',variables('ilbBackendAddressPoolName'))]",
 
-        "lbID": "[resourceId('Microsoft.Network/loadBalancers',parameters('lbName'))]",
-        "ilbIPConfig": "[concat(variables('lbID'),'/frontendIPConfigurations/',parameters('ilbIPConfigName'))]",
-        "ilbPoolID": "[concat(variables('lbID'),'/backendAddressPools/',parameters('ilbBackendAddressPoolName'))]",
-
-        "ilbRuleID": "[concat(variables('lbID'),'/loadBalancingRules/',parameters('ilbRuleName'))]",
-        "probeID": "[concat(variables('lbID'),'/probes/',parameters('probeName'))]",
-        "sshIPConfig": "[concat(variables('lbID'),'/frontendIPConfigurations/',parameters('sshIPConfigName'))]",
-        "sshNatRuleName1": "[concat(parameters('sshNatRuleName'), '-1')]",
-        "sshNatRuleName2": "[concat(parameters('sshNatRuleName'), '-2')]",
-        "sshNatRuleName3": "[concat(parameters('sshNatRuleName'), '-3')]",
+        "ilbRuleName": "[concat(parameters('vmNamePrefix'), '-ilbRule')]",
+        "ilbRuleID": "[concat(variables('lbID'),'/loadBalancingRules/',variables('ilbRuleName'))]",
+        "probeName": "[concat(parameters('vmNamePrefix'), '-probe')]",
+        "probeID": "[concat(variables('lbID'),'/probes/',variables('probeName'))]",
+        "sshIPConfigName": "[concat(parameters('vmNamePrefix'), '-sshIPCfg')]",
+        "sshIPConfig": "[concat(variables('lbID'),'/frontendIPConfigurations/',variables('sshIPConfigName'))]",
+        "sshNatRuleName": "[concat(parameters('vmNamePrefix'), '-natRule')]",
+        "sshNatRuleName1": "[concat(variables('sshNatRuleName'), '-1')]",
+        "sshNatRuleName2": "[concat(variables('sshNatRuleName'), '-2')]",
+        "sshNatRuleName3": "[concat(variables('sshNatRuleName'), '-3')]",
         "sshNatRuleID1": "[concat(variables('lbID'),'/ilbMySQLNatRules/',variables('sshNatRuleName1'))]",
         "sshNatRuleID2": "[concat(variables('lbID'),'/ilbMySQLNatRules/',variables('sshNatRuleName2'))]",
         "sshNatRuleID3": "[concat(variables('lbID'),'/ilbMySQLNatRules/',variables('sshNatRuleName3'))]",
@@ -194,14 +148,14 @@
         "backEndIPConfigNic2": "[concat(variables('nicId2'),'/ipConfigurations/ipconfig1')]",  
         "backEndIPConfigNic3": "[concat(variables('nicId3'),'/ipConfigurations/ipconfig1')]",  
 
-        "vmName1": "[concat(parameters('vmNamePrefix'), '-1')]",
+        "vmName1": "[concat(parameters('vmNamePrefix'), '-4')]",
         "vmName2": "[concat(parameters('vmNamePrefix'), '-2')]",
         "vmName3": "[concat(parameters('vmNamePrefix'), '-3')]",
 
+        "availabilitySetName": "[concat(parameters('vmNamePrefix'), '-set')]", 
         "sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]",
-
         "vhdContainer": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/')]",
-
+        "vmExtensionName": "[concat(parameters('vmNamePrefix'), '-ext')]", 
         "osDiskVhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'osDisk.vhd')]",
         "dataDisk1VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk1.vhd')]",
         "dataDisk2VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk2.vhd')]",
@@ -221,45 +175,18 @@
         {
             "apiVersion": "2014-12-01-preview",
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[parameters('publicIPAddressName')]",
+            "name": "[variables('lbPublicIPName')]",
             "location": "[parameters('location')]",
             "properties": {
-                "publicIPAllocationMethod": "[parameters('publicIPAddressType')]",
+                "publicIPAllocationMethod": "Dynamic",
                 "dnsSettings": {
                     "domainNameLabel": "[parameters('dnsName')]"
                 }
             }
         },
         {
-            "apiVersion": "2014-12-01-preview",
-            "type": "Microsoft.Network/virtualNetworks",
-            "name": "[parameters('virtualNetworkName')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('addressPrefix')]"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[parameters('subnet1Name')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet1Prefix')]"
-                        }
-                    },
-                    {
-                        "name": "[parameters('subnet2Name')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet2Prefix')]"
-                        }
-                    }
-                ]
-            }
-        },
-        {
             "type": "Microsoft.Compute/availabilitySets",
-            "name": "[parameters('availabilitySetName')]",
+            "name": "[variables('availabilitySetName')]",
             "apiVersion": "2014-12-01-preview",
             "location": "[parameters('location')]",
             "properties": {
@@ -268,27 +195,26 @@
         {
             "apiVersion": "2014-12-01-preview",
             "type": "Microsoft.Network/loadBalancers",
-            "name": "[parameters('lbName')]",
+            "name": "[variables('lbName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressName'))]",
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('lbPublicIPName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicName1'))]"
             ],
             "properties": {
                 "frontendIPConfigurations": [
                     {
-                        "name": "[parameters('sshIPConfigName')]",
+                        "name": "[variables('sshIPConfigName')]",
                         "properties": {
                             "publicIPAddress": {
-                                "id": "[variables('publicIPAddrRef')]"
+                                "id": "[variables('lbPublicIPRef')]"
                             }
                         }
                     }
                 ],
                 "backendAddressPools": [
                     {
-                        "name": "[parameters('ilbBackendAddressPoolName')]",
+                        "name": "[variables('ilbBackendAddressPoolName')]",
                         "properties": {
                             "backendIPConfigurations": [
                                 {
@@ -352,18 +278,15 @@
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[variables('nicName1')]",
             "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
-            ],
             "properties": {
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
                         "properties": {
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress":  "10.0.1.5",
+                            "privateIPAddress": "[parameters('vmIP1')]",
                             "subnet": {
-                                "id": "[variables('subnetBackRef')]"
+                                "id": "[variables('dbSubnetRef')]"
                             }
                         }
                     }
@@ -437,22 +360,22 @@
             }
         },
         {
-        "type": "Microsoft.Compute/virtualMachines/extensions",
-        "name": "[concat(variables('vmName1'),'/', parameters('vmExtensionName'))]",
-        "apiVersion": "2014-12-01-preview",
-        "location": "[parameters('location')]",
-        "dependsOn": [            
-            "[concat('Microsoft.Compute/virtualMachines/', variables('vmName1'))]"
-        ],
-        "properties": {
-            "publisher": "Microsoft.OSTCExtensions",
-            "type" : "CustomScriptForLinux",
-            "typeHandlerVersion": "1.2",
-            "settings" : {
-                "fileUris": "[parameters('customScriptFilePath')]",
-                "commandToExecute": "[parameters('customScriptCommandToExecute')]"
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vmName1'),'/', variables('vmExtensionName'))]",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmName1'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.2",
+                "settings": {
+                    "fileUris": [ "[parameters('customScriptFilePath')]" ],
+                    "commandToExecute": "[parameters('customScriptCommandToExecute')]"
+                }
             }
-        }
     }
     ]
 }

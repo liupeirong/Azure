@@ -2,9 +2,6 @@
     "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "publicIPAddressName": {
-            "value": "pxcPublicIPAddr"
-        },
         "storageAccountName": {
             "value": "PXCStorage"
         },
@@ -14,6 +11,18 @@
         "virtualNetworkName": {
             "value": "pxcvnet"
         },
+        "dbSubnetName": {
+            "value": "backend"
+        },
+        "vmIP1": { 
+            "value": "10.0.1.5"
+        },
+        "vmIP2": { 
+            "value": "10.0.1.6"
+        },
+        "vmIP3": { 
+            "value": "10.0.1.7"
+        },
         "userName": {
             "value": "pliu"
         },
@@ -22,12 +31,6 @@
         },
         "subscriptionId": {
             "value": "8d3766f2-c136-4ffe-94b3-046a01ac3239"
-        },
-        "availabilitySetName": {
-            "value": "pxcset"
-        },
-        "lbName": { 
-            "value": "pxclb"
         },
         "vmNamePrefix": {
             "value": "pxctest"
