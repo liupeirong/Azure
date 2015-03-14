@@ -44,4 +44,5 @@ max_connections=512
 
 [mysqld_safe]
 log-error=/var/log/mysqld.log
-pid-file=/var/run/mysqld/mysqld.pid
+# specifying pid-file causes issue in ubuntu
+#pid-file=/var/run/mysqld/mysqld.pid
