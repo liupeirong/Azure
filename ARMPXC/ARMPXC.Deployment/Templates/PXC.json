@@ -148,7 +148,7 @@
         "backEndIPConfigNic2": "[concat(variables('nicId2'),'/ipConfigurations/ipconfig1')]",  
         "backEndIPConfigNic3": "[concat(variables('nicId3'),'/ipConfigurations/ipconfig1')]",  
 
-        "vmName1": "[concat(parameters('vmNamePrefix'), '-4')]",
+        "vmName1": "[concat(parameters('vmNamePrefix'), '-5')]",
         "vmName2": "[concat(parameters('vmNamePrefix'), '-2')]",
         "vmName3": "[concat(parameters('vmNamePrefix'), '-3')]",
 
