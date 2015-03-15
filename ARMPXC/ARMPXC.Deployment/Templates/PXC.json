@@ -19,13 +19,13 @@
         "dbSubnetName": {
             "type": "string"
         },
-        "vmIP1": { 
+        "vmIP1": {
             "type": "string"
         },
-        "vmIP2": { 
+        "vmIP2": {
             "type": "string"
         },
-        "vmIP3": { 
+        "vmIP3": {
             "type": "string"
         },
         "vmNamePrefix": {
@@ -57,11 +57,11 @@
         "subscriptionId": {
             "type": "string"
         },
-        "ilbRuleFrontEndPort": {
+        "mysqlFrontEndPort": {
             "type": "int",
             "defaultValue": 3306
         },
-        "ilbRuleBackEndPort": {
+        "mysqlBackEndPort": {
             "type": "int",
             "defaultValue": 3306
         },
@@ -118,10 +118,7 @@
 
         "lbName": "[concat(parameters('vmNamePrefix'), '-lb')]",
         "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]",
-        "ilbIPConfigName": "[concat(parameters('vmNamePrefix'), '-ilbIPCfg')]",
-        "ilbIPConfig": "[concat(variables('lbID'),'/frontendIPConfigurations/',variables('ilbIPConfigName'))]",
         "ilbBackendAddressPoolName": "[concat(parameters('vmNamePrefix'), '-ilbBackendPool')]",
-        "ilbPoolID": "[concat(variables('lbID'),'/backendAddressPools/',variables('ilbBackendAddressPoolName'))]",
 
         "ilbRuleName": "[concat(parameters('vmNamePrefix'), '-ilbRule')]",
         "ilbRuleID": "[concat(variables('lbID'),'/loadBalancingRules/',variables('ilbRuleName'))]",
@@ -133,9 +130,10 @@
         "sshNatRuleName1": "[concat(variables('sshNatRuleName'), '-1')]",
         "sshNatRuleName2": "[concat(variables('sshNatRuleName'), '-2')]",
         "sshNatRuleName3": "[concat(variables('sshNatRuleName'), '-3')]",
-        "sshNatRuleID1": "[concat(variables('lbID'),'/ilbMySQLNatRules/',variables('sshNatRuleName1'))]",
-        "sshNatRuleID2": "[concat(variables('lbID'),'/ilbMySQLNatRules/',variables('sshNatRuleName2'))]",
-        "sshNatRuleID3": "[concat(variables('lbID'),'/ilbMySQLNatRules/',variables('sshNatRuleName3'))]",
+        "mysqlNatRuleName": "[concat(parameters('vmNamePrefix'), '-mysqlNatRule')]",
+        "mysqlNatRuleName1": "[concat(variables('mysqlNatRuleName'), '-1')]",
+        "mysqlNatRuleName2": "[concat(variables('mysqlNatRuleName'), '-2')]",
+        "mysqlNatRuleName3": "[concat(variables('mysqlNatRuleName'), '-3')]",
 
         "nicName": "[concat(parameters('vmNamePrefix'), '-nic')]",
         "nicName1": "[concat(variables('nicName'),'-1')]",
@@ -144,18 +142,19 @@
         "nicId1": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName1'))]",
         "nicId2": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName2'))]",
         "nicId3": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName3'))]",
-        "backEndIPConfigNic1": "[concat(variables('nicId1'),'/ipConfigurations/ipconfig1')]",  
-        "backEndIPConfigNic2": "[concat(variables('nicId2'),'/ipConfigurations/ipconfig1')]",  
-        "backEndIPConfigNic3": "[concat(variables('nicId3'),'/ipConfigurations/ipconfig1')]",  
+        "backEndIPConfigNic1": "[concat(variables('nicId1'),'/ipConfigurations/ipconfig1')]",
+        "backEndIPConfigNic2": "[concat(variables('nicId2'),'/ipConfigurations/ipconfig1')]",
+        "backEndIPConfigNic3": "[concat(variables('nicId3'),'/ipConfigurations/ipconfig1')]",
 
         "vmName1": "[concat(parameters('vmNamePrefix'), '-5')]",
         "vmName2": "[concat(parameters('vmNamePrefix'), '-2')]",
         "vmName3": "[concat(parameters('vmNamePrefix'), '-3')]",
 
-        "availabilitySetName": "[concat(parameters('vmNamePrefix'), '-set')]", 
+        "availabilitySetName": "[concat(parameters('vmNamePrefix'), '-set')]",
         "sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]",
         "vhdContainer": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/')]",
-        "vmExtensionName": "[concat(parameters('vmNamePrefix'), '-ext')]", 
+        "vmExtensionName": "[concat(parameters('vmNamePrefix'), '-ext')]",
+
         "osDiskVhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'osDisk.vhd')]",
         "dataDisk1VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk1.vhd')]",
         "dataDisk2VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk2.vhd')]",
@@ -199,7 +198,9 @@
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIPAddresses/', variables('lbPublicIPName'))]",
-                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName1'))]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName1'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName2'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName3'))]"
             ],
             "properties": {
                 "frontendIPConfigurations": [
@@ -216,15 +217,109 @@
                     {
                         "name": "[variables('ilbBackendAddressPoolName')]",
                         "properties": {
+                            "loadBalancingRules": [
+                                {
+                                    "id": "[variables('ilbRuleID')]"
+                                }
+                            ],
                             "backendIPConfigurations": [
                                 {
                                     "id": "[variables('backEndIPConfigNic1')]"
+                                },
+                                {
+                                    "id": "[variables('backEndIPConfigNic2')]"
+                                },
+                                {
+                                    "id": "[variables('backEndIPConfigNic3')]"
                                 }
                             ]
                         }
                     }
                 ],
+                "loadBalancingRules": [
+                    {
+                        "name": "[variables('ilbRuleName')]",
+                        "properties": {
+                            "frontendIPConfigurations": [
+                                {
+                                    "id": "[variables('sshIPConfig')]"
+                                }
+                            ],
+                            "protocol": "tcp",
+                            "frontendPort": "[parameters('mysqlFrontEndPort')]",
+                            "backendPort": "[parameters('mysqlBackEndPort')]",
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": "[parameters('idleTimeoutInMinutesforILBRule')]",
+                            "probe": {
+                                "id": "[variables('probeID')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "[variables('probeName')]",
+                        "properties": {
+                            "protocol": "http",
+                            "port": "[parameters('probePort')]",
+                            "intervalInSeconds": "[parameters('probeIntervalInSeconds')]",
+                            "numberOfProbes": "[parameters('numberOfProbes')]",
+                            "requestPath":  "[parameters('probeRequestPath')]"
+                        }
+                    }
+                ],
                 "inboundNatRules": [
+                    {
+                        "name": "[variables('mysqlNatRuleName1')]",
+                        "properties": {
+                            "frontendIPConfigurations": [
+                                {
+                                    "id": "[variables('sshIPConfig')]"
+                                }
+                            ],
+                            "backendIPConfiguration": {
+                                "id": "[variables('backEndIPConfigNic1')]"
+                            },
+                            "protocol": "tcp",
+                            "frontendPort": "[parameters('mysqlFrontEndPort')]",
+                            "backendPort": "[parameters('mysqlBackEndPort')]",
+                            "enableFloatingIP": false
+                        }
+                    },
+                    {
+                        "name": "[variables('mysqlNatRuleName2')]",
+                        "properties": {
+                            "frontendIPConfigurations": [
+                                {
+                                    "id": "[variables('sshIPConfig')]"
+                                }
+                            ],
+                            "backendIPConfiguration": {
+                                "id": "[variables('backEndIPConfigNic2')]"
+                            },
+                            "protocol": "tcp",
+                            "frontendPort": "[parameters('mysqlFrontEndPort')]",
+                            "backendPort": "[parameters('mysqlBackEndPort')]",
+                            "enableFloatingIP": false
+                        }
+                    },
+                    {
+                        "name": "[variables('mysqlNatRuleName3')]",
+                        "properties": {
+                            "frontendIPConfigurations": [
+                                {
+                                    "id": "[variables('sshIPConfig')]"
+                                }
+                            ],
+                            "backendIPConfiguration": {
+                                "id": "[variables('backEndIPConfigNic3')]"
+                            },
+                            "protocol": "tcp",
+                            "frontendPort": "[parameters('mysqlFrontEndPort')]",
+                            "backendPort": "[parameters('mysqlBackEndPort')]",
+                            "enableFloatingIP": false
+                        }
+                    },
                     {
                         "name": "[variables('sshNatRuleName1')]",
                         "properties": {
@@ -285,6 +380,46 @@
                         "properties": {
                             "privateIPAllocationMethod": "Static",
                             "privateIPAddress": "[parameters('vmIP1')]",
+                            "subnet": {
+                                "id": "[variables('dbSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName2')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('vmIP2')]",
+                            "subnet": {
+                                "id": "[variables('dbSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName3')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('vmIP3')]",
                             "subnet": {
                                 "id": "[variables('dbSubnetRef')]"
                             }
@@ -376,6 +511,6 @@
                     "commandToExecute": "[parameters('customScriptCommandToExecute')]"
                 }
             }
-    }
+        }
     ]
 }
