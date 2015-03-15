@@ -14,8 +14,6 @@ MYSQLSTARTUP=${3}
 MYCNFTEMPLATE=${4}
 SECONDNIC=${5}
 
-echo "${CLUSTERADDRESS}, ${NODEADDRESS}, ${NODENAME}" >/tmp/testext.log
-
 MOUNTPOINT="/datadrive"
 RAIDCHUNKSIZE=512
 
@@ -287,7 +285,7 @@ then
     exit 1 
 else
     configure_network
-#    configure_disks
-#    configure_mysql
+    configure_disks
+    configure_mysql
 fi
 
