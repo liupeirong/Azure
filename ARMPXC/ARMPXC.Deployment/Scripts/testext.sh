@@ -119,7 +119,13 @@ configure_disks() {
     echo "Disk count is $DISKCOUNT"
     if [ $DISKCOUNT -gt 1 ];
     then
-        create_raid0
+    	if [ $iscentos -eq 0 ];
+    	then
+       	    create_raid0_centos
+    	elif [ $isubuntu -eq 0 ];
+    	then
+            create_raid0_ubuntu
+    	fi
         do_partition ${RAIDDISK}
         PARTITION="${RAIDPARTITION}"
     else
@@ -172,7 +178,7 @@ configure_network() {
     open_ports
     if [ $iscentos -eq 0 ];
     then
-        activate_secondnic
+        activate_secondnic_centos
         disable_selinux_centos
     elif [ $isubuntu -eq 0 ];
     then
