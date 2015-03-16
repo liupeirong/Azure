@@ -56,7 +56,7 @@ get_disk_count() {
 
 create_raid0_ubuntu() {
     dpkg -s mdadm 
-    if [ $? -eq 1 ];
+    if [ ${?} -eq 1 ];
     then 
         echo "installing mdadm"
         wget --no-cache http://mirrors.cat.pdx.edu/ubuntu/pool/main/m/mdadm/mdadm_3.2.5-5ubuntu4_amd64.deb
@@ -112,6 +112,11 @@ add_to_fstab() {
 }
 
 configure_disks() {
+	ls "${MOUNTPOINT}"
+	if [ ${?} -eq 0 ]
+	then 
+		return
+	fi
     DISKS=($(scan_for_new_disks))
     echo "Disks are ${DISKS[@]}"
     declare -i DISKCOUNT
@@ -199,7 +204,7 @@ create_mycnf() {
 
 install_mysql_ubuntu() {
     dpkg -s percona-xtradb-cluster-56
-    if [ $? -eq 0 ];
+    if [ ${?} -eq 0 ];
     then
         return
     fi
@@ -219,7 +224,7 @@ install_mysql_ubuntu() {
 
 install_mysql_centos() {
     yum list installed Percona-XtraDB-Cluster-56
-    if [ $? -eq 0 ];
+    if [ ${?} -eq 0 ];
     then
         return
     fi
@@ -232,6 +237,11 @@ install_mysql_centos() {
 }
 
 configure_mysql() {
+    /etc/init.d/mysql status
+	if [ ${?} -eq 0 ];
+    then
+	   return
+	fi
     create_mycnf
 
     mkdir "${MOUNTPOINT}/mysql"
