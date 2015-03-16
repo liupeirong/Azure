@@ -55,7 +55,7 @@ get_disk_count() {
 }
 
 create_raid0_ubuntu() {
-    dpkg -s mdadm
+    dpkg -s mdadm 
     if [ $? -eq 1 ];
     then 
         echo "installing mdadm"
@@ -64,7 +64,7 @@ create_raid0_ubuntu() {
     fi
     echo "Creating raid0"
     udevadm control --stop-exec-queue
-    yes | mdadm --create "$RAIDDISK" --name=data --level=0 --chunk="$RAIDCHUNKSIZE" --raid-devices="$DISKCOUNT" "${DISKS[@]}"
+    echo "yes" | mdadm --create "$RAIDDISK" --name=data --level=0 --chunk="$RAIDCHUNKSIZE" --raid-devices="$DISKCOUNT" "${DISKS[@]}"
     udevadm control --start-exec-queue
     mdadm --detail --verbose --scan > /etc/mdadm.conf
 }
