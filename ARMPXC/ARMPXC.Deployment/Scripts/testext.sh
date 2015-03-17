@@ -85,7 +85,9 @@ p
 1
 
 
-w"| fdisk "${DISK}" > /dev/null 2>&1
+w
+" | fdisk "${DISK}" 
+#> /dev/null 2>&1
 
 #
 # Use the bash-specific $PIPESTATUS to ensure we get the correct exit code
