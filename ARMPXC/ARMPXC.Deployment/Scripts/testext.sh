@@ -296,6 +296,24 @@ configure_mysql() {
     fi
 }
 
+allow_passwordssh() {
+    grep 'PasswordAuthentication yes' /etc/ssh/sshd_config >/dev/null 2>&1
+    if [ ${?} -eq 0 ];
+    then
+	    return
+	fi
+	grep 'PasswordAuthentication no' /etc/ssh/sshd_config >/dev/null 2>&1
+    if [ ${?} -eq 0 ];
+    then
+	    sed -i "s/^PasswordAuthentication no/PasswordAuthentication yes/I" /etc/ssh/sshd_config
+	else
+	    echo "PasswordAuthentication yes" > /etc/ssh/sshd_config
+	fi
+}
+
+# temporary workaround form CRP 
+allow_passwordssh  
+
 check_os
 if [ $iscentos -ne 0 ] && [ $isubuntu -ne 0 ];
 then
