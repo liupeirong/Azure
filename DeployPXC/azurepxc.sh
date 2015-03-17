@@ -5,7 +5,7 @@
 # You can also customize it to work with other Linux flavours and versions.
 # If you customize it, copy it to either Azure blob storage or Github so that Azure
 # custom script Linux VM extension can access it, and specify its location in the 
-# parameters of DeployPXC powershell script or runbook or Azure Resource Manager template.   
+# parameters of DeployPXC powershell script or runbook or Azure Resource Manager CRP template.   
 
 CLUSTERADDRESS=${1}
 NODEADDRESS=${2}
