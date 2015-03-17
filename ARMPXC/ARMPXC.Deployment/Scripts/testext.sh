@@ -300,7 +300,7 @@ allow_passwordssh() {
 	grep 'PasswordAuthentication' /etc/ssh/sshd_config >/dev/null 2>&1
     if [ ${?} -eq 0 ];
     then
-	    sed -i "s/^.PasswordAuthentication no/PasswordAuthentication yes/I" /etc/ssh/sshd_config
+	    sed -i "s/^.*PasswordAuthentication.*/PasswordAuthentication yes/I" /etc/ssh/sshd_config
 	else
 	    echo "PasswordAuthentication yes" > /etc/ssh/sshd_config
 	fi
