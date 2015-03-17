@@ -5,14 +5,19 @@ What else would you like this script to do for you?  Send us feedback here: http
 #>
 
 Param(
-  [string] $ResourceGroupName = 'PXCRG',
+  [string] $ResourceGroupName = 'pxcrg',
+  [string] $Location = 'East US',
   [string] $TemplateFile = '..\Templates\PXC.json',
   [string] $TemplateParametersFile = '..\Templates\PXC.param.dev.json'
 )
 
 Set-StrictMode -Version 3
-#Switch-AzureMode AzureResourceManager
-#New-AzureResourceGroup -Name $ResourceGroupName -Location 'East US'
+Switch-AzureMode AzureResourceManager
+$rg=@(Get-AzureResourceGroup | where-object {$_.ResourceGroupName -like $ResourceGroupName})
+if (!$rg)
+{
+    New-AzureResourceGroup -Name $ResourceGroupName -Location $Location
+}
 
 # Convert relative paths to absolute paths if needed
 $TemplateFile = [System.IO.Path]::Combine($PSScriptRoot, $TemplateFile)

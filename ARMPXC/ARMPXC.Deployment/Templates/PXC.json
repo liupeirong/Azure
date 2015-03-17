@@ -7,8 +7,9 @@
             "defaultValue": "East US",
             "allowedValues": [ "East US" ]
         },
-        "storageAccountName": {
-            "type": "string"
+        "storageAccount": {
+            "type": "string",
+            "defaultValue": "pxcstorage"
         },
         "dnsName": {
             "type": "string"
@@ -18,6 +19,14 @@
         },
         "dbSubnetName": {
             "type": "string"
+        },
+        "vnetAddressPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16"
+        },
+        "dbSubnetAddressPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.1.0/24"
         },
         "vmIP1": {
             "type": "string"
@@ -33,8 +42,9 @@
         },
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_A2",
+            "defaultValue": "Standard_A1",
             "allowedValues": [
+                "Standard_A1",
                 "Standard_A2",
                 "Standard_A3",
                 "Standard_A4"
@@ -48,7 +58,7 @@
         },
         "vmSourceImageName": {
             "type": "string",
-            "defaultValue": "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu_DAILY_BUILD-precise-12_04_5-LTS-amd64-server-20150210-en-us-30GB",
+            "defaultValue": "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-65-20150128",
             "allowedValues": [
                 "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-65-20150128",
                 "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu_DAILY_BUILD-precise-12_04_5-LTS-amd64-server-20150210-en-us-30GB"
@@ -105,9 +115,13 @@
             "type": "string",
             "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/ARMPXC/ARMPXC.Deployment/Scripts/testext.sh"
         },
+        "mysqlConfigFilePath": {
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/my.cnf.template"
+        },
         "customScriptCommandToExecute": {
             "type": "string",
-            "defaultValue": "bash testext.sh pxctest 10.0.1.5"
+            "defaultValue": "bash testext.sh"
         }
     },
     "variables": {
@@ -119,6 +133,7 @@
         "lbName": "[concat(parameters('vmNamePrefix'), '-lb')]",
         "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]",
         "ilbBackendAddressPoolName": "[concat(parameters('vmNamePrefix'), '-ilbBackendPool')]",
+        "ilbBackendAddressPoolID": "[concat(variables('lbID'),'/backendAddressPools/', variables('ilbBackendAddressPoolName'))]",
 
         "ilbRuleName": "[concat(parameters('vmNamePrefix'), '-ilbRule')]",
         "ilbRuleID": "[concat(variables('lbID'),'/loadBalancingRules/',variables('ilbRuleName'))]",
@@ -130,10 +145,6 @@
         "sshNatRuleName1": "[concat(variables('sshNatRuleName'), '-1')]",
         "sshNatRuleName2": "[concat(variables('sshNatRuleName'), '-2')]",
         "sshNatRuleName3": "[concat(variables('sshNatRuleName'), '-3')]",
-        "mysqlNatRuleName": "[concat(parameters('vmNamePrefix'), '-mysqlNatRule')]",
-        "mysqlNatRuleName1": "[concat(variables('mysqlNatRuleName'), '-1')]",
-        "mysqlNatRuleName2": "[concat(variables('mysqlNatRuleName'), '-2')]",
-        "mysqlNatRuleName3": "[concat(variables('mysqlNatRuleName'), '-3')]",
 
         "nicName": "[concat(parameters('vmNamePrefix'), '-nic')]",
         "nicName1": "[concat(variables('nicName'),'-1')]",
@@ -146,25 +157,36 @@
         "backEndIPConfigNic2": "[concat(variables('nicId2'),'/ipConfigurations/ipconfig1')]",
         "backEndIPConfigNic3": "[concat(variables('nicId3'),'/ipConfigurations/ipconfig1')]",
 
-        "vmName1": "[concat(parameters('vmNamePrefix'), '-5')]",
-        "vmName2": "[concat(parameters('vmNamePrefix'), '-2')]",
-        "vmName3": "[concat(parameters('vmNamePrefix'), '-3')]",
+        "vmName1": "[concat('a-', parameters('vmNamePrefix'))]",
+        "vmName2": "[concat('k-', parameters('vmNamePrefix'))]",
+        "vmName3": "[concat('z-', parameters('vmNamePrefix'))]",
 
         "availabilitySetName": "[concat(parameters('vmNamePrefix'), '-set')]",
         "sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]",
-        "vhdContainer": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/')]",
         "vmExtensionName": "[concat(parameters('vmNamePrefix'), '-ext')]",
+        "pxcClusterAddress": "[concat(parameters('vmIP1'), ',', parameters('vmIP2'), ',', parameters('vmIP3'))]",
+        "customScriptCommandCommon": "[concat(parameters('customScriptCommandToExecute'), ' ', variables('pxcClusterAddress'), ' ')]",
 
-        "osDiskVhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'osDisk.vhd')]",
-        "dataDisk1VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk1.vhd')]",
-        "dataDisk2VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk2.vhd')]",
-        "dataDisk3VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk3.vhd')]",
-        "dataDisk4VhdName1": "[concat(variables('vhdContainer'),variables('vmName1'),'dataDisk4.vhd')]"
+        "vhdContainer1": "[concat('http://',parameters('storageAccount'),'.blob.core.windows.net/avhds/')]",
+        "dataDisk1VhdName1": "[concat(variables('vhdContainer1'),variables('vmName1'),'dataDisk1.vhd')]",
+        "dataDisk2VhdName1": "[concat(variables('vhdContainer1'),variables('vmName1'),'dataDisk2.vhd')]",
+        "customScriptParamVm1": "[concat(parameters('vmIP1'), ' bootstrap-pxc ', parameters('mysqlConfigFilePath'))]",
+        "vmExtensionName1": "[concat(variables('vmName1'),'/', variables('vmExtensionName'))]",
+
+        "vhdContainer2": "[concat('http://',parameters('storageAccount'),'.blob.core.windows.net/kvhds/')]",
+        "dataDisk1VhdName2": "[concat(variables('vhdContainer2'),variables('vmName2'),'dataDisk1.vhd')]",
+        "dataDisk2VhdName2": "[concat(variables('vhdContainer2'),variables('vmName2'),'dataDisk2.vhd')]",
+        "customScriptParamVm2": "[concat(parameters('vmIP2'), ' start ', parameters('mysqlConfigFilePath'))]",
+
+        "vhdContainer3": "[concat('http://',parameters('storageAccount'),'.blob.core.windows.net/zvhds/')]",
+        "dataDisk1VhdName3": "[concat(variables('vhdContainer3'),variables('vmName3'),'dataDisk1.vhd')]",
+        "dataDisk2VhdName3": "[concat(variables('vhdContainer3'),variables('vmName3'),'dataDisk2.vhd')]",
+        "customScriptParamVm3": "[concat(parameters('vmIP3'), ' start ', parameters('mysqlConfigFilePath'))]"
     },
     "resources": [
         {
             "type": "Microsoft.Storage/storageAccounts",
-            "name": "[parameters('storageAccountName')]",
+            "name": "[parameters('storageAccount')]",
             "apiVersion": "2014-12-01-preview",
             "location": "[parameters('location')]",
             "properties": {
@@ -189,6 +211,317 @@
             "apiVersion": "2014-12-01-preview",
             "location": "[parameters('location')]",
             "properties": {
+            }
+        },
+        {
+             "apiVersion": "2014-12-01-preview",
+             "type": "Microsoft.Network/virtualNetworks",
+             "name": "[parameters('virtualNetworkName')]",
+             "location": "[parameters('location')]",
+             "properties": {
+                 "addressSpace": {
+                     "addressPrefixes": [
+                         "[parameters('vnetAddressPrefix')]"
+                     ]
+                 },
+                 "subnets": [
+                     {
+                         "name": "[parameters('dbSubnetName')]",
+                         "properties": {
+                             "addressPrefix": "[parameters('dbSubnetAddressPrefix')]"
+                         }
+                     }
+                 ]
+             }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName1')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('vmIP1')]",
+                            "subnet": {
+                                "id": "[variables('dbSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName2')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('vmIP2')]",
+                            "subnet": {
+                                "id": "[variables('dbSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName3')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('vmIP3')]",
+                            "subnet": {
+                                "id": "[variables('dbSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('vmName1')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccount'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName1'))]"
+            ],
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computername": "[variables('vmName1')]",
+                    "adminUsername": "[parameters('userName')]",
+                    "adminPassword": "[parameters('password')]"
+                },
+                "storageProfile": {
+                    "sourceImage": {
+                        "id": "[variables('sourceImageName')]"
+                    },
+                    "destinationVhdsContainer": "[variables('vhdContainer1')]",
+                    "dataDisks": [
+                        {
+                            "name": "datadisk1",
+                            "diskSizeGB": "1000",
+                            "lun": 0,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk1VhdName1')]"
+                            }
+                        },
+                        {
+                            "name": "datadisk2",
+                            "diskSizeGB": "1000",
+                            "lun": 1,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk2VhdName1')]"
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('nicId1')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[variables('vmExtensionName1')]",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmName1'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.2",
+                "settings": {
+                    "fileUris": [ "[parameters('customScriptFilePath')]" ],
+                    "commandToExecute": "[concat(variables('customScriptCommandCommon'), variables('customScriptParamVm1'))]"
+                }
+            }
+        },
+        {
+            "name": "[variables('vmName2')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccount'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName2'))]",
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmName1'))]"
+            ],
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computername": "[variables('vmName2')]",
+                    "adminUsername": "[parameters('userName')]",
+                    "adminPassword": "[parameters('password')]"
+                },
+                "storageProfile": {
+                    "sourceImage": {
+                        "id": "[variables('sourceImageName')]"
+                    },
+                    "destinationVhdsContainer": "[variables('vhdContainer2')]",
+                    "dataDisks": [
+                        {
+                            "name": "datadisk1",
+                            "diskSizeGB": "1000",
+                            "lun": 0,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk1VhdName2')]"
+                            }
+                        },
+                        {
+                            "name": "datadisk2",
+                            "diskSizeGB": "1000",
+                            "lun": 1,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk2VhdName2')]"
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('nicId2')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vmName2'),'/', variables('vmExtensionName'))]",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmName2'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.2",
+                "settings": {
+                    "fileUris": [ "[parameters('customScriptFilePath')]" ],
+                    "commandToExecute": "[concat(variables('customScriptCommandCommon'), variables('customScriptParamVm2'))]"
+                }
+            }
+        },
+        {
+            "name": "[variables('vmName3')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccount'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName3'))]",
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmName1'))]"
+            ],
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computername": "[variables('vmName3')]",
+                    "adminUsername": "[parameters('userName')]",
+                    "adminPassword": "[parameters('password')]"
+                },
+                "storageProfile": {
+                    "sourceImage": {
+                        "id": "[variables('sourceImageName')]"
+                    },
+                    "destinationVhdsContainer": "[variables('vhdContainer3')]",
+                    "dataDisks": [
+                        {
+                            "name": "datadisk1",
+                            "diskSizeGB": "1000",
+                            "lun": 0,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk1VhdName3')]"
+                            }
+                        },
+                        {
+                            "name": "datadisk2",
+                            "diskSizeGB": "1000",
+                            "lun": 1,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk2VhdName3')]"
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('nicId3')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vmName3'),'/', variables('vmExtensionName'))]",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmName3'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.2",
+                "settings": {
+                    "fileUris": [ "[parameters('customScriptFilePath')]" ],
+                    "commandToExecute": "[concat(variables('customScriptCommandCommon'), variables('customScriptParamVm3'))]"
+                }
             }
         },
         {
@@ -245,6 +578,9 @@
                                     "id": "[variables('sshIPConfig')]"
                                 }
                             ],
+                            "backendAddressPool": { 
+                                "id":  "[variables('ilbBackendAddressPoolID')]"
+                            },
                             "protocol": "tcp",
                             "frontendPort": "[parameters('mysqlFrontEndPort')]",
                             "backendPort": "[parameters('mysqlBackEndPort')]",
@@ -264,62 +600,11 @@
                             "port": "[parameters('probePort')]",
                             "intervalInSeconds": "[parameters('probeIntervalInSeconds')]",
                             "numberOfProbes": "[parameters('numberOfProbes')]",
-                            "requestPath":  "[parameters('probeRequestPath')]"
+                            "requestPath": "[parameters('probeRequestPath')]"
                         }
                     }
                 ],
                 "inboundNatRules": [
-                    {
-                        "name": "[variables('mysqlNatRuleName1')]",
-                        "properties": {
-                            "frontendIPConfigurations": [
-                                {
-                                    "id": "[variables('sshIPConfig')]"
-                                }
-                            ],
-                            "backendIPConfiguration": {
-                                "id": "[variables('backEndIPConfigNic1')]"
-                            },
-                            "protocol": "tcp",
-                            "frontendPort": "[parameters('mysqlFrontEndPort')]",
-                            "backendPort": "[parameters('mysqlBackEndPort')]",
-                            "enableFloatingIP": false
-                        }
-                    },
-                    {
-                        "name": "[variables('mysqlNatRuleName2')]",
-                        "properties": {
-                            "frontendIPConfigurations": [
-                                {
-                                    "id": "[variables('sshIPConfig')]"
-                                }
-                            ],
-                            "backendIPConfiguration": {
-                                "id": "[variables('backEndIPConfigNic2')]"
-                            },
-                            "protocol": "tcp",
-                            "frontendPort": "[parameters('mysqlFrontEndPort')]",
-                            "backendPort": "[parameters('mysqlBackEndPort')]",
-                            "enableFloatingIP": false
-                        }
-                    },
-                    {
-                        "name": "[variables('mysqlNatRuleName3')]",
-                        "properties": {
-                            "frontendIPConfigurations": [
-                                {
-                                    "id": "[variables('sshIPConfig')]"
-                                }
-                            ],
-                            "backendIPConfiguration": {
-                                "id": "[variables('backEndIPConfigNic3')]"
-                            },
-                            "protocol": "tcp",
-                            "frontendPort": "[parameters('mysqlFrontEndPort')]",
-                            "backendPort": "[parameters('mysqlBackEndPort')]",
-                            "enableFloatingIP": false
-                        }
-                    },
                     {
                         "name": "[variables('sshNatRuleName1')]",
                         "properties": {
@@ -345,6 +630,9 @@
                                     "id": "[variables('sshIPConfig')]"
                                 }
                             ],
+                            "backendIPConfiguration": {
+                                "id": "[variables('backEndIPConfigNic2')]"
+                            },
                             "protocol": "tcp",
                             "frontendPort": "[parameters('sshNatRuleFrontEndPort2')]",
                             "backendPort": "[parameters('sshNatRuleBackEndPort')]",
@@ -359,6 +647,9 @@
                                     "id": "[variables('sshIPConfig')]"
                                 }
                             ],
+                            "backendIPConfiguration": {
+                                "id": "[variables('backEndIPConfigNic3')]"
+                            },
                             "protocol": "tcp",
                             "frontendPort": "[parameters('sshNatRuleFrontEndPort3')]",
                             "backendPort": "[parameters('sshNatRuleBackEndPort')]",
@@ -366,150 +657,6 @@
                         }
                     }
                 ]
-            }
-        },
-        {
-            "apiVersion": "2014-12-01-preview",
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[variables('nicName1')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[parameters('vmIP1')]",
-                            "subnet": {
-                                "id": "[variables('dbSubnetRef')]"
-                            }
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "apiVersion": "2014-12-01-preview",
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[variables('nicName2')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[parameters('vmIP2')]",
-                            "subnet": {
-                                "id": "[variables('dbSubnetRef')]"
-                            }
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "apiVersion": "2014-12-01-preview",
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[variables('nicName3')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[parameters('vmIP3')]",
-                            "subnet": {
-                                "id": "[variables('dbSubnetRef')]"
-                            }
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "name": "[variables('vmName1')]",
-            "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2014-12-01-preview",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName1'))]"
-            ],
-            "properties": {
-                "hardwareProfile": {
-                    "vmSize": "[parameters('vmSize')]"
-                },
-                "osProfile": {
-                    "computername": "[variables('vmName1')]",
-                    "adminUsername": "[parameters('userName')]",
-                    "adminPassword": "[parameters('password')]"
-                },
-                "storageProfile": {
-                    "sourceImage": {
-                        "id": "[variables('sourceImageName')]"
-                    },
-                    "destinationVhdsContainer": "[variables('vhdContainer')]",
-                    "dataDisks": [
-                        {
-                            "name": "datadisk1",
-                            "diskSizeGB": "1000",
-                            "lun": 0,
-                            "vhd": {
-                                "Uri": "[variables('dataDisk1VhdName1')]"
-                            }
-                        },
-                        {
-                            "name": "datadisk2",
-                            "diskSizeGB": "1000",
-                            "lun": 1,
-                            "vhd": {
-                                "Uri": "[variables('dataDisk2VhdName1')]"
-                            }
-                        },
-                        {
-                            "name": "datadisk3",
-                            "diskSizeGB": "1000",
-                            "lun": 2,
-                            "vhd": {
-                                "Uri": "[variables('dataDisk3VhdName1')]"
-                            }
-                        },
-                        {
-                            "name": "datadisk4",
-                            "diskSizeGB": "1000",
-                            "lun": 3,
-                            "vhd": {
-                                "Uri": "[variables('dataDisk4VhdName1')]"
-                            }
-                        }
-                    ]
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[variables('nicId1')]"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('vmName1'),'/', variables('vmExtensionName'))]",
-            "apiVersion": "2014-12-01-preview",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', variables('vmName1'))]"
-            ],
-            "properties": {
-                "publisher": "Microsoft.OSTCExtensions",
-                "type": "CustomScriptForLinux",
-                "typeHandlerVersion": "1.2",
-                "settings": {
-                    "fileUris": [ "[parameters('customScriptFilePath')]" ],
-                    "commandToExecute": "[parameters('customScriptCommandToExecute')]"
-                }
             }
         }
     ]
