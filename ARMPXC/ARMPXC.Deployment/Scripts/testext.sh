@@ -17,7 +17,7 @@ SECONDNIC=${5}
 MOUNTPOINT="/datadrive"
 RAIDCHUNKSIZE=512
 
-RAIDDISK="/dev/md/data"
+RAIDDISK="/dev/md127"
 RAIDPARTITION="/dev/md127p1"
 # An set of disks to ignore from partitioning and formatting
 BLACKLIST="/dev/sda|/dev/sdb"
