@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# This script is only tested on CentOS 6.5 with Percona XtraDB Cluster 5.6.
+# This script is only tested on CentOS 6.5 and Ubuntu 12.04 LTS with Percona XtraDB Cluster 5.6.
 # You can customize variables such as MOUNTPOINT, RAIDCHUNKSIZE and so on to your needs.
 # You can also customize it to work with other Linux flavours and versions.
 # If you customize it, copy it to either Azure blob storage or Github so that Azure
 # custom script Linux VM extension can access it, and specify its location in the 
-# parameters of DeployPXC powershell script or runbook.   
+# parameters of DeployPXC powershell script or runbook or Azure Resource Manager template.   
 
 CLUSTERADDRESS=${1}
 NODEADDRESS=${2}
@@ -17,11 +17,17 @@ SECONDNIC=${5}
 MOUNTPOINT="/datadrive"
 RAIDCHUNKSIZE=512
 
-RAIDDISK="/dev/md/data"
+RAIDDISK="/dev/md127"
 RAIDPARTITION="/dev/md127p1"
-
 # An set of disks to ignore from partitioning and formatting
 BLACKLIST="/dev/sda|/dev/sdb"
+
+check_os() {
+    grep ubuntu /proc/version > /dev/null 2>&1
+    isubuntu=${?}
+    grep centos /proc/version > /dev/null 2>&1
+    iscentos=${?}
+}
 
 scan_for_new_disks() {
     # Looks for unpartitioned disks
@@ -39,19 +45,6 @@ scan_for_new_disks() {
     echo "${RET}"
 }
 
-add_to_fstab() {
-    UUID=${1}
-    MOUNTPOINT=${2}
-    grep "${UUID}" /etc/fstab >/dev/null 2>&1
-    if [ ${?} -eq 0 ];
-    then
-        echo "Not adding ${UUID} to fstab again (it's already there!)"
-    else
-        LINE="UUID=${UUID} ${MOUNTPOINT} ext4 defaults,noatime 0 0"
-        echo -e "${LINE}" >> /etc/fstab
-    fi
-}
-
 get_disk_count() {
     DISKCOUNT=0
     for DISK in "${DISKS[@]}";
@@ -61,7 +54,22 @@ get_disk_count() {
     echo "$DISKCOUNT"
 }
 
-create_raid0() {
+create_raid0_ubuntu() {
+    dpkg -s mdadm 
+    if [ ${?} -eq 1 ];
+    then 
+        echo "installing mdadm"
+        wget --no-cache http://mirrors.cat.pdx.edu/ubuntu/pool/main/m/mdadm/mdadm_3.2.5-5ubuntu4_amd64.deb
+        dpkg -i mdadm_3.2.5-5ubuntu4_amd64.deb
+    fi
+    echo "Creating raid0"
+    udevadm control --stop-exec-queue
+    echo "yes" | mdadm --create "$RAIDDISK" --name=data --level=0 --chunk="$RAIDCHUNKSIZE" --raid-devices="$DISKCOUNT" "${DISKS[@]}"
+    udevadm control --start-exec-queue
+    mdadm --detail --verbose --scan > /etc/mdadm.conf
+}
+
+create_raid0_centos() {
     echo "Creating raid0"
     yes | mdadm --create "$RAIDDISK" --name=data --level=0 --chunk="$RAIDCHUNKSIZE" --raid-devices="$DISKCOUNT" "${DISKS[@]}"
     mdadm --detail --verbose --scan > /etc/mdadm.conf
@@ -77,7 +85,9 @@ p
 1
 
 
-w"| fdisk "${DISK}" > /dev/null 2>&1
+w
+" | fdisk "${DISK}" 
+#> /dev/null 2>&1
 
 #
 # Use the bash-specific $PIPESTATUS to ensure we get the correct exit code
@@ -90,7 +100,25 @@ then
 fi
 }
 
+add_to_fstab() {
+    UUID=${1}
+    MOUNTPOINT=${2}
+    grep "${UUID}" /etc/fstab >/dev/null 2>&1
+    if [ ${?} -eq 0 ];
+    then
+        echo "Not adding ${UUID} to fstab again (it's already there!)"
+    else
+        LINE="UUID=${UUID} ${MOUNTPOINT} ext4 defaults,noatime 0 0"
+        echo -e "${LINE}" >> /etc/fstab
+    fi
+}
+
 configure_disks() {
+	ls "${MOUNTPOINT}"
+	if [ ${?} -eq 0 ]
+	then 
+		return
+	fi
     DISKS=($(scan_for_new_disks))
     echo "Disks are ${DISKS[@]}"
     declare -i DISKCOUNT
@@ -98,7 +126,13 @@ configure_disks() {
     echo "Disk count is $DISKCOUNT"
     if [ $DISKCOUNT -gt 1 ];
     then
-        create_raid0
+    	if [ $iscentos -eq 0 ];
+    	then
+       	    create_raid0_centos
+    	elif [ $isubuntu -eq 0 ];
+    	then
+            create_raid0_ubuntu
+    	fi
         do_partition ${RAIDDISK}
         PARTITION="${RAIDPARTITION}"
     else
@@ -122,15 +156,20 @@ open_ports() {
     iptables -A INPUT -p tcp -m tcp --dport 4567 -j ACCEPT
     iptables -A INPUT -p tcp -m tcp --dport 4568 -j ACCEPT
     iptables -A INPUT -p tcp -m tcp --dport 9200 -j ACCEPT
-    /etc/init.d/iptables save
+    iptables-save
 }
 
-disable_selinux() {
+disable_apparmor_ubuntu() {
+    /etc/init.d/apparmor teardown
+    update-rc.d -f apparmor remove
+}
+
+disable_selinux_centos() {
     sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
     setenforce 0
 }
 
-activate_secondnic() {
+activate_secondnic_centos() {
     if [ -n "$SECONDNIC" ];
     then
         cp /etc/sysconfig/network-scripts/ifcfg-eth0 "/etc/sysconfig/network-scripts/ifcfg-${SECONDNIC}"
@@ -144,26 +183,88 @@ activate_secondnic() {
 
 configure_network() {
     open_ports
-    activate_secondnic
-    disable_selinux
+    if [ $iscentos -eq 0 ];
+    then
+        activate_secondnic_centos
+        disable_selinux_centos
+    elif [ $isubuntu -eq 0 ];
+    then
+        disable_apparmor_ubuntu
+    fi
 }
 
-configure_mysql() {
-    mkdir "${MOUNTPOINT}/mysql"
-    ln -s "${MOUNTPOINT}/mysql" /var/lib/mysql
+create_mycnf() {
+    wget "${MYCNFTEMPLATE}" -O /etc/my.cnf
+    sed -i "s/^wsrep_cluster_address=.*/wsrep_cluster_address=gcomm:\/\/${CLUSTERADDRESS}/I" /etc/my.cnf
+    sed -i "s/^wsrep_node_address=.*/wsrep_node_address=${NODEADDRESS}/I" /etc/my.cnf
+    sed -i "s/^wsrep_node_name=.*/wsrep_node_name=${NODENAME}/I" /etc/my.cnf
+    if [ $isubuntu -eq 0 ];
+    then
+        sed -i "s/^wsrep_provider=.*/wsrep_provider=\/usr\/lib\/libgalera_smm.so/I" /etc/my.cnf
+    fi
+}
+
+install_mysql_ubuntu() {
+    dpkg -s percona-xtradb-cluster-56
+    if [ ${?} -eq 0 ];
+    then
+        return
+    fi
+    echo "installing mysql"
+    apt-key adv --keyserver keys.gnupg.net --recv-keys 1C4CBDCDCD2EFD2A
+    grep "repo.percona.com" /etc/apt/sources.list >/dev/null 2>&1
+    if [ ${?} -ne 0 ];
+    then
+        echo "deb http://repo.percona.com/apt precise main" >> /etc/apt/sources.list
+        echo "deb-src http://repo.percona.com/apt precise main" >> /etc/apt/sources.list
+    fi
+    apt-get update
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get -q -y install percona-xtradb-cluster-56
+    apt-get -y install xinetd
+}
+
+install_mysql_centos() {
+    yum list installed Percona-XtraDB-Cluster-56
+    if [ ${?} -eq 0 ];
+    then
+        return
+    fi
     echo "installing mysql"
     yum -y install http://www.percona.com/downloads/percona-release/percona-release-0.0-1.x86_64.rpm
     wget --no-cache http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/socat-1.7.2.4-1.el6.rf.x86_64.rpm
     rpm -Uvh socat-1.7.2.4*rpm
     yum -y install Percona-XtraDB-Cluster-56
     yum -y install xinetd
+}
 
-    sed -i "\$amysqlchk  9200\/tcp  #mysqlchk" /etc/services
+configure_mysql() {
+    /etc/init.d/mysql status
+	if [ ${?} -eq 0 ];
+    then
+	   return
+	fi
+    create_mycnf
+
+    mkdir "${MOUNTPOINT}/mysql"
+    ln -s "${MOUNTPOINT}/mysql" /var/lib/mysql
+    chmod o+x /var/lib/mysql
+    if [ $iscentos -eq 0 ];
+    then
+        install_mysql_centos
+    elif [ $isubuntu -eq 0 ];
+    then
+        install_mysql_ubuntu
+    fi
+    /etc/init.d/mysql stop
+
+    grep "mysqlchk" /etc/services >/dev/null 2>&1
+    if [ ${?} -ne 0 ];
+    then
+        sed -i "\$amysqlchk  9200\/tcp  #mysqlchk" /etc/services
+    fi
     service xinetd start
-    wget "${MYCNFTEMPLATE}" -O /etc/my.cnf
-    sed -i "s/^wsrep_cluster_address=.*/wsrep_cluster_address=gcomm:\/\/${CLUSTERADDRESS}/I" /etc/my.cnf
-    sed -i "s/^wsrep_node_address=.*/wsrep_node_address=${NODEADDRESS}/I" /etc/my.cnf
-    sed -i "s/^wsrep_node_name=.*/wsrep_node_name=${NODENAME}/I" /etc/my.cnf
+
     sstmethod=$(sed -n "s/^wsrep_sst_method=//p" /etc/my.cnf)
     sst=$(sed -n "s/^wsrep_sst_auth=//p" /etc/my.cnf | cut -d'"' -f2)
     declare -a sstauth=(${sst//:/ })
@@ -195,7 +296,28 @@ configure_mysql() {
     fi
 }
 
-configure_network
-configure_disks
-configure_mysql
+allow_passwordssh() {
+	grep -q '^PasswordAuthentication yes' /etc/ssh/sshd_config
+    if [ ${?} -eq 0 ];
+    then
+		return
+	fi
+    sed -i "s/^#PasswordAuthentication.*/PasswordAuthentication yes/I" /etc/ssh/sshd_config
+    sed -i "s/^PasswordAuthentication no.*/PasswordAuthentication yes/I" /etc/ssh/sshd_config
+	/etc/init.d/sshd reload
+}
+
+# temporary workaround form CRP 
+allow_passwordssh  
+
+check_os
+if [ $iscentos -ne 0 ] && [ $isubuntu -ne 0 ];
+then
+    echo "unsupported operating system"
+    exit 1 
+else
+    configure_network
+    configure_disks
+    configure_mysql
+fi
 
