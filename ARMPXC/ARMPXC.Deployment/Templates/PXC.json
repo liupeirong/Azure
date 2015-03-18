@@ -58,7 +58,7 @@
         },
         "vmSourceImageName": {
             "type": "string",
-            "defaultValue": "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-65-20150128",
+            "defaultValue": "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu_DAILY_BUILD-precise-12_04_5-LTS-amd64-server-20150210-en-us-30GB",
             "allowedValues": [
                 "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-65-20150128",
                 "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu_DAILY_BUILD-precise-12_04_5-LTS-amd64-server-20150210-en-us-30GB"
@@ -113,7 +113,7 @@
         },
         "customScriptFilePath": {
             "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/ARMPXC/ARMPXC.Deployment/Scripts/testext.sh"
+            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/DeployPXC/azurepxc.sh"
         },
         "mysqlConfigFilePath": {
             "type": "string",
@@ -121,7 +121,7 @@
         },
         "customScriptCommandToExecute": {
             "type": "string",
-            "defaultValue": "bash testext.sh"
+            "defaultValue": "bash azurepxc.sh"
         }
     },
     "variables": {
