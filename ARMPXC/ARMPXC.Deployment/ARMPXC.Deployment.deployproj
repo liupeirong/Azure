@@ -29,7 +29,7 @@
     <Content Include="Scripts\testext.sh" />
     <Content Include="Scripts\Publish-PXC.ps1" />
     <Content Include="Templates\PXC.json" />
-    <None Include="Templates\PXC.param.dev.json" />
+    <None Include="Templates\PXC.parameters.json" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />
 </Project>

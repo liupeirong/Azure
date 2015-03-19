@@ -8,7 +8,7 @@ Param(
   [string] $ResourceGroupName = 'pxcrg',
   [string] $Location = 'East US',
   [string] $TemplateFile = '..\Templates\PXC.json',
-  [string] $TemplateParametersFile = '..\Templates\PXC.param.dev.json'
+  [string] $TemplateParametersFile = '..\Templates\PXC.parameters.json'
 )
 
 Set-StrictMode -Version 3
