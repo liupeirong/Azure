@@ -1,4 +1,8 @@
 ﻿<#
+.Update 3/19/2015
+    Added support for Ubuntu 12.04 LTS
+    There is a regression bug in Azure right now that causes second NIC provisioning to fail. 
+
 .SYNOPSIS
     This script/runbook deploys a fully customizable MySQL Percona XtraDB Cluster (PXC) in the specified Azure environment. 
     It provisions network, storage and compute resources for the cluster, and leverages Azure Linux custom script
@@ -16,6 +20,7 @@
 .SUPPORTED ENVIRONMENT
     Percona XtraDB Cluster 5.6
     CentOS 6.5
+    Ubuntu 12.04 LTS
     
 .DEPLOYMENT SPECIFICATION
     Network
