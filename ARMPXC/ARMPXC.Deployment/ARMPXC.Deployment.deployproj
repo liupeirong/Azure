@@ -27,8 +27,8 @@
       <Visible>False</Visible>
     </None>
     <Content Include="Scripts\Publish-PXC.ps1" />
-    <Content Include="Templates\PXC.json" />
-    <None Include="Templates\PXC.parameters.json" />
+    <Content Include="Templates\azuredeploy.json" />
+    <None Include="Templates\azuredeploy.parameters.json" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />
 </Project>

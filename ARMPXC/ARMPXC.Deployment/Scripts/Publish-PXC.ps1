@@ -7,8 +7,8 @@ What else would you like this script to do for you?  Send us feedback here: http
 Param(
   [string] $ResourceGroupName = 'pxcrg',
   [string] $Location = 'East US',
-  [string] $TemplateFile = '..\Templates\PXC.json',
-  [string] $TemplateParametersFile = '..\Templates\PXC.parameters.json'
+  [string] $TemplateFile = '..\Templates\azuredeploy.json',
+  [string] $TemplateParametersFile = '..\Templates\azuredeploy.parameters.json'
 )
 
 Set-StrictMode -Version 3
