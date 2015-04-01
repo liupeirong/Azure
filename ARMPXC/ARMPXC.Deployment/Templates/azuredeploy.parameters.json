@@ -21,13 +21,13 @@
             "value": "10.0.1.7"
         },
         "userName": {
-            "value": "pliu"
+            "value": "azureuser"
         },
         "password": {
-            "value": "MicrosoftDx1"
+            "value": "password1"
         },
         "subscriptionId": {
-            "value": "8d3766f2-c136-4ffe-94b3-046a01ac3239"
+            "value": "12345"
         },
         "vmNamePrefix": {
             "value": "pxct"
