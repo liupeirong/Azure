@@ -288,7 +288,9 @@ function deployCluster
     $ilbConfig = New-AzureInternalLoadBalancerConfig -InternalLoadBalancerName $LoadBalancerName -StaticVNetIPAddress $LoadBalancerIP -SubnetName $DBSubnet
 
     #create VMs
-    $imageName=@(Get-AzureVMImage |where-object {$_.Label -like $OSName}).ImageName
+    $images = @(Get-AzureVMImage |where-object {$_.Label -like $OSName})
+    $imageName = $images[$images.Length - 1].ImageName
+
     for ($i=0; $i -lt $script:NodeIPs.Count; $i++)
     {
         $vmName = $VMNamePrefix + ($i + 1)
