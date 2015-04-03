@@ -220,7 +220,7 @@ function validateInput
     for ($i=1; $i -le $script:NodeIPs.Count; $i++) 
     {
         $vmName = $VMNamePrefix + $i
-        if ($vmName.Length > 15)
+        if ($vmName.Length -gt 15)
         {
             Write-Error ("Node Name {0} must not be longer than 15 characters." -f $vmName)    
             Exit
