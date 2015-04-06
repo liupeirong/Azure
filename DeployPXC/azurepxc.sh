@@ -263,7 +263,7 @@ configure_mysql() {
     then
         sed -i "\$amysqlchk  9200\/tcp  #mysqlchk" /etc/services
     fi
-    service xinetd start
+    service xinetd restart
 
     sstmethod=$(sed -n "s/^wsrep_sst_method=//p" /etc/my.cnf)
     sst=$(sed -n "s/^wsrep_sst_auth=//p" /etc/my.cnf | cut -d'"' -f2)
