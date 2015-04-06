@@ -198,7 +198,7 @@ install_glusterfs_centos() {
     then
         return
     fi
-    echo "installing mysql"
+    echo "installing gluster"
     wget --no-cache http://download.gluster.org/pub/gluster/glusterfs/LATEST/CentOS/glusterfs-epel.repo
     mv glusterfs-epel.repo  /etc/yum.repos.d/
     wget -l 1 -nd -nc -r -A.rpm http://download.gluster.org/pub/gluster/glusterfs/LATEST/RHEL/epel-6/x86_64
@@ -230,14 +230,14 @@ configure_gluster() {
     then
         return
     fi
-    gluster peer probe $PEERNODENAME
+    gluster peer probe $PEERNODENAME 2> /tmp/error
     if [ ${?} -ne 0 ];
     then
         echo "gluster peer probe failed"
         exit 1
     fi
 
-    gluster volume create "${VOLUMENAME}" rep 2 transport tcp "${NODENAME}:${GLUSTERDIR}" "${PEERNODENAME}:${GLUSTERDIR}" 2> /tmp/error
+    gluster volume create "${VOLUMENAME}" rep 2 transport tcp "${NODENAME}:${GLUSTERDIR}" "${PEERNODENAME}:${GLUSTERDIR}" 2>> /tmp/error
     gluster volume info 2>> /tmp/error
     gluster volume start "${VOLUMENAME}" 2>> /tmp/error
 }
