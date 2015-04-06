@@ -220,7 +220,7 @@ function validateInput
     for ($i=1; $i -le $script:NodeIPs.Count; $i++) 
     {
         $vmName = $VMNamePrefix + $i
-        if ($vmName.Length > 15)
+        if ($vmName.Length -gt 15)
         {
             Write-Error ("Node Name {0} must not be longer than 15 characters." -f $vmName)    
             Exit
@@ -288,7 +288,9 @@ function deployCluster
     $ilbConfig = New-AzureInternalLoadBalancerConfig -InternalLoadBalancerName $LoadBalancerName -StaticVNetIPAddress $LoadBalancerIP -SubnetName $DBSubnet
 
     #create VMs
-    $imageName=@(Get-AzureVMImage |where-object {$_.Label -like $OSName}).ImageName
+    $images = @(Get-AzureVMImage |where-object {$_.Label -like $OSName})
+    $imageName = $images[$images.Length - 1].ImageName
+
     for ($i=0; $i -lt $script:NodeIPs.Count; $i++)
     {
         $vmName = $VMNamePrefix + ($i + 1)
