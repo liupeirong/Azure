@@ -249,6 +249,7 @@ configure_mysql() {
     mkdir "${MOUNTPOINT}/mysql"
     ln -s "${MOUNTPOINT}/mysql" /var/lib/mysql
     chmod o+x /var/lib/mysql
+    chmod o+x "${MOUNTPOINT}/mysql"
     if [ $iscentos -eq 0 ];
     then
         install_mysql_centos
