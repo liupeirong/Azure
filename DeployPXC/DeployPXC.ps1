@@ -219,6 +219,7 @@ function validateInput
         Exit
     }
     # check if DBNodeIPs are available in DBSubnet
+    $DBNodeIPs = $DBNodeIPs -replace ' ','' 
     $script:NodeIPs = $DBNodeIPs.Split(',')
     if ($script:NodeIPs.Count -lt 3)
     {
