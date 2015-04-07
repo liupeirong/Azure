@@ -257,13 +257,14 @@ configure_mysql() {
         install_mysql_ubuntu
     fi
     /etc/init.d/mysql stop
-
+    chmod o+x "${MOUNTPOINT}/mysql"
+    
     grep "mysqlchk" /etc/services >/dev/null 2>&1
     if [ ${?} -ne 0 ];
     then
         sed -i "\$amysqlchk  9200\/tcp  #mysqlchk" /etc/services
     fi
-    service xinetd start
+    service xinetd restart
 
     sstmethod=$(sed -n "s/^wsrep_sst_method=//p" /etc/my.cnf)
     sst=$(sed -n "s/^wsrep_sst_auth=//p" /etc/my.cnf | cut -d'"' -f2)
