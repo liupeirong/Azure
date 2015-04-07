@@ -249,7 +249,6 @@ configure_mysql() {
     mkdir "${MOUNTPOINT}/mysql"
     ln -s "${MOUNTPOINT}/mysql" /var/lib/mysql
     chmod o+x /var/lib/mysql
-    chmod o+x "${MOUNTPOINT}/mysql"
     if [ $iscentos -eq 0 ];
     then
         install_mysql_centos
@@ -258,7 +257,8 @@ configure_mysql() {
         install_mysql_ubuntu
     fi
     /etc/init.d/mysql stop
-
+    chmod o+x "${MOUNTPOINT}/mysql"
+    
     grep "mysqlchk" /etc/services >/dev/null 2>&1
     if [ ${?} -ne 0 ];
     then
