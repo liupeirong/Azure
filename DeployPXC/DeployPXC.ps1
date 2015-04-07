@@ -56,15 +56,15 @@
     To deploy a 3 node cluster without disk striping or 2nd NIC: 
 
     .\DeployPXC.ps1 -SubscriptionName "mysubscription" -StorageAccountName "mystorage" -ServiceName "myservice" `
-                    -VNetName "myvnet" -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.1,10.0.0.2,10.0.0.3" `
+                    -VNetName "myvnet" -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.5,10.0.0.6,10.0.0.7" `
                     -LoadBalancerIP "10.0.0.4" -VMSize "Large" -NumOfDisks 1 -DiskSizeInGB 10 -VMNamePrefix "azpxc" `
                     -VMUser "azureuser" -VMPassword "s3cret#" 
                     
     To deploy a 3 node cluster with disk striping and 2nd NIC:
 
     .\DeployPXC.ps1 -SubscriptionName "mysubscription" -StorageAccountName "mystorage" -ServiceName "myservice" `
-                    -VNetName "myvnet" -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.1,10.0.0.2,10.0.0.3" `
-                    -LoadBalancerIP "10.0.0.4" -VMSize "Large" -NumOfDisks 1 -DiskSizeInGB 10 -VMNamePrefix "azpxc" `
+                    -VNetName "myvnet" -DBSubnet "dbsubnet" -DBNodeIPs "10.0.0.5,10.0.0.6,10.0.0.7" `
+                    -LoadBalancerIP "10.0.0.4" -VMSize "Large" -NumOfDisks 2 -DiskSizeInGB 10 -VMNamePrefix "azpxc" `
                     -VMUser "azureuser" -VMPassword "s3cret#" `
                     -SecondNICName "eth1" -SecondNICSubnet "clustersubnet" -SecondNICIPs "10.1.0.4,10.1.0.5,10.1.0.6"
 #>
@@ -86,6 +86,8 @@ param (
         [String]$DBNodeIPs, #the IPs of the primary NIC of the cluster nodes, comma separated, ex: "10.0.0.1,10.0.0.2,10.0.0.3"
         [parameter(Mandatory=$true)]
         [String]$LoadBalancerIP, #the IP of the load balancer for the cluster nodes, must be in the VNet
+        [parameter(Mandatory=$true)]
+        [String]$OSName = "OpenLogic 6.5", # must be "OpenLogic 6.5" or "Ubuntu Server 12.04.5 LTS" 
         [parameter(Mandatory=$true)]
         [String]$VMSize = "Large", #Azure VM size for the cluster nodes
         [parameter(Mandatory=$true)]
@@ -115,7 +117,6 @@ param (
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest 
 
-$OSName="OpenLogic 6.5" # this script is only tested on this OS
 $LoadBalancerName=$VMNamePrefix + "ilb"
 $LoadBalancedSetName=$VMNamePrefix + "lbset"
 $AvailabilitySetName=$VMNamePrefix + "set"
@@ -129,6 +130,9 @@ $CloudService=$null
 $VNetLocation=$null
 $NodeIPs=$null
 $SecondIPs=$null
+
+$OSNameCentOS="OpenLogic 6.5"
+$OSNameUbuntu="Ubuntu Server 12.04.5 LTS"
 
 function checkSubnet ([string]$cidr, [string]$ip)
 {
@@ -146,6 +150,10 @@ function checkSubnet ([string]$cidr, [string]$ip)
 
 function validateInput
 {
+    if (($OSName -ne $OSNameCentOS) -and ($OSName -ne $OSNameUbuntu))
+    {
+        Write-Error ("OSName must be '{0}' or '{1}'. Only tested on these OS." -f $OSNameCentOS, $OSNameUbuntu)
+    }
     # check VNet and subnet exist
     $VNet = get-azurevnetsite | where-object {$_.Name -eq $VNetName}
     if (!$VNet) 
@@ -187,12 +195,23 @@ function validateInput
             Exit
         }
     }
-    elseif ($script:CloudService.Location -ne $script:VNetLocation)
+    else
     {
-        Write-Error ("Cloud Service {0} exists in {1}, not in VNet's region {2}."  `
+        if ($script:CloudService.Location -ne $script:VNetLocation)
+        {
+            Write-Error ("Cloud Service {0} exists in {1}, not in VNet's region {2}."  `
                     -f $ServiceName, $script:CloudService.Location, $script:VNetLocation)    
-        Exit
+            Exit
+        }
+        $deployment = Get-AzureDeployment -ServiceName $ServiceName -ErrorAction silentlycontinue
+        if ($?)
+        {
+            Write-Error ("Cloud Service {0} already has deployment, please use a new Cloud Service to avoid complications such as pre-existing load balancer."  `
+                    -f $ServiceName)    
+            Exit
+        }
     }
+    
     # check if load balancer IP is available in DBSubnet
     if (!((Test-AzureStaticVNetIP -VNetName $VNetName -IPAddress $LoadBalancerIP).IsAvailable))
     {
