@@ -247,13 +247,20 @@ configure_gluster() {
     while [ $retry -gt 0 ] && [ $failed -gt 0 ]; do
         failed=0
         index=0
+		echo retrying $retry >> /tmp/error
         while [ $index -lt $(($NODECOUNT-1)) ]; do
             ping -c 3 "${PEERNODEPREFIX}${index}" > /tmp/error
-            gluster peer probe "${PEERNODEPREFIX}${index}" 2>> /tmp/error
+            gluster peer probe "${PEERNODEPREFIX}${index}" >> /tmp/error
             if [ ${?} -ne 0 ];
             then
                 failed=1
                 echo "gluster peer probe ${PEERNODEPREFIX}${index} failed"
+            fi
+			gluster peer status | grep "${PEERNODEPREFIX}${index}" >> /tmp/error
+            if [ ${?} -ne 0 ];
+            then
+                failed=1
+                echo "gluster peer status ${PEERNODEPREFIX}${index} failed"
             fi
             if [ $retry -eq 10 ]; then
                 allNodes="${allNodes} ${PEERNODEPREFIX}${index}:${GLUSTERDIR}"
