@@ -156,6 +156,7 @@ open_ports() {
         if [ $index -ne $NODEINDEX ]; then
             iptables -I INPUT -p all -s "${PEERNODEIPPREFIX}${index}" -j ACCEPT
         fi
+		echo "${PEERNODEIPPREFIX}${index}    ${PEERNODENAMEPREFIX}${index}" >> /etc/hosts
         let index++
     done
     iptables-save
