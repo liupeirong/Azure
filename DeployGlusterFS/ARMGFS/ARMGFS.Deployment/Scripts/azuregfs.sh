@@ -239,18 +239,29 @@ configure_gluster() {
         return
     fi
     
-    index=0
     allNodes="${NODENAME}:${GLUSTERDIR}"
-    while [ $index -lt $(($NODECOUNT-1)) ]; do
-        gluster peer probe "${PEERNODEPREFIX}${index}" 2> /tmp/error
-        if [ ${?} -ne 0 ];
-        then
-            echo "gluster peer probe failed"
-            sleep 10
-        fi
-        allNodes="${allNodes} ${PEERNODEPREFIX}${index}:${GLUSTERDIR}"
-        let index++
-    done
+	retry=10
+	failed=1
+	while [ $retry -gt 0 ] && [ $failed -gt 0 ]; do
+		failed=0
+		index=0
+    	while [ $index -lt $(($NODECOUNT-1)) ]; do
+			gluster peer probe "${PEERNODEPREFIX}${index}" 2> /tmp/error
+			if [ ${?} -ne 0 ];
+			then
+				failed=1
+				echo "gluster peer probe ${PEERNODEPREFIX}${index} failed"
+			fi
+			if [ $retry -eq 10 ]; then
+				allNodes="${allNodes} ${PEERNODEPREFIX}${index}:${GLUSTERDIR}"
+			fi
+			let index++
+		done
+		if [ $failed -gt 0 ]; then
+			sleep 30
+		fi
+		let retry--
+	done
 
     gluster volume create "${VOLUMENAME}" rep 2 transport tcp "${allNodes}" 2>> /tmp/error
     gluster volume info 2>> /tmp/error
