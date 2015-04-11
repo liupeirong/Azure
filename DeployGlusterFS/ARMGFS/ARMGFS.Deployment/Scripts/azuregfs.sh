@@ -246,7 +246,8 @@ configure_gluster() {
 		failed=0
 		index=0
     	while [ $index -lt $(($NODECOUNT-1)) ]; do
-			gluster peer probe "${PEERNODEPREFIX}${index}" 2> /tmp/error
+		    ping -c 3 "${PEERNODEPREFIX}${index}" > /tmp/error
+			gluster peer probe "${PEERNODEPREFIX}${index}" 2>> /tmp/error
 			if [ ${?} -ne 0 ];
 			then
 				failed=1
