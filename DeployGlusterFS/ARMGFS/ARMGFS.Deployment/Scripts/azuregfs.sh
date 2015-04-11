@@ -155,8 +155,10 @@ open_ports() {
     while [ $index -lt $NODECOUNT ]; do
         if [ $index -ne $NODEINDEX ]; then
             iptables -I INPUT -p all -s "${PEERNODEIPPREFIX}${index}" -j ACCEPT
+            echo "${PEERNODEIPPREFIX}${index}    ${PEERNODEPREFIX}${index}" >> /etc/hosts
+        else
+            echo "127.0.0.1    ${PEERNODEPREFIX}${index}" >> /etc/hosts
         fi
-		echo "${PEERNODEIPPREFIX}${index}    ${PEERNODEPREFIX}${index}" >> /etc/hosts
         let index++
     done
     iptables-save
@@ -240,29 +242,29 @@ configure_gluster() {
     fi
     
     allNodes="${NODENAME}:${GLUSTERDIR}"
-	retry=10
-	failed=1
-	while [ $retry -gt 0 ] && [ $failed -gt 0 ]; do
-		failed=0
-		index=0
-    	while [ $index -lt $(($NODECOUNT-1)) ]; do
-		    ping -c 3 "${PEERNODEPREFIX}${index}" > /tmp/error
-			gluster peer probe "${PEERNODEPREFIX}${index}" 2>> /tmp/error
-			if [ ${?} -ne 0 ];
-			then
-				failed=1
-				echo "gluster peer probe ${PEERNODEPREFIX}${index} failed"
-			fi
-			if [ $retry -eq 10 ]; then
-				allNodes="${allNodes} ${PEERNODEPREFIX}${index}:${GLUSTERDIR}"
-			fi
-			let index++
-		done
-		if [ $failed -gt 0 ]; then
-			sleep 30
-		fi
-		let retry--
-	done
+    retry=10
+    failed=1
+    while [ $retry -gt 0 ] && [ $failed -gt 0 ]; do
+        failed=0
+        index=0
+        while [ $index -lt $(($NODECOUNT-1)) ]; do
+            ping -c 3 "${PEERNODEPREFIX}${index}" > /tmp/error
+            gluster peer probe "${PEERNODEPREFIX}${index}" 2>> /tmp/error
+            if [ ${?} -ne 0 ];
+            then
+                failed=1
+                echo "gluster peer probe ${PEERNODEPREFIX}${index} failed"
+            fi
+            if [ $retry -eq 10 ]; then
+                allNodes="${allNodes} ${PEERNODEPREFIX}${index}:${GLUSTERDIR}"
+            fi
+            let index++
+        done
+        if [ $failed -gt 0 ]; then
+            sleep 30
+        fi
+        let retry--
+    done
 
     gluster volume create ${VOLUMENAME} rep 2 transport tcp ${allNodes} 2>> /tmp/error
     gluster volume info 2>> /tmp/error
