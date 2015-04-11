@@ -156,7 +156,7 @@ open_ports() {
         if [ $index -ne $NODEINDEX ]; then
             iptables -I INPUT -p all -s "${PEERNODEIPPREFIX}${index}" -j ACCEPT
         fi
-		echo "${PEERNODEIPPREFIX}${index}    ${PEERNODENAMEPREFIX}${index}" >> /etc/hosts
+		echo "${PEERNODEIPPREFIX}${index}    ${PEERNODEPREFIX}${index}" >> /etc/hosts
         let index++
     done
     iptables-save
@@ -263,9 +263,9 @@ configure_gluster() {
 		let retry--
 	done
 
-    gluster volume create "${VOLUMENAME}" rep 2 transport tcp "${allNodes}" 2>> /tmp/error
+    gluster volume create ${VOLUMENAME} rep 2 transport tcp ${allNodes} 2>> /tmp/error
     gluster volume info 2>> /tmp/error
-    gluster volume start "${VOLUMENAME}" 2>> /tmp/error
+    gluster volume start ${VOLUMENAME} 2>> /tmp/error
 }
 
 allow_passwordssh() {
