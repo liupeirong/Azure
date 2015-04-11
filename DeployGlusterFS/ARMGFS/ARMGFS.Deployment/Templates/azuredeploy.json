@@ -69,7 +69,7 @@
         },
         "customScriptFilePath": {
             "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/DeployGlusterFS/DeployGlusterFS/azuregfs.sh"
+            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/DeployGlusterFS/ARMGFS/ARMGFS.Deployment/Scripts/azuregfs.sh"
         },
         "customScriptCommandToExecute": {
             "type": "string",
@@ -240,7 +240,7 @@
                 "typeHandlerVersion": "1.2",
                 "settings": {
                     "fileUris": [ "[parameters('customScriptFilePath')]" ],
-                    "commandToExecute": "[concat(parameters('customScriptCommandToExecute'), ' ', parameters('vmNamePrefix'), ' ', parameters('vmIPPrefix'), ' ', parameters('volumeName'), ' ', copyindex(), parameters('scaleNumber'))]"
+                    "commandToExecute": "[concat(parameters('customScriptCommandToExecute'), ' ', parameters('vmNamePrefix'), ' ', parameters('vmIPPrefix'), ' ', parameters('volumeName'), ' ', copyindex(), ' ', parameters('scaleNumber'))]"
                 }
             }
         }
