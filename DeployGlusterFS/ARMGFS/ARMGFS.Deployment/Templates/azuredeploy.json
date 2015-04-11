@@ -1,0 +1,248 @@
+﻿{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "West US",
+            "allowedValues": [
+                "West US",
+                "East US"
+            ]
+        },
+        "storageAccountName": {
+            "type": "string"
+        },
+        "scaleNumber": {
+            "type": "int",
+            "defaultValue": 2,
+            "allowedValues": [2, 4, 6, 8]
+        },
+        "virtualNetworkName": {
+            "type": "string"
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "vmSourceImageName": {
+            "type": "string",
+            "defaultValue": "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-65-20150128",
+            "allowedValues": [
+                "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-65-20150128",
+                "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu_DAILY_BUILD-precise-12_04_5-LTS-amd64-server-20150210-en-us-30GB"
+            ]
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_A1",
+            "allowedValues": [
+                "Standard_A1",
+                "Standard_A2",
+                "Standard_A3",
+                "Standard_A4"
+            ]
+        },
+        "vmNamePrefix": {
+            "type": "string"
+        },
+        "vmIPPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.1"
+        },
+        "subscriptionId": {
+            "type": "string"
+        },
+        "vnetAddressPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16"
+        },
+        "gfsSubnetName": {
+            "type": "string",
+            "defaultValue": "Subnet-1"
+        },
+        "gfsSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24"
+        },
+        "customScriptFilePath": {
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/DeployGlusterFS/ARMGFS/ARMGFS.Deployment/Scripts/azuregfs.sh"
+        },
+        "customScriptCommandToExecute": {
+            "type": "string",
+            "defaultValue": "bash azuregfs.sh"
+        },
+        "volumeName": {
+            "type": "string",
+            "defaultValue": "gfsvol"
+        }
+    },
+    "variables": {
+        "pipName": "pip",
+        "nicName": "nic",
+        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
+        "gfsSubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('gfsSubnetName'))]",
+        "sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[concat(parameters('storageAccountName'), copyIndex())]",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "gfs",
+                "count": "[parameters('scaleNumber')]"
+            },
+            "properties": {
+                "accountType": "Standard_LRS"
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetAddressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('gfsSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('gfsSubnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(variables('pipName'), copyIndex())]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "foo",
+                "count": "[parameters('scaleNumber')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic"
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('nicName'), copyindex())]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "gfs",
+                "count": "[parameters('scaleNumber')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('pipName'), copyindex())]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(variables('pipName'), copyindex()))]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[concat(parameters('vmIPPrefix'), copyindex())]",
+                            "subnet": {
+                                "id": "[variables('gfsSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2014-12-01-preview",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(parameters('vmNamePrefix'), copyindex())]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "gfs",
+                "count": "[parameters('scaleNumber')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), copyindex())]",
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'), copyindex())]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computername": "[concat(parameters('vmNamePrefix'), copyIndex())]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "sourceImage": {
+                        "id": "[variables('sourceImageName')]"
+                    },
+                    "destinationVhdsContainer": "[concat('http://',parameters('storageAccountName'), copyindex(), '.blob.core.windows.net/vhds/')]",
+                    "dataDisks": [
+                        {
+                            "name": "datadisk1",
+                            "diskSizeGB": "1000",
+                            "lun": 0,
+                            "vhd": {
+                                "Uri": "[concat('http://', parameters('storageAccountName'), copyindex(),'.blob.core.windows.net/vhds/', parameters('vmNamePrefix'), copyIndex(), 'datadisk1.vhd')]"
+                            }
+                        },
+                        {
+                            "name": "datadisk2",
+                            "diskSizeGB": "1000",
+                            "lun": 1,
+                            "vhd": {
+                                "Uri": "[concat('http://', parameters('storageAccountName'), copyindex(),'.blob.core.windows.net/vhds/', parameters('vmNamePrefix'), copyIndex(), 'datadisk2.vhd')]"
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName'), copyindex()))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmNamePrefix'), copyindex(), '/extention')]",
+            "apiVersion": "2014-12-01-preview",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "gfs",
+                "count": "[parameters('scaleNumber')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'), copyindex())]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.2",
+                "settings": {
+                    "fileUris": [ "[parameters('customScriptFilePath')]" ],
+                    "commandToExecute": "[concat(parameters('customScriptCommandToExecute'), ' ', parameters('vmNamePrefix'), ' ', parameters('vmIPPrefix'), ' ', parameters('volumeName'), ' ', copyindex(), ' ', parameters('scaleNumber'))]"
+                }
+            }
+        }
+    ]
+}
