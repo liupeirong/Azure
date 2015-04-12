@@ -256,6 +256,7 @@ configure_gluster() {
                 failed=1
                 echo "gluster peer probe ${PEERNODEPREFIX}${index} failed"
             fi
+			gluster peer status >> /tmp/error
 			gluster peer status | grep "${PEERNODEPREFIX}${index}" >> /tmp/error
             if [ ${?} -ne 0 ];
             then
@@ -267,12 +268,11 @@ configure_gluster() {
             fi
             let index++
         done
-        if [ $failed -gt 0 ]; then
-            sleep 30
-        fi
+        sleep 30
         let retry--
     done
 
+	sleep 60
     gluster volume create ${VOLUMENAME} rep 2 transport tcp ${allNodes} 2>> /tmp/error
     gluster volume info 2>> /tmp/error
     gluster volume start ${VOLUMENAME} 2>> /tmp/error
