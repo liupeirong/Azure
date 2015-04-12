@@ -12,13 +12,13 @@
             "value": "gfsstore"
         },
         "adminUsername": {
-            "value": "pliu"
+            "value": "azureuser"
         },
         "adminPassword": {
-            "value": "MicrosoftDx1"
+            "value": "password"
         },
         "subscriptionId": {
-            "value": "8d3766f2-c136-4ffe-94b3-046a01ac3239"
+            "value": "123..."
         },
         "vmNamePrefix": { 
             "value": "gfs"
