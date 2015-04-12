@@ -8,31 +8,52 @@
             "allowedValues": [
                 "West US",
                 "East US"
-            ]
+            ],
+            "metadata": {
+                "description": "Location where the nodes will be created"
+            }
         },
         "storageAccountName": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Prefix of storage account name, each node lives in its own storage account"
+            }
         },
         "scaleNumber": {
             "type": "int",
             "defaultValue": 2,
-            "allowedValues": [2, 4, 6, 8]
+            "allowedValues": [2, 4, 6, 8],
+            "metadata": {
+                "description": "Number of nodes in the gluster file system"
+            }
         },
         "virtualNetworkName": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "virtual network the nodes will be created in"
+            }
         },
         "adminUsername": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "ssh user name"
+            }
         },
         "adminPassword": {
-            "type": "securestring"
+            "type": "securestring",
+            "metadata": {
+                "description": "ssh password"
+            }
         },
         "vmSourceImageName": {
             "type": "string",
             "defaultValue": "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-65-20150128",
             "allowedValues": [
                 "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-65-20150128"
-            ]
+            ],
+            "metadata": {
+                "description": "OS image name for the nodes"
+            }
         },
         "vmSize": {
             "type": "string",
@@ -42,41 +63,71 @@
                 "Standard_A2",
                 "Standard_A3",
                 "Standard_A4"
-            ]
+            ],
+            "metadata": {
+                "description": "VM size for the nodes"
+            }
         },
         "vmNamePrefix": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "VM name prefix, a number will be appended for each node"
+            }
         },
         "vmIPPrefix": {
             "type": "string",
-            "defaultValue": "10.0.0.1"
+            "defaultValue": "10.0.0.1",
+            "metadata": {
+                "description": "VM IP prefix, a number will be appened for each node"
+            }
         },
         "subscriptionId": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Azure subscription where the nodes will be deployed to"
+            }
         },
         "vnetAddressPrefix": {
             "type": "string",
-            "defaultValue": "10.0.0.0/16"
+            "defaultValue": "10.0.0.0/16",
+            "metadata": {
+                "description": "virtual network CIDR in which the cluster will be created"
+            }
         },
         "gfsSubnetName": {
             "type": "string",
-            "defaultValue": "Subnet-1"
+            "defaultValue": "Subnet-1",
+            "metadata": {
+                "description": "name of the subnet for the Gluster nodes"
+            }
         },
         "gfsSubnetPrefix": {
             "type": "string",
-            "defaultValue": "10.0.0.0/24"
+            "defaultValue": "10.0.0.0/24",
+            "metadata": {
+                "description": "CIDR of the subnet for the Gluster nodes"
+            }
         },
         "customScriptFilePath": {
             "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/DeployGlusterFS/ARMGFS/ARMGFS.Deployment/Scripts/azuregfs.sh"
+            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/DeployGlusterFS/ARMGFS/ARMGFS.Deployment/Scripts/azuregfs.sh",
+            "metadata": {
+                "description": "GitHub location of the custom script that configures Gluster"
+            }
         },
         "customScriptCommandToExecute": {
             "type": "string",
-            "defaultValue": "bash azuregfs.sh"
+            "defaultValue": "bash azuregfs.sh",
+            "metadata": {
+                "description": "command to run the custom script"
+            }
         },
         "volumeName": {
             "type": "string",
-            "defaultValue": "gfsvol"
+            "defaultValue": "gfsvol",
+            "metadata": {
+                "description": "Gluster file system volume name"
+            }
         }
     },
     "variables": {
