@@ -30,6 +30,7 @@
     <None Include="Scripts\azuregfs.sh" />
     <None Include="Scripts\Publish-GFS.ps1" />
     <None Include="Templates\azuredeploy.parameters.json" />
+    <None Include="Templates\readme.md" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />
 </Project>
