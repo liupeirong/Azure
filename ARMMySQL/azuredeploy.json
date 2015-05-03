@@ -142,7 +142,7 @@
         "vhdContainer1": "[concat('http://',parameters('storageAccount'),'.blob.core.windows.net/avhds/')]",
         "dataDisk1VhdName1": "[concat(variables('vhdContainer1'),variables('vmName1'),'dataDisk1.vhd')]",
         "dataDisk2VhdName1": "[concat(variables('vhdContainer1'),variables('vmName1'),'dataDisk2.vhd')]",
-        "customScriptParamVm1": "[concat(parameters('customScriptCommandToExecute'), ' ', parameters('vmIP1'), ' ', parameters('mysqlConfigFilePath'))]",
+        "customScriptParamVm1": "[concat(parameters('customScriptCommandToExecute'), ' ', parameters('mysqlConfigFilePath'))]",
         "vmExtensionName1": "[concat(variables('vmName1'),'/', variables('vmExtensionName'))]",
     },
     "resources": [

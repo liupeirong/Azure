@@ -8,10 +8,9 @@
 # parameters of DeployPXC powershell script or runbook or Azure Resource Manager CRP template.   
 
 CLUSTERADDRESS=${1}
-NODEADDRESS=${2}
 NODENAME=$(hostname)
-MYCNFTEMPLATE=${3}
-SECONDNIC=${4}
+MYCNFTEMPLATE=${2}
+SECONDNIC=${3}
 
 MOUNTPOINT="/datadrive"
 RAIDCHUNKSIZE=512
