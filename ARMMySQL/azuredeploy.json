@@ -120,7 +120,7 @@
         },
         "customScriptCommandToExecute": {
             "type": "string",
-            "defaultValue": "bash azurepxc.sh",
+            "defaultValue": "bash azuremysql.sh",
             "metadata": {
                 "description": "bash script command line"
             }
