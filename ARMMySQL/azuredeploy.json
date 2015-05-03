@@ -1,0 +1,299 @@
+﻿{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "storageAccount": {
+            "type": "string",
+            "defaultValue": "mysqlst",
+            "metadata": {
+                "description": "Storage account name for the cluster"
+            }
+        },
+        "dnsName": {
+            "type": "string",
+            "defaultValue": "mysqlcs",
+            "metadata": {
+                "description": "Connect to your cluster using dnsName.cloudapp.net"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "defaultValue": "mysqlvnet",
+            "metadata": {
+                "description": "Virtual network name for the cluster"
+            }
+        },
+        "dbSubnetName": {
+            "type": "string",
+            "defaultValue": "dbsubnet",
+            "metadata": {
+                "description": "subnet name for the MySQL nodes"
+            }
+        },
+        "vnetAddressPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16",
+            "metadata": {
+                "description": "IP address in CIDR for virtual network"
+            }
+        },
+        "dbSubnetAddressPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.1.0/24",
+            "metadata": {
+                "description": "IP address in CIDR for db subnet"
+            }
+        },
+        "vmName": {
+            "type": "string",
+            "defaultValue": "mysqlvn",
+            "metadata": {
+                "description": "host name for the VM"
+            }
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_A3",
+            "metadata": {
+                "description": "size for the VM"
+            }
+        },
+        "userName": {
+            "type": "string",
+            "defaultValue": "azureuser",
+            "metadata": {
+                "description": "user name to ssh to the VMs"
+            }
+        },
+        "password": {
+            "type": "securestring",
+            "metadata": {
+                "description": "password to ssh to the VMs"
+            }
+        },
+        "imagePublisher": {
+            "type": "string",
+            "defaultValue": "Canonical",
+            "allowedValues": [
+                "OpenLogic",
+                "Canonical"
+            ],
+            "metadata": {
+                "description": "publisher for the VM OS image"
+            }
+        },
+        "imageOffer": {
+            "type": "string",
+            "defaultValue": "UbuntuServer",
+            "allowedValues": [
+                "CentOS",
+                "UbuntuServer"
+            ],
+            "metadata": {
+                "description": "VM OS name"
+            }
+        },
+        "imageSKU": {
+            "type": "string",
+            "defaultValue": "12.04.5-LTS",
+            "allowedValues": [
+                "6.5",
+                "12.04.5-LTS"
+            ],
+            "metadata": {
+                "description": "VM OS version"
+            }
+        },
+        "customScriptFilePath": {
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/ARMMySQL/azuremysql.sh",
+            "metadata": {
+                "description": "bash file location to configure mysql"
+            }
+        },
+        "mysqlConfigFilePath": {
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/ARMMySQL/my.cnf.template",
+            "metadata": {
+                "description": "my.cnf file location"
+            }
+        },
+        "customScriptCommandToExecute": {
+            "type": "string",
+            "defaultValue": "bash azurepxc.sh",
+            "metadata": {
+                "description": "bash script command line"
+            }
+        }
+    },
+    "variables": {
+        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
+        "dbSubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('dbSubnetName'))]",
+        "lbPublicIPName": "[concat(parameters('dnsName'), '-pip')]",
+        "lbPublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses',variables('lbPublicIPName'))]",
+
+        "nicName": "[concat(parameters('vmName'), '-nic')]",
+        "nicName1": "[concat(variables('nicName'),'-1')]",
+        "nicId1": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName1'))]",
+
+        "vmName1": "[concat('a-', parameters('vmName'))]",
+        "vmExtensionName": "[concat(parameters('vmName'), '-ext')]",
+
+        "vhdContainer1": "[concat('http://',parameters('storageAccount'),'.blob.core.windows.net/avhds/')]",
+        "dataDisk1VhdName1": "[concat(variables('vhdContainer1'),variables('vmName1'),'dataDisk1.vhd')]",
+        "dataDisk2VhdName1": "[concat(variables('vhdContainer1'),variables('vmName1'),'dataDisk2.vhd')]",
+        "customScriptParamVm1": "[concat(parameters('customScriptCommandToExecute'), ' ', parameters('vmIP1'), ' ', parameters('mysqlConfigFilePath'))]",
+        "vmExtensionName1": "[concat(variables('vmName1'),'/', variables('vmExtensionName'))]",
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageAccount')]",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Standard_LRS"
+            }
+        },
+        {
+            "apiVersion": "2015-05-01-preview",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('lbPublicIPName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('dnsName')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2015-05-01-preview",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetAddressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('dbSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('dbSubnetAddressPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2015-05-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName1')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+				"[concat('Microsoft.Network/publicIPAddresses/', variables('lbPublicIPName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[variables('lbPublicIPRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('dbSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('vmName1')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccount'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName1'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computername": "[variables('vmName1')]",
+                    "adminUsername": "[parameters('userName')]",
+                    "adminPassword": "[parameters('password')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[parameters('imagePublisher')]",
+                        "offer": "[parameters('imageOffer')]",
+                        "sku" : "[parameters('imageSKU')]",
+                        "version":"latest"
+                    },
+                    "osDisk": {
+                        "name": "osdisk",
+                        "vhd": {
+                            "uri": "[concat(variables('vhdContainer1'), 'osdisk.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    },
+                    "dataDisks": [
+                        {
+                            "name": "datadisk1",
+                            "diskSizeGB": "100",
+                            "lun": 0,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk1VhdName1')]"
+                            },
+                            "createOption": "Empty"
+                        },
+                        {
+                            "name": "datadisk2",
+                            "diskSizeGB": "100",
+                            "lun": 1,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk2VhdName1')]"
+                            },
+                            "createOption": "Empty"
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('nicId1')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[variables('vmExtensionName1')]",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmName1'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.2",
+                "settings": {
+                    "fileUris": [ "[parameters('customScriptFilePath')]" ],
+                    "commandToExecute": "[concat(variables('customScriptCommandCommon'), variables('customScriptParamVm1'))]"
+                }
+            }
+        }
+	]
+}
