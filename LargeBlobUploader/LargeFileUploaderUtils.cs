@@ -26,9 +26,9 @@
         {
             return (new FileInfo(inputFile)).UploadAsync(CloudStorageAccount.Parse(storageConnectionString), containerName, uploadParallelism);
         }
-        public static Task<string> UploadAsyncSAS(string inputFile, string containerSASString, string containerName, uint uploadParallelism = DEFAULT_PARALLELISM)
+        public static Task<string> UploadAsyncSAS(string inputFile, string containerSASString, uint uploadParallelism = DEFAULT_PARALLELISM)
         {
-            return (new FileInfo(inputFile)).UploadAsync(containerSASString, containerName, uploadParallelism);
+            return (new FileInfo(inputFile)).UploadAsync(containerSASString, uploadParallelism);
         }
 
         public static Task<string> UploadAsync(this FileInfo file, CloudStorageAccount storageAccount, string containerName, uint uploadParallelism = DEFAULT_PARALLELISM)
@@ -41,13 +41,12 @@
                 blobName: file.Name,
                 uploadParallelism: uploadParallelism);
         }
-        public static Task<string> UploadAsync(this FileInfo file, string containerSASString, string containerName, uint uploadParallelism = DEFAULT_PARALLELISM)
+        public static Task<string> UploadAsync(this FileInfo file, string containerSASString, uint uploadParallelism = DEFAULT_PARALLELISM)
         {
             return UploadAsync(
                 fetchLocalData: (offset, length) => file.GetFileContentAsync(offset, length),
                 blobLenth: file.Length,
                 containerSASString: containerSASString,
-                containerName: containerName,
                 blobName: file.Name,
                 uploadParallelism: uploadParallelism);
         }
@@ -62,13 +61,12 @@
                 blobName: blobName,
                 uploadParallelism: uploadParallelism);
         }
-        public static Task<string> UploadAsync(this byte[] data, string containerSASString, string containerName, string blobName, uint uploadParallelism = DEFAULT_PARALLELISM)
+        public static Task<string> UploadAsync(this byte[] data, string containerSASString, string blobName, uint uploadParallelism = DEFAULT_PARALLELISM)
         {
             return UploadAsync(
                 fetchLocalData: (offset, count) => { return Task.FromResult((new ArraySegment<byte>(data, (int)offset, count)).Array); },
                 blobLenth: data.Length,
                 containerSASString: containerSASString,
-                containerName: containerName,
                 blobName: blobName,
                 uploadParallelism: uploadParallelism);
         }
@@ -83,7 +81,7 @@
             return await UploadAsync(fetchLocalData, blobLenth, blockBlob, uploadParallelism);
         }
         public static async Task<string> UploadAsync(Func<long, int, Task<byte[]>> fetchLocalData, long blobLenth,
-            string containerSASString, string containerName, string blobName, uint uploadParallelism = DEFAULT_PARALLELISM)
+            string containerSASString, string blobName, uint uploadParallelism = DEFAULT_PARALLELISM)
         {
             CloudBlobContainer container = new CloudBlobContainer(new Uri(containerSASString));
             var blockBlob = container.GetBlockBlobReference(blobName);

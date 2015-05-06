@@ -9,8 +9,14 @@
 
         static void Main(string[] args)
         {
+            if (args.Length < 2)
+            {
+                Console.WriteLine("largefileuploader.exe <local file path> <container SAS string> <optional: upload chunk size in KB>");
+                Environment.Exit(1);
+            }
             LargeFileUploaderUtils.Log = Console.Out.WriteLine;
-            LargeFileUploaderUtils.NumBytesPerChunk = 2 * 1024 * 1024;
+            int chunkSizeKB = (args.Length > 2) ? int.Parse(args[2]) : 2048; 
+            LargeFileUploaderUtils.NumBytesPerChunk = chunkSizeKB * 1024;
 
             //LargeFileUploaderUtils.UploadAsync(
             //    inputFile: @"C:\temp\watestsample.bak",
@@ -19,9 +25,8 @@
             //    uploadParallelism: 2).Wait();
 
             LargeFileUploaderUtils.UploadAsyncSAS(
-                inputFile: @"C:\temp\Microsoft_Intune_Setup.zip",
-                containerSASString: @"https://schneiderstore.blob.core.windows.net/bigfiles?sv=2012-02-12&sr=c&si=samplePolicy&sig=E7m9f4Udq2ztBrwhSOPmSbcR8G5qu1g39To6WwJ3%2Bus%3D",
-                containerName: "bigfiles",
+                inputFile: args[0],
+                containerSASString: args[1],
                 uploadParallelism: 2).Wait();
 
             //byte[] someData = Encoding.UTF8.GetBytes("Hallo");

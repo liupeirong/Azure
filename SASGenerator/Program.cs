@@ -11,13 +11,19 @@ namespace SASGenerator
         static void Main(string[] args)
         {
             string storageConnectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING", EnvironmentVariableTarget.Machine);
+            if (storageConnectionString == null)
+            {
+                Console.WriteLine("Set up your Azure storage connection string in machine environment variable AZURE_STORAGE_CONNECTION_STRING.");
+                Environment.Exit(1);
+            }
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnectionString);
 
             //Create the blob client object.
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             //Get a reference to a container to use for the sample code, and create it if it does not exist.
-            CloudBlobContainer container = blobClient.GetContainerReference("bigfiles");
+            string containerName = (args.Length < 1) ? "bigfiles" : args[0];
+            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
             container.CreateIfNotExists();
 
             //Insert calls to the methods created below here...
@@ -26,9 +32,6 @@ namespace SASGenerator
             //Generate a SAS URI for the container, using a stored access policy to set constraints on the SAS.
             string sasUri = GetContainerSasUriWithPolicy(container, sharedAccessPolicyName);
             Console.WriteLine("Container SAS URI using stored access policy: " + sasUri);
-
-            //Require user input before closing the console window.
-            Console.ReadLine();
         }
 
         static void CreateSharedAccessPolicy(CloudBlobClient blobClient, CloudBlobContainer container, string policyName)
