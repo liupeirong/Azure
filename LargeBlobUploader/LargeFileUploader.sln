@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LargeFileUploader", "LargeFileUploader.csproj", "{BFF3FDF1-3852-4F6F-95FF-83501ACF4C74}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{5CF5AA1E-AEC7-447A-B1E6-9D00F6A01DF2}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SASGenerator", "..\SASGenerator\SASGenerator.csproj", "{1DCC3995-7A51-480C-BE58-7CC0E37BB103}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BFF3FDF1-3852-4F6F-95FF-83501ACF4C74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFF3FDF1-3852-4F6F-95FF-83501ACF4C74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFF3FDF1-3852-4F6F-95FF-83501ACF4C74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFF3FDF1-3852-4F6F-95FF-83501ACF4C74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DCC3995-7A51-480C-BE58-7CC0E37BB103}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DCC3995-7A51-480C-BE58-7CC0E37BB103}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DCC3995-7A51-480C-BE58-7CC0E37BB103}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DCC3995-7A51-480C-BE58-7CC0E37BB103}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
