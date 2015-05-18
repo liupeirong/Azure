@@ -16,10 +16,11 @@ namespace AutoADF
 {
     class Program
     {
+        const string resourceGroupName = "autoadfrg3";
+        const string dataFactoryName = "test37";
+
         static void Main(string[] args)
         {
-            string resourceGroupName = "autoadfrg3";
-
             string subscriptionId = Environment.GetEnvironmentVariable("SUBSCRIPTION_ID", EnvironmentVariableTarget.User);
             if (subscriptionId == null)
             {
@@ -32,7 +33,7 @@ namespace AutoADF
             var task = CallAzureResourceManagerApi(resourceManagementEndpoint, subscriptionId, header, resourceGroupName);
             task.Wait();
 
-            CallSDK(resourceManagementEndpoint, subscriptionId, header, resourceGroupName);
+            //CallSDK(resourceManagementEndpoint, subscriptionId, header, resourceGroupName);
         }
 
         private static async Task CallAzureResourceManagerApi(string resourceManagementEndpoint, string subscriptionId, string header, string resourceGroupName)
@@ -43,21 +44,23 @@ namespace AutoADF
 
             try
             {
-                // ADF REST API fails
-                StringContent body = new StringContent("{\"location\":\"West US\",\"tags\":{}}", Encoding.UTF8, "application/json");
-                string endpoint = "{0}subscriptions/{1}/resourcegroups/{2}/providers/Microsoft.DataFactory/datafactories/test?api-version=2014-10-01-preview";
+                //register the subscription with DataFactory provider
+                StringContent body = new StringContent("", Encoding.UTF8, "application/json");
+                string endpoint = "{0}subscriptions/{1}/providers/Microsoft.DataFactory/register?api-version=2015-01-01";
+                string uri = String.Format(endpoint, resourceManagementEndpoint, subscriptionId);
+                HttpResponseMessage resp = await client.PostAsync(uri, body);
+                Console.WriteLine("registration status: {0}", resp.StatusCode);
 
-                // Resource Group API works
+                // Resource Group API 
                 //StringContent body = new StringContent("{\"location\":\"West US\",\"tags\":{}}", Encoding.UTF8, "application/json");
                 //string endpoint = "{0}subscriptions/{1}/resourcegroups/{2}?api-version=2014-04-01";
-
-                // Storage API fails
-                //StringContent body = new StringContent("{\"location\":\"West US\",\"tags\":{},\"properties\":{\"accountType\":\"Standard_LRS\"}}", Encoding.UTF8, "application/json");
-                //string endpoint = "{0}subscriptions/{1}/resourcegroups/{2}/providers/Microsoft.Storage/storageAccounts/peiTestStorage1?validating=nameAvailability&api-version=2015-05-01-preview";
-
-                string uri = String.Format(endpoint, resourceManagementEndpoint, subscriptionId, resourceGroupName);
-                HttpResponseMessage resp = await client.PutAsync(uri, body);
-                Console.WriteLine(resp.StatusCode);
+                
+                // ADF REST API
+                body = new StringContent("{\"location\":\"West US\",\"tags\":{}}", Encoding.UTF8, "application/json");
+                endpoint = "{0}subscriptions/{1}/resourcegroups/{2}/providers/Microsoft.DataFactory/datafactories/{3}?api-version=2014-10-01-preview";
+                uri = String.Format(endpoint, resourceManagementEndpoint, subscriptionId, resourceGroupName, dataFactoryName);
+                resp = await client.PutAsync(uri, body);
+                Console.WriteLine("creation status: {0}", resp.StatusCode);
             }
             catch (Exception ex)
             {
@@ -79,7 +82,7 @@ namespace AutoADF
                     {
                         DataFactory = new DataFactory()
                         {
-                            Name = "test",
+                            Name = dataFactoryName,
                             Location = "westus",
                             Properties = new DataFactoryProperties() { }
                         }
