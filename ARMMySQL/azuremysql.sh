@@ -215,6 +215,7 @@ install_mysql_centos() {
     wget http://dev.mysql.com/get/mysql-community-release-el6-5.noarch.rpm
     rpm -Uvh mysql-community-release-el6-5.noarch.rpm
     yum -y install mysql-community-server
+    yum -y install mysql-utilities
 }
 
 configure_mysql() {
