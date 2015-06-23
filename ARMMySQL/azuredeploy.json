@@ -125,7 +125,7 @@
         "dbSubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('dbSubnetName'))]",
         "lbPublicIPName": "[concat(variables('dnsName'), '-pip')]",
         "nicName": "[concat(variables('dnsName'), '-nic')]",
-        "vhdContainer": "[concat('http://',variables('dnsName'),'.blob.core.windows.net/vhds/')]"
+        "vhdContainer": "[concat('http://',variables('dnsName'),'.blob.core.windows.net/vhds')]"
     },
     "resources": [
         {
@@ -277,9 +277,13 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('dnsName'), '-ext', copyIndex())]",
+            "name": "[concat(variables('dnsName'), copyIndex(), '/setupMySQL')]",
             "apiVersion": "2015-05-01-preview",
             "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "vmExtLoop",
+                "count": "[parameters('vmCount')]"
+            },
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', variables('dnsName'), copyIndex())]"
             ],

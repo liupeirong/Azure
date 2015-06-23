@@ -206,19 +206,19 @@ install_mysql_ubuntu() {
 }
 
 install_mysql_centos() {
-    yum list installed mysql-server-5.5
+    yum list installed mysql-community-server
     if [ ${?} -eq 0 ];
     then
         return
     fi
     echo "installing mysql"
-	yum -y install mysql-client-core-5.5
-    yum -y install mysql-server-5.5
-    yum -y install sysbench
+    wget http://dev.mysql.com/get/mysql-community-release-el6-5.noarch.rpm
+    rpm -Uvh mysql-community-release-el6-5.noarch.rpm
+    yum -y install mysql-community-server
 }
 
 configure_mysql() {
-    /etc/init.d/mysql status
+    service mysqld status
 	if [ ${?} -eq 0 ];
     then
 	   return
@@ -236,7 +236,7 @@ configure_mysql() {
         install_mysql_ubuntu
     fi
     chmod o+x "${MOUNTPOINT}/mysql"
-    /etc/init.d/mysql start
+    service mysqld start
 }
 
 allow_passwordssh() {
@@ -251,7 +251,7 @@ allow_passwordssh() {
 }
 
 # temporary workaround form CRP 
-allow_passwordssh  
+#allow_passwordssh  
 
 check_os
 if [ $iscentos -ne 0 ] && [ $isubuntu -ne 0 ];
