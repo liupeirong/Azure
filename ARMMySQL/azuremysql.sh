@@ -7,10 +7,9 @@
 # custom script Linux VM extension can access it, and specify its location in the 
 # parameters of DeployPXC powershell script or runbook or Azure Resource Manager CRP template.   
 
-CLUSTERADDRESS=${1}
 NODENAME=$(hostname)
-MYCNFTEMPLATE=${2}
-SECONDNIC=${3}
+MYCNFTEMPLATE=${1}
+SECONDNIC=${2}
 
 MOUNTPOINT="/datadrive"
 RAIDCHUNKSIZE=512
