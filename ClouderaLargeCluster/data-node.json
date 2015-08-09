@@ -36,72 +36,6 @@
   },
   "resources": [
     {
-      "apiVersion": "2015-05-01-preview",
-      "type": "Microsoft.Network/networkSecurityGroups",
-      "name": "[variables('securityGroupName')]",
-      "location": "[parameters('region')]",
-      "properties": {
-        "securityRules": [
-          {
-            "name": "SSH",
-            "properties": {
-              "description": "Allows SSH traffic",
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "22",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 100,
-              "direction": "Inbound"
-            }
-          },
-          {
-            "name": "HDFS.dn.Web.UI",
-            "properties": {
-              "description": "Allow HDFS Web UI traffic",
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "50075",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 101,
-              "direction": "Inbound"
-            }
-          },
-          {
-            "name": "YARN.nm.Web.UI",
-            "properties": {
-              "description": "Allow YARN Web UI traffic",
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "8042",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 102,
-              "direction": "Inbound"
-            }
-          },
-          {
-            "name": "YARN.JobHistory.Server",
-            "properties": {
-              "description": "Allows YARN JobHistory Server traffic",
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "19888",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 103,
-              "direction": "Inbound"
-            }
-          }
-        ]
-      }
-    },
-    {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[concat(copyIndex(), variables('storageAccountName'))]",
       "apiVersion": "2015-05-01-preview",
@@ -116,29 +50,9 @@
     },
     {
       "apiVersion": "2015-05-01-preview",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[concat(variables('publicIPAddressName'), copyIndex())]",
-      "location": "[parameters('region')]",
-      "copy": {
-        "name": "publicIPLoop",
-        "count": "[parameters('vmCount')]"
-      },
-      "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "dnsSettings": {
-          "domainNameLabel": "[concat(parameters('dnsNamePrefix'), '-dn', copyIndex())]"
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicName'), copyIndex())]",
       "location": "[parameters('region')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'), copyIndex())]",
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('securityGroupName'))]"
-      ],
       "copy": {
         "name": "nameNodeNicLoop",
         "count": "[parameters('vmCount')]"
@@ -152,16 +66,10 @@
               "privateIPAddress": "[concat(parameters('networkSpec').privateIPPrefix, copyIndex(parameters('networkSpec').dataNodeAddressStart))]",
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',parameters('networkSpec').virtualNetworkName), '/subnets/', parameters('networkSpec').virtualNetworkSubnetName)]"
-              },
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(variables('publicIPAddressName'), copyIndex()))]"
               }
             }
           }
-        ],
-        "networkSecurityGroup": {
-          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('securityGroupName'))]"
-        }
+        ]
       }
     },
     {
@@ -185,7 +93,7 @@
           "vmSize": "[parameters('vmSpec').vmSize]"
         },
         "osProfile": {
-          "computername": "[concat(variables('vmName'), copyIndex())]",
+          "computername": "[reference(concat(variables('publicIPAddressName'), copyIndex())).dnsSettings.fqdn]",
           "adminUsername": "[parameters('vmSpec').adminUserName]",
           "adminPassword": "[parameters('vmSpec').adminPassword]",
           "linuxConfiguration": {
@@ -241,22 +149,6 @@
           "networkInterfaces": [
             {
               "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName'), copyIndex()))]"
-            }
-          ],
-          "inputEndpoints": [
-            {
-              "enableDirectServerReturn": "False",
-              "endpointName": "HDFS.dn.Web.UI",
-              "privatePort": 50075,
-              "publicPort": 50075,
-              "protocol": "tcp"
-            },
-            {
-              "enableDirectServerReturn": "False",
-              "endpointName": "YARN.nm.Web.UI",
-              "privatePort": 8042,
-              "publicPort": 8042,
-              "protocol": "tcp"
             }
           ]
         }

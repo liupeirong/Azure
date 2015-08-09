@@ -111,12 +111,12 @@
       "type": "[parameters('storageAccountType')]"
     },
     "clusterTshirtSizeEval": {
-      "nameNodeCount": 6,
+      "nameNodeCount": 2,
       "dataNodeCount": "[parameters('numberOfDataNodes')]",
       "highAvailability": "false"
     },
     "clusterTshirtSizeProd": {
-      "nameNodeCount": 6,
+      "nameNodeCount": 2,
       "dataNodeCount": "[parameters('numberOfDataNodes')]",
       "highAvailability": "true"
     },
