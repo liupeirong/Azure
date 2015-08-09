@@ -95,7 +95,7 @@
           "vmSize": "[parameters('vmSpec').vmSize]"
         },
         "osProfile": {
-          "computername": "[reference(concat(variables('publicIPAddressName'), copyIndex())).dnsSettings.fqdn]",
+          "computername": "[concat(variables('vmName'), copyIndex())]",
           "adminUsername": "[parameters('vmSpec').adminUserName]",
           "adminPassword": "[parameters('vmSpec').adminPassword]",
           "linuxConfiguration": {
@@ -177,7 +177,7 @@
                     "[concat(parameters('scriptsUri'), '/scripts/prepareDisks.sh')]",
                     "[concat(parameters('scriptsUri'), '/scripts/initialize-node.sh')]"
                 ],
-                "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"', reference(concat(variables('publicIPAddressName'), copyIndex())).dnsSettings.fqdn, '\" ', parameters('clusterSpec').nameNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\"')]"
+                "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"', concat(variables('vmName'), copyIndex()), '\" ', parameters('clusterSpec').nameNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\"')]"
             }
         }
     },
@@ -275,7 +275,7 @@
   "outputs": {
     "fqdn": {
       "type": "string",
-      "value": "[reference(concat(variables('publicIPAddressName'), '0')).dnsSettings.fqdn]"
+      "value": "[reference(variables('publicIPAddressName')).dnsSettings.fqdn]"
     }
   }
 }
