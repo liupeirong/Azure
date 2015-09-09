@@ -281,7 +281,7 @@
   "outputs": {
     "fqdn": {
       "type": "string",
-      "value": "[reference(concat(variables('publicIPAddressName'), '0')).dnsSettings.fqdn]"
+      "value": "[reference(concat(variables('publicIPAddressName'))).dnsSettings.fqdn]"
     }
   }
 }
