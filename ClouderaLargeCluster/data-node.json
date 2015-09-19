@@ -269,6 +269,15 @@
                 "Uri": "[concat('http://', copyIndex(), variables('storageAccountName'), '.blob.core.windows.net/vhds2/', variables('vmName'), '-datadisk2.vhd')]"
               },
               "createOption": "Empty"
+            },
+            {
+              "name": "datadisk3",
+              "diskSizeGB": "1023",
+              "lun": 3,
+              "vhd": {
+                "Uri": "[concat('http://', copyIndex(), variables('storageAccountName'), '.blob.core.windows.net/vhds3/', variables('vmName'), '-datadisk3.vhd')]"
+              },
+              "createOption": "Empty"
             }
           ]
         },
