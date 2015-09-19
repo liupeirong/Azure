@@ -104,13 +104,15 @@ formatAndMountAllDrives() {
 
 mountDriveForLogCloudera()
 {
-	dirname=/log/cloudera
+	dirname=/log
 	drivename=/dev/sdc
 	mke2fs -F -t ext4 -b 4096 -E lazy_itable_init=1 -O sparse_super,dir_index,extent,has_journal,uninit_bg -m1 $drivename
 	mkdir /log
 	mkdir $dirname
 	mount -o noatime,barrier=1 -t ext4 $drivename $dirname
 	echo "$drivename   $dirname    ext4   defaults,noatime, barrier=0 0 1" | sudo tee -a /etc/fstab
+	mkdir /log/cloudera
+	ln -s /log/cloudera /opt/cloudera
 }
 
 mountDriveForZookeeper()
@@ -127,7 +129,7 @@ mountDriveForZookeeper()
 
 mountDriveForQJN()
 {
-	dirname=/data/qjn
+	dirname=/data/dfs/
 	drivename=/dev/sde
 	mke2fs -F -t ext4 -b 4096 -E lazy_itable_init=1 -O sparse_super,dir_index,extent,has_journal,uninit_bg -m1 $drivename
 	mkdir /data

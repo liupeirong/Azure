@@ -155,6 +155,7 @@
     },
     "jobRole": {
       "type": "string",
+      "defaultValue": "Administrator",
       "allowedValues": [
         "Administrator",
         "Analyst (Industry/Finance)",
@@ -174,6 +175,7 @@
     },
     "jobFunction": {
       "type": "string",
+      "defaultValue": "Analytics / Business Intelligence",
       "allowedValues": [
         "Analytics / Business Intelligence",
         "Big Data / Architecture",
@@ -203,7 +205,7 @@
       "highAvailability": "false"
     },
     "clusterTshirtSizeProd": {
-      "masterNodeCount": 5,
+      "masterNodeCount": 3,
       "dataNodeCount": "[parameters('numberOfDataNodes')]",
       "highAvailability": "true"
     },
