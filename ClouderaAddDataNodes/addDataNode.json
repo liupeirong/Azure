@@ -93,7 +93,7 @@
         "subnetPrefix": "10.0.0.0/24",
         "nodeAddressPrefix": "10.0.0.",
         "scriptsUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/cloudera-on-centos",
-        "templateUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/cloudera-on-centos",
+        "templateUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaAddDataNodes",
         "storageAccount": {
             "prefix": "[parameters('storageAccountPrefix')]",
             "type": "[parameters('storageAccountType')]"
