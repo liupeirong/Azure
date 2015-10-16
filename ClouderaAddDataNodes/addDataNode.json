@@ -1,0 +1,173 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUserName": {
+            "type": "string",
+            "defaultValue": "testuser",
+            "metadata": {
+                "description": "Admin user name for the Virtual Machines"
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Admin password for the Virtual Machines"
+            }
+        },
+        "storageAccountPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Unique namespace for the Storage Account where the Virtual Machine's disks will be placed"
+            }
+        },
+        "dnsNamePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Unique public dns name where the Virtual Machines will be exposed"
+            }
+        },
+        "region": {
+            "type": "string",
+            "defaultValue": "japanwest",
+            "metadata": {
+                "description": "Location where resources will be provisioned"
+            }
+        },
+        "storageAccountType": {
+            "type": "string",
+            "defaultValue": "Premium_LRS",
+            "metadata": {
+                "description": "The type of the Storage Account to be created (Default to Standard_LRS)"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "defaultValue": "clouderavnet",
+            "metadata": {
+                "description": "The name of the virtual network provisioned for the deployment"
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": "clouderasubnet",
+            "metadata": {
+                "description": "Subnet name for the virtual network where resources will be provisioned"
+            }
+        },
+        "tshirtSize": {
+            "type": "string",
+            "defaultValue": "Eval",
+            "allowedValues": [
+                "Eval",
+                "Prod"
+            ],
+            "metadata": {
+                "description": "T-shirt size of the Cloudera cluster (Eval, Prod)"
+            }
+        },
+        "numberOfDataNodes": {
+            "type": "int",
+            "defaultValue": 3,
+            "metadata": {
+                "description": "Number of data nodes for Prod, default to 3"
+            }
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS14",
+            "metadata": {
+                "description": "The size of the VMs deployed in the cluster (Defaults to Standard_D14)"
+            }
+        },
+        "vmStartIndex": {
+            "type": "int",
+            "defaultValue": 3,
+            "metadata": {
+                "description": "The start index of additional data nodes (0 based). If there are already 3 data nodes this should be 3."
+            }
+        }
+    },
+    "variables": {
+        "addressPrefix": "10.0.0.0/24",
+        "subnetPrefix": "10.0.0.0/24",
+        "nodeAddressPrefix": "10.0.0.",
+        "scriptsUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/cloudera-on-centos",
+        "templateUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/cloudera-on-centos",
+        "storageAccount": {
+            "prefix": "[parameters('storageAccountPrefix')]",
+            "type": "[parameters('storageAccountType')]"
+        },
+        "clusterTshirtSizeEval": {
+            "masterNodeCount": 1,
+            "dataNodeCount": "[parameters('numberOfDataNodes')]",
+            "highAvailability": "false"
+        },
+        "clusterTshirtSizeProd": {
+            "masterNodeCount": 3,
+            "dataNodeCount": "[parameters('numberOfDataNodes')]",
+            "highAvailability": "true"
+        },
+        "clusterSpec": "[variables(concat('clusterTshirtSize', parameters('tshirtSize')))]",
+        "vmSpec": {
+            "vmSize": "[parameters('vmSize')]",
+            "privateIPAddressPrefix": "[variables('nodeAddressPrefix')]",
+            "adminUserName": "[parameters('adminUserName')]",
+            "adminPassword": "[parameters('adminPassword')]",
+            "masterNodeASName": "[concat(parameters('dnsNamePrefix'), '-mnAS')]",
+            "dataNodeASName": "[concat(parameters('dnsNamePrefix'), '-dnAS')]"
+        },
+        "networkSpec": {
+            "addressPrefix": "[variables('addressPrefix')]",
+            "subnetPrefix": "[variables('subnetPrefix')]",
+            "privateIPPrefix": "[variables('nodeAddressPrefix')]",
+            "masterNodeAddressStart": 10,
+            "dataNodeAddressStart": 20, 
+            "virtualNetworkName": "[parameters('virtualNetworkName')]",
+            "virtualNetworkSubnetName": "[parameters('subnetName')]"
+        }
+    },
+  "resources": [
+    {
+      "name": "data-node",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('templateUri'), '/more-data-node.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+            "dnsNamePrefix": {
+                "value": "[parameters('dnsNamePrefix')]"
+            },
+            "region": {
+                "value": "[parameters('region')]"
+            },
+            "scriptsUri": {
+                "value": "[variables('scriptsUri')]"
+            },
+            "storageAccount": {
+                "value": "[variables('storageAccount')]"
+            },
+            "vmCount": {
+                "value": "[variables('clusterSpec').dataNodeCount]"
+            },
+            "vmSpec": {
+                "value": "[variables('vmSpec')]"
+            },
+            "networkSpec": {
+                "value": "[variables('networkSpec')]"
+            },
+            "clusterSpec": {
+                "value": "[variables('clusterSpec')]"
+            },
+            "vmStartIndex": {
+                "value": "[parameters('vmStartIndex')]"
+            }
+        }
+      }
+    }
+  ]
+}
