@@ -85,7 +85,7 @@
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat(parameters('networkSpec').privateIPPrefix, copyIndex(add(parameters('networkSpec').dataNodeAddressStart, vmStartIndex)))]",
+              "privateIPAddress": "[concat(parameters('networkSpec').privateIPPrefix, copyIndex(add(parameters('networkSpec').dataNodeAddressStart, parameters('vmStartIndex'))))]",
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',parameters('networkSpec').virtualNetworkName), '/subnets/', parameters('networkSpec').virtualNetworkSubnetName)]"
               },
