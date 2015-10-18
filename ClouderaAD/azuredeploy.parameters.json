@@ -1,6 +1,6 @@
 {
   "storageAccountPrefix": {
-    "value": "ucluster1"
+    "value": "ucluster2"
   },
   "adminPassword": {
     "value": "MicrosoftDx1"
@@ -13,7 +13,7 @@
     "value": 3
   },
   "dnsNamePrefix": {
-    "value": "ucluster1"
+    "value": "ucluster2"
   },
   "region": {
     "value": "Southeast Asia"
