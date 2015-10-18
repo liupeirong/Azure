@@ -68,6 +68,27 @@
         "description": "Subnet name for the virtual network where resources will be provisioned"
       }
     },
+    "addressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/24",
+      "metadata": {
+        "description": "Vnet CIDR"
+      }
+    },
+    "subnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.1.0/24",
+      "metadata": {
+        "description": "Subnet CIDR"
+      }
+    },
+    "nodeAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.1.",
+      "metadata": {
+        "description": "Address prefix for VMs"
+      }
+    },
     "tshirtSize": {
       "type": "string",
       "defaultValue": "Eval",
@@ -175,9 +196,6 @@
     }
   },
   "variables": {
-    "addressPrefix":"10.0.0.0/24",
-    "subnetPrefix":"10.0.0.0/24",
-    "nodeAddressPrefix":"10.0.0.",
     "scriptsUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/cloudera-on-centos",
     "storageAccount": {
       "prefix": "[parameters('storageAccountPrefix')]",
@@ -196,16 +214,16 @@
     "clusterSpec": "[variables(concat('clusterTshirtSize', parameters('tshirtSize')))]",
     "vmSpec": {
       "vmSize": "[parameters('vmSize')]",
-      "privateIPAddressPrefix": "[variables('nodeAddressPrefix')]",
+      "privateIPAddressPrefix": "[parameters('nodeAddressPrefix')]",
       "adminUserName": "[parameters('adminUserName')]",
       "adminPassword": "[parameters('adminPassword')]",
       "masterNodeASName": "[concat(parameters('dnsNamePrefix'), '-mnAS')]",
       "dataNodeASName": "[concat(parameters('dnsNamePrefix'), '-dnAS')]"
     },
     "networkSpec": {
-      "addressPrefix": "[variables('addressPrefix')]",
-      "subnetPrefix": "[variables('subnetPrefix')]",
-      "privateIPPrefix": "[variables('nodeAddressPrefix')]",
+      "addressPrefix": "[parameters('addressPrefix')]",
+      "subnetPrefix": "[parameters('subnetPrefix')]",
+      "privateIPPrefix": "[parameters('nodeAddressPrefix')]",
       "masterNodeAddressStart": 10,
       "dataNodeAddressStart": 20,
       "virtualNetworkName": "[parameters('virtualNetworkName')]",

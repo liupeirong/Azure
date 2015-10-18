@@ -1,31 +1,31 @@
 {
   "storageAccountPrefix": {
-    "value": "djwemnc"
+    "value": "ucluster1"
   },
   "adminPassword": {
-    "value": "!@qwaszxcde3"
+    "value": "MicrosoftDx1"
   },
   "cmPassword":
   {
-    "value": "!@qwaszxcde3"
+    "value": "MicrosoftDx1"
   },
   "numberOfDataNodes": {
     "value": 3
   },
   "dnsNamePrefix": {
-    "value": "dkjwkj"
+    "value": "ucluster1"
   },
   "region": {
-    "value": "westus"
+    "value": "Southeast Asia"
   },
   "storageAccountType": {
     "value": "Premium_LRS"
   },
   "virtualNetworkName": {
-    "value": "klwenrk"
+    "value": "adVNET1"
   },
   "subnetName": {
-    "value": "dfklwei"
+    "value": "hadoopSubnet"
   },
   "tshirtSize": {
     "value": "Eval"
@@ -49,9 +49,9 @@
     "value": "LastName"
   },
   "jobRole": {
-    "value": "Administrator"
+    "value": "VP"
   },
   "jobFunction": {
-    "value": "Storage"
+    "value": "IT"
   }
 }
