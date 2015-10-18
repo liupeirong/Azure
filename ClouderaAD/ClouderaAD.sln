@@ -1,0 +1,53 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5BE37830-CCF2-4A30-BA5C-428F3B41265C}"
+	ProjectSection(SolutionItems) = preProject
+		azuredeploy.json = azuredeploy.json
+		azuredeploy.parameters.json = azuredeploy.parameters.json
+		data-node.json = data-node.json
+		master-node.json = master-node.json
+		metadata.json = metadata.json
+		README.md = README.md
+		setup-cloudera.json = setup-cloudera.json
+		shared-resources.json = shared-resources.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{0462B54F-045A-485C-A1F4-6622D7CEEB07}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\bootstrap-cloudera.sh = scripts\bootstrap-cloudera.sh
+		scripts\cmxDeployOnIbiza.py = scripts\cmxDeployOnIbiza.py
+		scripts\initialize-cloudera-server.sh = scripts\initialize-cloudera-server.sh
+		scripts\initialize-node.sh = scripts\initialize-node.sh
+		scripts\install-postgresql.sh = scripts\install-postgresql.sh
+		scripts\prepare-datanode-disks.sh = scripts\prepare-datanode-disks.sh
+		scripts\prepare-masternode-disks.sh = scripts\prepare-masternode-disks.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cert", "Cert", "{66D37684-757A-441F-9ABE-386AE2746E47}"
+	ProjectSection(SolutionItems) = preProject
+		cert.pem = cert.pem
+		upload-keys.ps1 = upload-keys.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{2F8E848A-A029-49C8-B1C8-4A88CF430993}"
+	ProjectSection(SolutionItems) = preProject
+		config\krb5.conf = config\krb5.conf
+		config\ntp.conf = config\ntp.conf
+		config\resolv.conf = config\resolv.conf
+		config\smb.conf = config\smb.conf
+		config\sssd.conf = config\sssd.conf
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0462B54F-045A-485C-A1F4-6622D7CEEB07} = {5BE37830-CCF2-4A30-BA5C-428F3B41265C}
+		{66D37684-757A-441F-9ABE-386AE2746E47} = {5BE37830-CCF2-4A30-BA5C-428F3B41265C}
+		{2F8E848A-A029-49C8-B1C8-4A88CF430993} = {5BE37830-CCF2-4A30-BA5C-428F3B41265C}
+	EndGlobalSection
+EndGlobal
