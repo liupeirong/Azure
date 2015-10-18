@@ -27,6 +27,9 @@
   "subnetName": {
     "value": "hadoopSubnet"
   },
+  "vnetResourceGroup": {
+    "value": "adasiadns1"
+  },
   "tshirtSize": {
     "value": "Eval"
   },
