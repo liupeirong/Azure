@@ -89,6 +89,13 @@
         "description": "Address prefix for VMs"
       }
     },
+    "vnetResourceGroup": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Resource Group name of the existing vnet"
+      }
+    },
     "tshirtSize": {
       "type": "string",
       "defaultValue": "Eval",
@@ -196,7 +203,7 @@
     }
   },
   "variables": {
-    "scriptsUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/cloudera-on-centos",
+    "scriptsUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaAD",
     "storageAccount": {
       "prefix": "[parameters('storageAccountPrefix')]",
       "type": "[parameters('storageAccountType')]"
@@ -227,7 +234,8 @@
       "masterNodeAddressStart": 10,
       "dataNodeAddressStart": 20,
       "virtualNetworkName": "[parameters('virtualNetworkName')]",
-      "virtualNetworkSubnetName": "[parameters('subnetName')]"
+      "virtualNetworkSubnetName": "[parameters('subnetName')]",
+      "vnetResourceGroup": "[parameters('vnetResourceGroup')]"
     }
   },
   "resources": [
