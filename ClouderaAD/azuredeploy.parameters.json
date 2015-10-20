@@ -1,6 +1,12 @@
 {
   "storageAccountPrefix": {
-    "value": "ucluster2"
+    "value": "ucluster3"
+  },
+  "dnsNamePrefix": {
+    "value": "ucluster3"
+  },
+  "adDomainName": {
+    "value": "adseasia1.com"
   },
   "adminPassword": {
     "value": "MicrosoftDx1"
@@ -11,9 +17,6 @@
   },
   "numberOfDataNodes": {
     "value": 3
-  },
-  "dnsNamePrefix": {
-    "value": "ucluster2"
   },
   "region": {
     "value": "Southeast Asia"

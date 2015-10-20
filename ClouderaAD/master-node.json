@@ -24,7 +24,10 @@
       "type": "object"
     },
     "clusterSpec": {
-      "type": "object"
+        "type": "object"
+    },
+    "adDomainName": {
+      "type": "string"
     }
   },
   "variables": {
@@ -414,7 +417,7 @@
             "[concat(parameters('scriptsUri'), '/scripts/prepare-masternode-disks.sh')]",
             "[concat(parameters('scriptsUri'), '/scripts/initialize-node.sh')]"
           ],
-          "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"example.com\" ', parameters('clusterSpec').masterNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\" ', 'masternode', ' >> /home/$ADMINUSER/initialize-masternode.log 2>&1')]"
+          "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"', parameters('adDomainName'), '\" ', parameters('clusterSpec').masterNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\" ', 'masternode', ' >> /home/$ADMINUSER/initialize-masternode.log 2>&1')]"
         }
       }
     }

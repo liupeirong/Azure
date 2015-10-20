@@ -137,11 +137,11 @@ yum -y install samba4
 yum -y install openldap-clients
 yum -y install policycoreutils-python
 
-cp resolv.conf /etc/resolv.conf
-cp krb5.conf /etc/krb5.conf
-cp smb.conf /etc/samba/smb.conf
-cp sssd.conf /etc/sssd/sssd.conf
-cp ntp.conf /etc/ntp.conf
+cp -f resolv.conf /etc/resolv.conf
+cp -f krb5.conf /etc/krb5.conf
+cp -f smb.conf /etc/samba/smb.conf
+cp -f sssd.conf /etc/sssd/sssd.conf
+cp -f ntp.conf /etc/ntp.conf
 chmod 600 /etc/sssd/sssd.conf
 service ntpd start
 chkconfig ntpd on
