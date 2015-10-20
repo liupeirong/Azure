@@ -17,7 +17,7 @@ from cm_api.api_client import ApiResource, ApiException
 from cm_api.endpoints.hosts import *
 from cm_api.endpoints.services import ApiServiceSetupInfo, ApiService
 
-diskcount=10
+diskcount=3
 
 LOG_DIR='/log/cloudera'
 def init_cluster():

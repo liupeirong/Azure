@@ -138,6 +138,7 @@ yum -y install openldap-clients
 yum -y install policycoreutils-python
 
 cp -f resolv.conf /etc/resolv.conf
+chattr +i /etc/resolv.conf
 cp -f krb5.conf /etc/krb5.conf
 cp -f smb.conf /etc/samba/smb.conf
 cp -f sssd.conf /etc/sssd/sssd.conf
