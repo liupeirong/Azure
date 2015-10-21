@@ -35,9 +35,15 @@
       }
     },
     "dnsNamePrefix": {
+        "type": "string",
+        "metadata": {
+            "description": "Unique public dns name where the Virtual Machines will be exposed"
+        }
+    },
+    "adDomainName": {
       "type": "string",
       "metadata": {
-        "description": "Unique public dns name where the Virtual Machines will be exposed"
+        "description": "Active Directory domain name"
       }
     },
     "region": {
@@ -282,6 +288,9 @@
           "dnsNamePrefix": {
             "value": "[parameters('dnsNamePrefix')]"
           },
+          "adDomainName": {
+            "value": "[parameters('adDomainName')]"
+          },
           "region": {
             "value": "[parameters('region')]"
           },
@@ -322,6 +331,9 @@
         "parameters": {
           "dnsNamePrefix": {
             "value": "[parameters('dnsNamePrefix')]"
+          },
+          "adDomainName": {
+            "value": "[parameters('adDomainName')]"
           },
           "region": {
             "value": "[parameters('region')]"

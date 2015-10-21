@@ -221,7 +221,7 @@
                     "vmSize": "[parameters('vmSpec').vmSize]"
                 },
                 "osProfile": {
-                    "computername": "[concat(variables('vmName'), copyIndex())]",
+                    "computername": "[concat(variables('vmName'), copyIndex(), '.', parameters('adDomainName'))]",
                     "adminUsername": "[parameters('vmSpec').adminUserName]",
                     "adminPassword": "[parameters('vmSpec').adminPassword]",
                     "linuxConfiguration": {

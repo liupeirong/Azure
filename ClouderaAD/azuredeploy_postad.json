@@ -274,7 +274,7 @@
                 "clusterSpec": {
                     "value": "[variables('clusterSpec')]"
                 },
-                "fqdn": {
+                "adDomainName": {
                     "value": "[parameters('adDomainName')]"
                 },
                 "cmUsername": {
