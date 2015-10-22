@@ -32,6 +32,8 @@ JOBFUNCTION=${16}
 COMPANY=${17}
 
 CLUSTERNAME=$NAMEPREFIX
+MNStartIP=15
+DNStartIP=25
 
 execname=$0
 
@@ -42,7 +44,7 @@ log() {
 # Converts a domain like machine.domain.com to domain.com by removing the machine name
 NAMESUFFIX=`echo $NAMESUFFIX | sed 's/^[^.]*\.//'`
 
-ManagementNode="${IPPREFIX}10:${NAMEPREFIX}-mn0.$NAMESUFFIX:${NAMEPREFIX}-mn0"
+ManagementNode="${IPPREFIX}${MNStartIP}:${NAMEPREFIX}-mn0.$NAMESUFFIX:${NAMEPREFIX}-mn0"
 mip=$(echo "$ManagementNode" | sed 's/:/ /' | sed 's/:/ /' | cut -d ' ' -f 1)
 
 log "set private key"
@@ -61,14 +63,14 @@ NODES=()
 let "NAMEEND=MASTERNODES-1"
 for i in $(seq 1 $NAMEEND)
 do 
-  let "IP=i+15"
+  let "IP=i+MNStartIP"
   NODES+=("$IPPREFIX$IP:${NAMEPREFIX}-mn$i.$NAMESUFFIX:${NAMEPREFIX}-mn$i")
 done
 
 let "DATAEND=DATANODES-1"
 for i in $(seq 0 $DATAEND)
 do 
-  let "IP=i+25"
+  let "IP=i+DNStartIP"
   NODES+=("$IPPREFIX$IP:${NAMEPREFIX}-dn$i.$NAMESUFFIX:${NAMEPREFIX}-dn$i")
 done
 
