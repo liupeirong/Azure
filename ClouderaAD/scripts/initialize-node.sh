@@ -138,7 +138,14 @@ yum -y install openldap-clients
 yum -y install policycoreutils-python
 
 cp -f resolv.conf /etc/resolv.conf
-chattr +i /etc/resolv.conf
+cat > /etc/dhclient-enter-hooks << EOF
+#!/bin/sh
+make_resolv_conf() {
+echo "do not change resolv.conf"
+}
+EOF
+chmod a+x /etc/dhclient-enter-hooks
+#chattr +i /etc/resolv.conf
 cp -f krb5.conf /etc/krb5.conf
 cp -f smb.conf /etc/samba/smb.conf
 cp -f sssd.conf /etc/sssd/sssd.conf

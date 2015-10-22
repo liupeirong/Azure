@@ -61,14 +61,14 @@ NODES=()
 let "NAMEEND=MASTERNODES-1"
 for i in $(seq 1 $NAMEEND)
 do 
-  let "IP=i+10"
+  let "IP=i+15"
   NODES+=("$IPPREFIX$IP:${NAMEPREFIX}-mn$i.$NAMESUFFIX:${NAMEPREFIX}-mn$i")
 done
 
 let "DATAEND=DATANODES-1"
 for i in $(seq 0 $DATAEND)
 do 
-  let "IP=i+20"
+  let "IP=i+25"
   NODES+=("$IPPREFIX$IP:${NAMEPREFIX}-dn$i.$NAMESUFFIX:${NAMEPREFIX}-dn$i")
 done
 
