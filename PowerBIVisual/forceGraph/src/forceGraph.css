@@ -1,0 +1,24 @@
+﻿path.link {
+    fill: none;
+    stroke: #bbb;
+    cursor: pointer;
+    /*stroke-width: 1.5px;*/
+}
+
+circle {
+    fill: #ccc;
+    stroke: #fff;
+    stroke-width: 1.5px;
+    cursor: pointer;
+}
+
+text {
+    fill: #00a;
+    font: 12px sans-serif;
+    pointer-events: none;
+    z-index: 99;
+}
+
+.hidden {
+    display: none;
+}
