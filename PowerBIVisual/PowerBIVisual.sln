@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9C0454D8-7E45-421F-A472-7B5AADA7E688}"
+	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "forceGraph", "forceGraph", "{8BE1C0E3-7385-4910-943F-AD81B3219327}"
 	ProjectSection(SolutionItems) = preProject
@@ -17,6 +20,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "simpleNetwork", "simpleNetw
 		simpleNetwork\src\simpleNetwork.ts = simpleNetwork\src\simpleNetwork.ts
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sampleData", "sampleData", "{86D7705E-63B2-4B90-82D6-D4A167207773}"
+	ProjectSection(SolutionItems) = preProject
+		sampleData\force.csv = sampleData\force.csv
+		sampleData\link1.csv = sampleData\link1.csv
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "screenshots", "screenshots", "{A3172AFC-FF75-4E39-AE0F-58DAE07FD86C}"
+	ProjectSection(SolutionItems) = preProject
+		screenshots\devtoolDebug.PNG = screenshots\devtoolDebug.PNG
+		screenshots\import2Powerbi.PNG = screenshots\import2Powerbi.PNG
+		screenshots\powerbiForce.PNG = screenshots\powerbiForce.PNG
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -24,5 +40,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{8BE1C0E3-7385-4910-943F-AD81B3219327} = {9C0454D8-7E45-421F-A472-7B5AADA7E688}
 		{46CF6B69-A75B-4555-AD58-87FC2E4E431E} = {9C0454D8-7E45-421F-A472-7B5AADA7E688}
+		{86D7705E-63B2-4B90-82D6-D4A167207773} = {9C0454D8-7E45-421F-A472-7B5AADA7E688}
+		{A3172AFC-FF75-4E39-AE0F-58DAE07FD86C} = {9C0454D8-7E45-421F-A472-7B5AADA7E688}
 	EndGlobalSection
 EndGlobal
