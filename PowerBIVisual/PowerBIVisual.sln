@@ -11,12 +11,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "forceGraph", "forceGraph", "{8BE1C0E3-7385-4910-943F-AD81B3219327}"
 	ProjectSection(SolutionItems) = preProject
 		forceGraph\src\forceGraph.css = forceGraph\src\forceGraph.css
+		forceGraph\ForceGraph.pbiviz = forceGraph\ForceGraph.pbiviz
 		forceGraph\src\forceGraph.ts = forceGraph\src\forceGraph.ts
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "simpleNetwork", "simpleNetwork", "{46CF6B69-A75B-4555-AD58-87FC2E4E431E}"
 	ProjectSection(SolutionItems) = preProject
 		simpleNetwork\src\simpleNetwork.css = simpleNetwork\src\simpleNetwork.css
+		simpleNetwork\SimpleNetwork.pbiviz = simpleNetwork\SimpleNetwork.pbiviz
 		simpleNetwork\src\simpleNetwork.ts = simpleNetwork\src\simpleNetwork.ts
 	EndProjectSection
 EndProject
