@@ -165,7 +165,8 @@
             "masterNodeAddressStart": "[parameters('masterNodeAddressStart')]",
             "dataNodeAddressStart": "[parameters('dataNodeAddressStart')]",
             "virtualNetworkName": "[parameters('virtualNetworkName')]",
-            "virtualNetworkSubnetName": "[parameters('subnetName')]"
+            "virtualNetworkSubnetName": "[parameters('subnetName')]",
+            "existingVNetResourceGroup": "[parameters('existingVNetResourceGroup')]"
         }
     },
   "resources": [
