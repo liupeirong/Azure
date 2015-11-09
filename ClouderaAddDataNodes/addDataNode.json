@@ -89,6 +89,12 @@
           "metadata": {
             "description": "IP suffix for first data node"
           }
+        },
+        "existingVNetResourceGroup": {
+          "type": "string",
+          "metadata": {
+            "description": "Resource Group Name for the existing VNet"
+          }
         },        
         "tshirtSize": {
             "type": "string",
