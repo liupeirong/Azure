@@ -1,0 +1,61 @@
+﻿@model DeploySAJob.Models.SAJobConfigModel
+@{
+    ViewBag.Title = "Deploy StreamAnalytics Job";
+}
+<h1>Deploy StreamAnalytics Job</h1>
+@using (Html.BeginForm())
+{
+    <h3>Describe the Stream Analytics Job</h3>
+    <div class="editor-label">
+        @Html.LabelFor(m => m.subscriptionID)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(m => m.subscriptionID)
+    </div>
+    <div class="editor-label">
+        @Html.LabelFor(m => m.resourceGroupName)
+    </div>    
+    <div class="editor-field">
+        @Html.EditorFor(m => m.resourceGroupName)
+    </div>
+    <div class="editor-label">
+        @Html.LabelFor(m => m.location)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(m => m.location)
+    </div>
+    <div class="editor-label">
+        @Html.LabelFor(m => m.streamAnalyticsJobName)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(m => m.streamAnalyticsJobName)
+    </div>
+    
+    <h3>Describe EventHub Input, EventHub is not automatically created yet</h3>
+    <div class="editor-label">
+        @Html.LabelFor(m => m.ServiceBusNamespace)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(m => m.ServiceBusNamespace)
+    </div>
+    <div class="editor-label">
+        @Html.LabelFor(m => m.EventHubName)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(m => m.EventHubName)
+    </div>
+    <div class="editor-label">
+        @Html.LabelFor(m => m.SharedAccessPolicyName)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(m => m.SharedAccessPolicyName)
+    </div>
+    <div class="editor-label">
+        @Html.LabelFor(m => m.SharedAccessPolicyKey)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(m => m.SharedAccessPolicyKey)
+    </div>
+
+    <button type="submit">Deploy</button>
+}

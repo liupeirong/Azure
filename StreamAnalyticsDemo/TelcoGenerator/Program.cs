@@ -114,8 +114,7 @@ namespace telcodatagen
             DateTimeOffset ptTime = DateTimeOffset.Now;
             DateTimeOffset endTime = ptTime.AddHours(config.nDurationHours);
 
-            //while ( endTime.Subtract(ptTime) >= TimeSpan.Zero  )
-            for (int ii = 0; ii < 10; ++ii)
+            while ( endTime.Subtract(ptTime) >= TimeSpan.Zero  )
             {
                 DateTimeOffset currentTime = ptTime;
 

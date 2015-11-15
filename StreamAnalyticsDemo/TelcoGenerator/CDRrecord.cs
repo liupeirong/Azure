@@ -237,7 +237,7 @@ namespace telcodatagen
                         int month = Int32.Parse(value.Substring(4, 2));
                         int day = Int32.Parse(value.Substring(6, 2));
 
-                        this.callrecTime = new DateTime(year, month, day, hour, min, secs).ToUniversalTime().ToString(@"yyyy-MM-dd hh:mm:ss");
+                        this.callrecTime = new DateTime(year, month, day, hour, min, secs).ToUniversalTime().ToString(@"yyyy-MM-ddThh:mm:ssZ");
                     }
                     
                     break;
