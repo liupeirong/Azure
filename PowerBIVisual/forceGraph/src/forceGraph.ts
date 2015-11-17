@@ -35,7 +35,7 @@ module powerbi.visuals {
         // expected order: MemberFrom MemberTo Value Valu2 (optional - for coloring)
         public static converter(dataView: DataView): any {
             var nodes = {};
-            var minFiles = 99999999;
+            var minFiles = Number.MAX_VALUE;
             var maxFiles = 0;
             var linkedByName = {};
 
@@ -63,18 +63,20 @@ module powerbi.visuals {
             //    ["Harry", "Sally", 4631],
             //    ["Harry", "Mario", 4018]
             //];
-            var rows = dataView.table.rows;
-            rows.forEach(function (item) {
-                linkedByName[item[0] + "," + item[1]] = 1;
-                var link = {
-                    "source": nodes[item[0]] || (nodes[item[0]] = { name: item[0] }),
-                    "target": nodes[item[1]] || (nodes[item[1]] = { name: item[1] }),
-                    "filecount": item[2]
-                };
-                if (link.filecount < minFiles) { minFiles = link.filecount };
-                if (link.filecount > maxFiles) { maxFiles = link.filecount };
-                links.push(link);
-            });
+            if (dataView && dataView.table && dataView.table.columns.length > 2) {
+                var rows = dataView.table.rows;
+                rows.forEach(function (item) {
+                    linkedByName[item[0] + "," + item[1]] = 1;
+                    var link = {
+                        "source": nodes[item[0]] || (nodes[item[0]] = { name: item[0] }),
+                        "target": nodes[item[1]] || (nodes[item[1]] = { name: item[1] }),
+                        "filecount": item[2]
+                    };
+                    if (link.filecount < minFiles) { minFiles = link.filecount };
+                    if (link.filecount > maxFiles) { maxFiles = link.filecount };
+                    links.push(link);
+                });
+            };
             var data = {
                 "nodes": nodes, "links": links, "minFiles": minFiles, "maxFiles": maxFiles, "linkedByName": linkedByName
             };
@@ -87,11 +89,13 @@ module powerbi.visuals {
         }
 
         public update(options: VisualUpdateOptions) {
+            if (!options.dataViews || (options.dataViews.length < 1)) return;
             var data = ForceGraph.converter(this.dataView = options.dataViews[0]);
 
             var viewport = options.viewport;
             var w = viewport.width,
                 h = viewport.height;
+            var k = Math.sqrt(Object.keys(data.nodes).length / (w * h));
 
             this.root.selectAll("svg").remove();
 
@@ -99,26 +103,25 @@ module powerbi.visuals {
                 .append("svg")
                 .attr("width", w)
                 .attr("height", h);
-            svg.empty();
 
             var force = d3.layout.force()
+                .gravity(100 * k)
                 .nodes(d3.values(data.nodes))
                 .links(data.links)
                 .size([w, h])
-                .linkDistance(200)
-                .charge(-300)
+                .linkDistance(100)
+                .charge(-15 / k)
                 .on("tick", tick)
                 .start();
 
-            var scale0to100 = d3.scale.linear().domain([data.minFiles, data.maxFiles]).range([20, 100]).clamp(true);
+            var scale0to100 = d3.scale.linear().domain([data.minFiles, data.maxFiles]).range([2, 10]).clamp(true);
 
-            var path = svg.append("g").selectAll("path")
+            var path = svg.selectAll(".link")
                 .data(force.links())
                 .enter().append("path")
                 .attr("class", "link")
-                .attr("marker-end", "url(#end)")
                 .attr("stroke-width", function (d) {
-                    return scale0to100(d.filecount) / 10;
+                    return scale0to100(d.filecount);
                 })
                 .on("mouseover", fadePath(.3))
                 .on("mouseout", fadePath(1))
@@ -134,7 +137,9 @@ module powerbi.visuals {
                 .attr("class", "node")
                 .call(force.drag)
                 .on("mouseover", fadeNode(.3))
-                .on("mouseout", fadeNode(1));
+                .on("mouseout", fadeNode(1))
+                .on("mousedown", function () { d3.event.stopPropagation(); })
+                ;
 
             // add the nodes
             node.append("circle")
@@ -156,6 +161,7 @@ module powerbi.visuals {
 
             // add the curvy lines
             function tick() {
+                path.each(function () { this.parentNode.insertBefore(this, this); });
                 path.attr("d", function (d) {
                     var dx = d.target.x - d.source.x,
                         dy = d.target.y - d.source.y,
