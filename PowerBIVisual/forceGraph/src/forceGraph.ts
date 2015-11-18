@@ -63,7 +63,7 @@ module powerbi.visuals {
             //    ["Harry", "Sally", 4631],
             //    ["Harry", "Mario", 4018]
             //];
-            if (dataView && dataView.table && dataView.table.columns.length > 2) {
+            if (dataView && dataView.table) {
                 var rows = dataView.table.rows;
                 rows.forEach(function (item) {
                     linkedByName[item[0] + "," + item[1]] = 1;
