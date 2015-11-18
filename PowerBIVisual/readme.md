@@ -21,8 +21,6 @@ var rows = dataView.table.rows;
 ### Import to Power BI
 * Go to powerbi.com, "Get Data" and import a csv in the sampleData folder
 * Import forceGraph/forceGraph.pbiviz
-* Click on the dataset you imported and choose 2 string columns and a numeric column
+* Click on the dataset you imported and choose 2 string columns and a numeric column to see it in action
 
 ![Alt text](/PowerBIVisual/screenshots/import2Powerbi.PNG?raw=true "Import the visual to Power BI") 
-
-* Click on the imported visual to see it in action
