@@ -59,10 +59,27 @@ module powerbi.visuals {
             //});
 
             var links = [];
-            //var rows = [
-            //    ["Harry", "Sally", 4631],
-            //    ["Harry", "Mario", 4018]
-            //];
+            var rows2 = [
+                ["Harry", "Sally", 4631],
+                ["Harry", "Mario", 4018]
+            ];
+            var rows3 = [
+                ["Hutt Valley", "Whanganul", 359],
+                ["Hutt Valley", "Wairarapa", 483],
+                ["Hutt Valley", "Capital & Coast", 857],
+                ["Hutt Valley", "Hawkes Bay", 1304],
+                ["Hutt Valley", "MidCentral", 1526],
+                ["Capital & Coast", "Whanganul", 1183],
+                ["Capital & Coast", "Hutt Valley", 735],
+                ["Capital & Coast", "Wairarapa", 1172],
+                ["Capital & Coast", "MidCentral", 1390],
+                ["Capital & Coast", "Hawkes Bay", 955],
+                ["Hawkes Bay", "Whanganul", 465],
+                ["Hawkes Bay", "Wairarapa", 1057],
+                ["Hawkes Bay", "MidCentral", 1401],
+                ["Hawkes Bay", "Capital & Coast", 1052],
+                ["Hawkes Bay", "Hutt Valley", 213]
+            ];
             if (dataView && dataView.table) {
                 var rows = dataView.table.rows;
                 rows.forEach(function (item) {
@@ -106,26 +123,53 @@ module powerbi.visuals {
                 .attr("height", h);
 
             var force = d3.layout.force()
-                .gravity(80 * k)
+                .gravity(100 * k)
                 .nodes(d3.values(data.nodes))
                 .links(data.links)
                 .size([w, h])
                 .linkDistance(100)
-                .charge(-15 / k)
+                .charge(-100 / k)
                 .on("tick", tick)
                 .start();
 
             var scale0to100 = d3.scale.linear().domain([data.minFiles, data.maxFiles]).rangeRound([1, 10]).clamp(true);
+            
+            // build the arrow.
+            function marker(d, i) {
+                var val = "mid_" + i;
+                svg.append("defs").selectAll("marker")
+                    .data([val])      // Different link/path types can be defined here
+                    .enter().append("marker")    // This section adds in the arrows
+                    .attr("id", String)
+                    .attr("viewBox", "0 -5 10 10")
+                    .attr("refX", 10)
+                    .attr("refY", 0)
+                    .attr("markerWidth", 6)
+                    .attr("markerHeight", 6)
+                    .attr("orient", "auto")
+                    .attr("markerUnits", "userSpaceOnUse")
+                    .append("path")
+                    .attr("d", "M0,-5L10,0L0,5")
+                    .style("fill", color(scale0to100(d.filecount)))
+                ;
+                return "url(#" + val + ")";
+            }
 
             var path = svg.selectAll(".link")
                 .data(force.links())
                 .enter().append("path")
                 .attr("class", "link")
                 .attr("id", function (d, i) { return "linkid_" + i; })
+                // uncomment if we don't need the marker-end workaround
+                //.attr("marker-end", function (d, i) { return marker(d, i); })
                 .attr("stroke-width", function (d) {
                     return scale0to100(d.filecount);
                 })
                 .style("stroke", function (d) {
+                    return color(scale0to100(d.filecount));
+                })
+                // no need for "fill" if we don't need the marker-end workaround
+                .style("fill", function (d) {
                     return color(scale0to100(d.filecount));
                 })
              //   .on("mouseover", fadePath(.3))
@@ -146,7 +190,7 @@ module powerbi.visuals {
                 .style("fill", "#000")
                 .append("textPath")
                 .attr("xlink:href", function (d, i) { return "#linkid_" + i; })
-                .attr("startOffset", "50%")
+                .attr("startOffset", "25%") //use "50%" if we don't need the marker-end workaround
                 .text(function (d) { return d.filecount; });
             
             // define the nodes
@@ -163,7 +207,12 @@ module powerbi.visuals {
             // add the nodes
             node.append("circle")
                 .attr("r", function (d) {
-                    return d.weight < 5 ? 5 : d.weight;
+                    if (d.weight < 5) {
+                        d.radius = 5;
+                    } else {
+                        d.radius = d.weight;
+                    }
+                    return d.radius;
                 });
 
             // add the text 
@@ -181,16 +230,38 @@ module powerbi.visuals {
             // add the curvy lines
             function tick() {
                 path.each(function () { this.parentNode.insertBefore(this, this); });
+                //use this if we don't need the marker-end workaround
+                //path.attr("d", function (d) {
+                //    var dx = d.target.x - d.source.x,
+                //        dy = d.target.y - d.source.y,
+                //        dr = Math.sqrt(dx * dx + dy * dy);
+                //    // x and y distances from center to outside edge of target node
+                //    var offsetX = (dx * d.target.radius) / dr;
+                //    var offsetY = (dy * d.target.radius) / dr;
+                //    return "M" +
+                //        d.source.x + "," +
+                //        d.source.y + "A" +
+                //        dr + "," + dr + " 0 0,1 " +
+                //        (d.target.x - offsetX) + "," +
+                //        (d.target.y - offsetY);
+                //});
+
+                //this is for marker-end workaround, build the marker with the path
                 path.attr("d", function (d) {
                     var dx = d.target.x - d.source.x,
                         dy = d.target.y - d.source.y,
-                        dr = Math.sqrt(dx * dx + dy * dy);
+                        dr = Math.sqrt(dx * dx + dy * dy),
+                        theta = Math.atan2(dy, dx) + Math.PI / 7.85,
+                        d90 = Math.PI / 2,
+                        dtxs = d.target.x - 6 * Math.cos(theta),
+                        dtys = d.target.y - 6 * Math.sin(theta);
                     return "M" +
                         d.source.x + "," +
                         d.source.y + "A" +
-                        dr + "," + dr + " 0 0,1 " +
+                        dr + "," + dr + " 0 0 1," +
                         d.target.x + "," +
-                        d.target.y;
+                        d.target.y +
+                        "A" + dr + "," + dr + " 0 0 0," + d.source.x + "," + d.source.y + "M" + dtxs + "," + dtys + "l" + (3.5 * Math.cos(d90 - theta) - 10 * Math.cos(theta)) + "," + (-3.5 * Math.sin(d90 - theta) - 10 * Math.sin(theta)) + "L" + (dtxs - 3.5 * Math.cos(d90 - theta) - 10 * Math.cos(theta)) + "," + (dtys + 3.5 * Math.sin(d90 - theta) - 10 * Math.sin(theta)) + "z";
                 });
 
                 node

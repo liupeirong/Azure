@@ -2,6 +2,7 @@
     fill: none;
     stroke: #bbb;
     cursor: pointer;
+    /* uncomment if you want the same stroke-width and use color instead */
     /*stroke-width: 1.5px;*/
 }
 
