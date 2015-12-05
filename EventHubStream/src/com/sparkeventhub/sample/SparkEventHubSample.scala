@@ -13,11 +13,11 @@ object SparkEventHubSample {
 
     val outputDir = "sparkoutput/calls.raw"
     val streamBatchIntervalInSeconds = 60
-    val jdbccxn = "jdbc:sqlserver://e2i92hd2xp.database.windows.net:1433;database=MCCAzure;user=soi@e2i92hd2xp;password=Sp3cial!;encrypt=false;loginTimeout=30;"
+    val jdbccxn = "jdbc:sqlserver://<your db server>.database.windows.net:1433;database=<your db name>;user=<your db user name>;password=<your db password>;encrypt=false;loginTimeout=30;"
 
     val ehParams = Map[String, String](
       "eventhubs.policyname" -> "ReceiveRule",
-      "eventhubs.policykey" -> "jSV/BjU6sKSzffEit5ti3s0j0exRhB7XwYPXpGiAZRY=",
+      "eventhubs.policykey" -> "your event hubs policy key",
       "eventhubs.namespace" -> "clouderademo",
       "eventhubs.name" -> "stratahub",
       "eventhubs.partition.count" -> "2", //executor count must be twice that of partition count
