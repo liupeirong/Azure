@@ -4,6 +4,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.eventhubs.EventHubsUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import scala.reflect.runtime.universe
@@ -11,7 +12,7 @@ import scala.reflect.runtime.universe
 object SparkEventHubSample {
   def main(args: Array[String]) {
 
-    val outputDir = "sparkoutput/calls.raw"
+    val outputDir = "sparkoutput/calls"
     val streamBatchIntervalInSeconds = 60
     val jdbccxn = "jdbc:sqlserver://<your db server>.database.windows.net:1433;database=<your db name>;user=<your db user name>;password=<your db password>;encrypt=false;loginTimeout=30;"
 
@@ -49,12 +50,12 @@ object SparkEventHubSample {
           // use the min time of this mini batch as the timestamp for the aggregated entry
           val minTime = df.filter(df("callTime") > 0).select("callTime").first().getLong(0);
           // real time aggregation by region
-          val callByRegion = df.groupBy("SwitchNum").count().withColumnRenamed("count", "callCount").withColumn("callTimeStamp", lit(minTime));
+          val callsByRegion = df.groupBy("SwitchNum").count().withColumnRenamed("count", "callCount").withColumn("callTimeStamp", lit(minTime));
           // save real time aggregation to sql azure
-          callByRegion.insertIntoJDBC(jdbccxn, "callByRegion", false);
+          callsByRegion.insertIntoJDBC(jdbccxn, "callsByRegion", false);
           // save to hdfs for impala or hive queries
-          val tb = df.registerTempTable("message");
-          val calls = sqlContext.sql("SELECT callrecTime, SwitchNum, CallingIMSI, CallingNum, CalledNum, callTime from message");
+          df.registerTempTable("rawcalls");
+          val calls = sqlContext.sql("SELECT callrecTime, SwitchNum, CallingIMSI, CallingNum, CalledNum, callTime from rawcalls");
           calls.save(outputDir, SaveMode.Append)
         }
     }
