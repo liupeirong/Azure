@@ -6,7 +6,7 @@ This document explains how to test your createUiDefinition file without publishi
 
 - upload your createUiDefinition file to GitHub or a location that can be publicly accessed through a URL, note that you need the URL to the *raw* file, not the html page that displays the file.  On GitHub, the URL for the raw file will typically be `https://raw.githubusercontent.com`/<`your repo`\>/<`branch`\>/<`your file`\> 
 - use a URL encoding tool to encode your URL, for example, [this online encoding tool](http://meyerweb.com/eric/tools/dencoder/) does the job
-- replace the **highlighted** part of this URL with your encoded URL `https://portal.azure.com/?clientOptimizations=false#blade/Microsoft_Azure_Compute/CreateMultiVmWizardBlade/internal_bladeCallId/anything/internal_bladeCallerParams/{"initialData":{},"providerConfig":{"createUiDefinition":"`<span style="background-color:yellow">http%3A%2F%2Fyoururltocreateuidefinition.jsonURLencoded</span>`"}}`
+- replace the **highlighted** part of this URL with your encoded URL `https://portal.azure.com/?clientOptimizations=false#blade/Microsoft_Azure_Compute/CreateMultiVmWizardBlade/internal_bladeCallId/anything/internal_bladeCallerParams/{"initialData":{},"providerConfig":{"createUiDefinition":"`**http%3A%2F%2Fyoururltocreateuidefinition.jsonURLencoded**`"}}`
 
 - Access the updated URL, it should lead you to the Azure portal and start the UI. The first time you access the URL, it might lead you to the home page of the Azure portal.  Load it again, and you should be able to see the UI
 
