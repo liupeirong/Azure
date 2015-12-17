@@ -8,6 +8,7 @@ This document explains how to test your createUiDefinition file without publishi
 - Use a URL encoding tool to encode your URL, for example, [this online encoding tool](http://meyerweb.com/eric/tools/dencoder/) does the job
 - Replace the **highlighted** part of this URL with your encoded URL *`https://portal.azure.com/?clientOptimizations=false#blade/Microsoft_Azure_Compute/CreateMultiVmWizardBlade/internal_bladeCallId/anything/internal_bladeCallerParams/{"initialData":{},"providerConfig":{"createUiDefinition":"`<strong>http%3A%2F%2Fyoururltocreateuidefinition.jsonURLencoded</strong>`"}}`*
 - Copy and paste the above updated URL to the address bar of a browser window, it should lead you to the Azure portal and start the UI. The first time you access the URL, it might lead you to the home page of the Azure portal.  Load it again, and you should be able to see the UI
+- Note that you can't use this side loading tool to deploy your solution, it's for previewing the UI only.  If you click on the "Buy" button, you will see an error and this is by design.
 
 ###Troubleshooting
 If you see "No results" in the UI, open the browser developer tool.  In the console of the developer tool, you should be able to see the error messages. 
