@@ -8,7 +8,7 @@
     }
 
     .node circle{
-    stroke:#fff;
+    stroke:lightblue;
     stroke-width:3px;
-    fill:#555;
+    fill:blue;
     }

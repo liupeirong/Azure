@@ -1,6 +1,6 @@
-# Power BI Custom Visual for D3 Force Layout Diagram
+# Power BI Custom Visual for a D3 Force-Directed Graph
 
-This custom visual implements a D3 force layout diagram with curved path.  The thickness of the path represents the weight of the relationship between the nodes.
+This custom visual implements a [D3 force-directed graph](https://github.com/mbostock/d3/wiki/Force-Layout) with curved path.  The thickness of the path represents the weight of the relationship between the nodes.
 
 ![Alt text](/PowerBIVisual/screenshots/powerbiForce.PNG?raw=true "Force diagram visual in Power BI") 
 
@@ -20,9 +20,7 @@ var rows = dataView.table.rows;
 
 ### Import to Power BI
 * Go to powerbi.com, "Get Data" and import a csv in the sampleData folder
-* Click on the dataset you imported and check 2 string columns and a numeric column, Power BI will place the data in a table control
 * Import forceGraph/forceGraph.pbiviz
+* Click on the dataset you imported and choose 2 string columns and a numeric column to see it in action
 
 ![Alt text](/PowerBIVisual/screenshots/import2Powerbi.PNG?raw=true "Import the visual to Power BI") 
-
-* Click on the imported visual to see it in action

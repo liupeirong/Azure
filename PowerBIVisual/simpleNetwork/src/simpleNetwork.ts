@@ -1,33 +1,33 @@
-﻿module powerbi.visuals.samples {
+﻿module powerbi.visuals {
 
     export class SimpleNetwork implements IVisual {
-   public static capabilities: VisualCapabilities = {
-        dataRoles: [
-            {
-                name: 'Values',
-                kind: VisualDataRoleKind.GroupingOrMeasure,
-            },
-        ],
-        objects: {
-            general: {
-                properties: {
-                    formatString: {
-                        type: { formatting: { formatString: true } },
+        public static capabilities: VisualCapabilities = {
+            dataRoles: [
+                {
+                    name: 'Values',
+                    kind: VisualDataRoleKind.GroupingOrMeasure,
+                },
+            ],
+            objects: {
+                general: {
+                    properties: {
+                        formatString: {
+                            type: { formatting: { formatString: true } },
+                        },
                     },
-                },
-            }
-        },
-        dataViewMappings: [{
-            table: {
-                rows: {
-                    for: { in: 'Values' },
-                    dataReductionAlgorithm: { window: {} }
-                },
-                rowCount: { preferred: { min: 1 } }
+                }
             },
-        }],
-        suppressDefaultTitle: true,
-    };
+            dataViewMappings: [{
+                table: {
+                    rows: {
+                        for: { in: 'Values' },
+                        dataReductionAlgorithm: { window: {} }
+                    },
+                    rowCount: { preferred: { min: 1 } }
+                },
+            }],
+            suppressDefaultTitle: true,
+        };
 
         private root: D3.Selection;
         private dataView: DataView;
@@ -67,6 +67,10 @@
             //    links.push(link);
             //});
 
+            //var rows = [
+            //    ["Harry", "Sally", 86310],
+            //    ["Harry", "Mario", 40184]
+            //];
             var rows = dataView.table.rows;
             rows.forEach(function (item) {
                 if (!(item[0] in dict)) {
@@ -87,37 +91,27 @@
                 links.push(link);
             })
             var data = { "nodes": nodes, "links": links };
-            //var data = {
-            //    "nodes":
-            //    [{ "name": "node1", "group": 1 },
-            //        { "name": "node2", "group": 2 },
-            //        { "name": "node3", "group": 2 },
-            //        { "name": "node4", "group": 3 }],
-            //    "links":
-            //    [{ "source": 2, "target": 1, "weight": 1 },
-            //        { "source": 0, "target": 2, "weight": 3 }]
-            //};
-
             return data;
         }
 
         public init(options: VisualInitOptions): void {
-            this.root = d3.select(options.element.get(0))
-                .append('svg');
+            this.root = d3.select(options.element.get(0));
         }
 
         public update(options: VisualUpdateOptions) {
-            // convert dataview into the format for drawing   
             var data = SimpleNetwork.converter(this.dataView = options.dataViews[0]);
             
-            // visual initialization
             var viewport = options.viewport;
             var w = viewport.width,
                 h = viewport.height;
 
+            this.root.selectAll("svg").remove();
+
             var svg = this.root
+                .append("svg")
                 .attr("width", w)
                 .attr("height", h);
+            svg.empty();
 
             var force = d3.layout.force()
                 .gravity(.05)
@@ -138,7 +132,7 @@
                 .data(data.links)
                 .enter().append("line")
                 .attr("class", "link")
-                .style("stroke-width", function (d) { return Math.sqrt(d.weight); });
+                .style("stroke-width", function (d) { return Math.sqrt(d.weight) % 10; });
 
             var node = svg.selectAll(".node")
                 .data(data.nodes)

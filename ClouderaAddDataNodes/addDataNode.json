@@ -55,6 +55,47 @@
                 "description": "Subnet name for the virtual network where resources will be provisioned"
             }
         },
+        "addressPrefix": {
+          "type": "string",
+          "defaultValue": "10.3.0.0/16",
+          "metadata": {
+            "description": "Virtual Network address CIDR"
+          }
+        },
+        "subnetPrefix": {
+          "type": "string",
+          "defaultValue": "10.3.0.0/16",
+          "metadata": {
+            "description": "CIDR for the subnet where VMs will be placed"
+          }
+        },
+        "nodeAddressPrefix": {
+          "type": "string",
+          "defaultValue": "10.3.0.",
+          "metadata": {
+            "description": "Prefix for all VM IP addresses (NOT a CIDR)"
+          }
+        },
+        "masterNodeAddressStart": {
+          "type": "int",
+          "defaultValue": 10,
+          "metadata": {
+            "description": "IP suffix for first master node"
+          }
+        },
+        "dataNodeAddressStart": {
+          "type": "int",
+          "defaultValue": 20,
+          "metadata": {
+            "description": "IP suffix for first data node"
+          }
+        },
+        "existingVNetResourceGroup": {
+          "type": "string",
+          "metadata": {
+            "description": "Resource Group Name for the existing VNet"
+          }
+        },        
         "tshirtSize": {
             "type": "string",
             "defaultValue": "Eval",
@@ -89,9 +130,9 @@
         }
     },
     "variables": {
-        "addressPrefix": "10.0.0.0/24",
-        "subnetPrefix": "10.0.0.0/24",
-        "nodeAddressPrefix": "10.0.0.",
+        "addressPrefix":"[parameters('addressPrefix')]",
+        "subnetPrefix":"[parameters('subnetPrefix')]",
+        "nodeAddressPrefix":"[parameters('nodeAddressPrefix')]",
         "scriptsUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/cloudera-on-centos",
         "templateUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaAddDataNodes",
         "storageAccount": {
@@ -121,10 +162,11 @@
             "addressPrefix": "[variables('addressPrefix')]",
             "subnetPrefix": "[variables('subnetPrefix')]",
             "privateIPPrefix": "[variables('nodeAddressPrefix')]",
-            "masterNodeAddressStart": 10,
-            "dataNodeAddressStart": 20, 
+            "masterNodeAddressStart": "[parameters('masterNodeAddressStart')]",
+            "dataNodeAddressStart": "[parameters('dataNodeAddressStart')]",
             "virtualNetworkName": "[parameters('virtualNetworkName')]",
-            "virtualNetworkSubnetName": "[parameters('subnetName')]"
+            "virtualNetworkSubnetName": "[parameters('subnetName')]",
+            "existingVNetResourceGroup": "[parameters('existingVNetResourceGroup')]"
         }
     },
   "resources": [

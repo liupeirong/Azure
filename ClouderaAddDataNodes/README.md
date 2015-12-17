@@ -1,4 +1,4 @@
-# Deploy a Cloudera Express cluster with the option to unlock Cloudera Enterprise features for a free 60-day trial
+# Deploy additional data nodes to an exsting Cloudera Express cluster with the option to unlock Cloudera Enterprise features for a free 60-day trial
 Once the trial has concluded, the Cloudera Enterprise features will be disabled until you obtain and upload a license.
 
 # By clicking "Deploy to Azure" you agree to the Terms and Conditions below.

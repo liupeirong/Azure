@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "forceGraph", "forceGraph", 
 		forceGraph\src\forceGraph.css = forceGraph\src\forceGraph.css
 		forceGraph\ForceGraph.pbiviz = forceGraph\ForceGraph.pbiviz
 		forceGraph\src\forceGraph.ts = forceGraph\src\forceGraph.ts
+		forceGraph\ForceGraphColoredArrowPath.pbiviz = forceGraph\ForceGraphColoredArrowPath.pbiviz
+		forceGraph\src\forceGraphColoredPath.ts = forceGraph\src\forceGraphColoredPath.ts
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "simpleNetwork", "simpleNetwork", "{46CF6B69-A75B-4555-AD58-87FC2E4E431E}"
@@ -31,6 +33,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "screenshots", "screenshots", "{A3172AFC-FF75-4E39-AE0F-58DAE07FD86C}"
 	ProjectSection(SolutionItems) = preProject
 		screenshots\devtoolDebug.PNG = screenshots\devtoolDebug.PNG
+		screenshots\force220by176.png = screenshots\force220by176.png
+		screenshots\force410by424.png = screenshots\force410by424.png
 		screenshots\import2Powerbi.PNG = screenshots\import2Powerbi.PNG
 		screenshots\powerbiForce.PNG = screenshots\powerbiForce.PNG
 	EndProjectSection
