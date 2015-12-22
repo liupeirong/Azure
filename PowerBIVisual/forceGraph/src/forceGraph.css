@@ -13,6 +13,10 @@ circle {
     cursor: pointer;
 }
 
+image {
+    cursor: pointer;
+}
+
 text {
     fill: #00a;
     font: 12px sans-serif;
