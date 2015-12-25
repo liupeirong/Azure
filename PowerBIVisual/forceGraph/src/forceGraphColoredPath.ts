@@ -26,6 +26,7 @@ module powerbi.visuals {
         defaultLinkColor: string;
         defaultLinkHighlightColor: string;
         defaultLinkThickness: string;
+        showAllDataPoints: boolean;
     }
 
     export var forceProps = {
@@ -44,15 +45,21 @@ module powerbi.visuals {
         },
         size: {
             charge: <DataViewObjectPropertyIdentifier>{ objectName: 'size', propertyName: 'charge' },
-        }
+        },
+        dataPoint: {
+            defaultColor: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'defaultColor' },
+            showAllDataPoints: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'showAllDataPoints' },
+            fill: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'fill' },
+        },
     }
 
     export interface ForceGraphData {
-        nodes: any[];
+        nodes: {};
         links: any[];
         minFiles: number;
         maxFiles: number;
         linkedByName: {};
+        dataPointsToEnumerate: {};
     }
 
     export class ForceGraph implements IVisual {
@@ -61,6 +68,7 @@ module powerbi.visuals {
         private colors: IDataColorPalette;
         private options: ForceGraphOptions;
         private data: ForceGraphData;
+        private colorHelper: ColorHelper;
 
         private getDefaultOptions(): ForceGraphOptions {
             return {
@@ -77,6 +85,7 @@ module powerbi.visuals {
                 defaultLinkColor: "#bbb",
                 defaultLinkHighlightColor: "#f00",
                 defaultLinkThickness: "1.5px",
+                showAllDataPoints: false,
             };
         }
 
@@ -91,28 +100,44 @@ module powerbi.visuals {
             this.options.imageExt = DataViewObjects.getValue(objects, forceProps.nodes.imageExt, this.options.imageExt);
             this.options.nameMaxLength = DataViewObjects.getValue(objects, forceProps.nodes.nameMaxLength, this.options.nameMaxLength);
             this.options.charge = DataViewObjects.getValue(objects, forceProps.size.charge, this.options.charge);
+            this.options.defaultLinkColor = DataViewObjects.getFillColor(objects, forceProps.dataPoint.defaultColor, this.options.defaultLinkColor);
+            this.options.showAllDataPoints = DataViewObjects.getValue(objects, forceProps.dataPoint.showAllDataPoints, this.options.showAllDataPoints);
         }
 
         public static capabilities: VisualCapabilities = {
             dataRoles: [
                 {
-                    name: 'Values',
-                    kind: VisualDataRoleKind.GroupingOrMeasure,
+                    name: 'Source',
+                    kind: VisualDataRoleKind.Grouping,
+                    displayName: 'Source',
+                },
+                {
+                    name: 'Target',
+                    kind: VisualDataRoleKind.Grouping,
+                    displayName: 'Target',
+                },
+                {
+                    name: 'Weight',
+                    kind: VisualDataRoleKind.Measure,
+                    displayName: 'Weight',
                 },
                 {
                     name: 'LinkType',
                     kind: VisualDataRoleKind.Grouping,
                     displayName: 'LinkType',
+                    description: 'Links can be colored by link types',
                 },
                 {
                     name: 'SourceType',
                     kind: VisualDataRoleKind.Grouping,
                     displayName: 'SourceType',
+                    description: 'Source type represents the image name for source entities',
                 },
                 {
                     name: 'TargetType',
                     kind: VisualDataRoleKind.Grouping,
                     displayName: 'TargetType',
+                    description: 'Target type represents the image name for target entities',
                 },
             ],
             objects: {
@@ -132,15 +157,17 @@ module powerbi.visuals {
                         },
                         showLabel: {
                             type: { bool: true },
-                            displayName: 'Label'
+                            displayName: 'Label',
+                            description: 'Displays weight on links',
                         },
                         colorLink: {
                             type: { enumeration: linkColorType.type },
-                            displayName: 'Color'
+                            displayName: 'Color',
                         },
                         thickenLink: {
                             type: { bool: true },
-                            displayName: 'Thickness'
+                            displayName: 'Thickness',
+                            description: 'Thickenss of links represents weight',
                         },
                     }
                 },
@@ -149,7 +176,8 @@ module powerbi.visuals {
                     properties: {
                         displayImage: {
                             type: { bool: true },
-                            displayName: 'Image'
+                            displayName: 'Image',
+                            description: 'Images are loaded from image url + source or target type + image extension',
                         },
                         defaultImage: {
                             type: { text: true },
@@ -165,7 +193,8 @@ module powerbi.visuals {
                         },
                         nameMaxLength: {
                             type: { numeric: true },
-                            displayName: 'Max name length'
+                            displayName: 'Max name length',
+                            description: 'Max length of the name of entities displayed',
                         },
                     }
                 },
@@ -174,7 +203,8 @@ module powerbi.visuals {
                     properties: {
                         charge: {
                             type: { numeric: true },
-                            displayName: 'Charge'
+                            displayName: 'Charge',
+                            description: 'The larger the negative charge the more apart the entities',
                         },
                     }
                 },
@@ -197,18 +227,22 @@ module powerbi.visuals {
                 },
             },
             dataViewMappings: [{
-                //conditions: [
-                //    {'Values': {min: 2}, 'LinkType': {max: 1}, 'SourceType': {max: 1}, 'TargetType': {max: 1}},
-                //],
+                conditions: [
+                    { 'Source': { max: 1 }, 'Target': { max: 1 }, 'Weight': { max: 1 }, 'LinkType': { max: 1 }, 'SourceType': { max: 1 }, 'TargetType': { max: 1 } },
+                ],
                 categorical: {
+                    categories: {
+                        for: { in: 'Source' },
+                        dataReductionAlgorithm: { top: {} }
+                    },
                     values: {
                         select: [
-                            { bind: { to: 'Values' } },
+                            { bind: { to: 'Target' } },
+                            { bind: { to: 'Weight' } },
                             { bind: { to: 'LinkType' } },
                             { bind: { to: 'SourceType' } },
                             { bind: { to: 'TargetType' } },
                         ],
-                        dataReductionAlgorithm: { window: {} }
                     },
                     rowCount: { preferred: { min: 1 } }
                 },
@@ -217,7 +251,6 @@ module powerbi.visuals {
         };
 
         public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
-            var enumeration = new ObjectEnumerationBuilder();
             var instances: VisualObjectInstance[] = [];
             var dataView = this.dataView;
             switch (options.objectName) {
@@ -262,42 +295,67 @@ module powerbi.visuals {
                     instances.push(size);
                     break;
                 case 'dataPoint':
+                    var dp: VisualObjectInstance = {
+                        objectName: 'dataPoint',
+                        selector: null,
+                        properties: {
+                            defaultColor: { solid: { color: this.options.defaultLinkColor } },
+                            showAllDataPoints: !!this.options.showAllDataPoints,
+
+                        }
+                    };
+                    instances.push(dp);
+                    var dataPoints = this.data.dataPointsToEnumerate;
+                    for (var label in dataPoints) {
+                        instances.push({
+                            objectName: 'dataPoint',
+                            displayName: label,
+                            selector: ColorHelper.normalizeSelector(dataPoints[label].identity.getSelector()),
+                            properties: {
+                                fill: { solid: { color: this.colors.getColorByIndex(dataPoints[label].index).value } }
+                            },
+                        });
+                    }
                     break;
             }
 
             return instances;
         }
 
-        public static converter(dataView: DataView): any {
+        public static converter(dataView: DataView): ForceGraphData {
             var nodes = {};
             var minFiles = Number.MAX_VALUE;
             var maxFiles = 0;
             var linkedByName = {};
             var links = [];
-            var weightCol = -1, linkTypeCol = -1, sourceTypeCol = -1, targetTypeCol = -1;
-            var valueCol = 0;
+            var linkDataPoints = {};
+            var sourceCol = -1, targetCol = -1, weightCol = -1, linkTypeCol = -1, sourceTypeCol = -1, targetTypeCol = -1;
+            var linkTypeCount = 0;
             var rows;
-
             if (dataView && dataView.categorical && dataView.categorical.categories && dataView.metadata && dataView.metadata.columns) {
                 var metadataColumns = dataView.metadata.columns;
                 for (var i = 0; i < metadataColumns.length; i++) {
                     var col = metadataColumns[i];
                     if (col.roles) {
-                        if (col.roles['Values'])
-                            ++valueCol;
-                        if (col.roles['LinkType'])
+                        if (col.roles['Source'])
+                            sourceCol = i;
+                        else if (col.roles['Target'])
+                            targetCol = i;
+                        else if (col.roles['Weight'])
+                            weightCol = i;
+                        else if (col.roles['LinkType'])
                             linkTypeCol = i;
-                        if (col.roles['SourceType'])
+                        else if (col.roles['SourceType'])
                             sourceTypeCol = i;
-                        if (col.roles['TargetType'])
+                        else if (col.roles['TargetType'])
                             targetTypeCol = i;
                     }
                 }
-                if (valueCol > 2) { weightCol = valueCol - 1; }
             }
-            if (valueCol < 2) return null;
-
+            console.log("dataView", dataView);
             if (test) {
+                sourceCol = 0;
+                targetCol = 1;
                 weightCol = 2;
                 linkTypeCol = 3;
                 sourceTypeCol = 5;
@@ -324,21 +382,37 @@ module powerbi.visuals {
             else if (dataView && dataView.table) {
                 rows = dataView.table.rows;
             }
+            if (sourceCol < 0 || targetCol < 0)
+                return <ForceGraphData>{
+                    "nodes": {}, "links": [], "minFiles": 0, "maxFiles": 0, "linkedByName": {}, "dataPointsToEnumerate": {}
+                };
+
             rows.forEach(function (item) {
-                linkedByName[item[0] + "," + item[1]] = 1;
+                linkedByName[item[sourceCol] + "," + item[targetCol]] = 1;
                 var link;
                 link = {
-                    "source": nodes[item[0]] || (nodes[item[0]] = { name: item[0], image: sourceTypeCol > 0 ? item[sourceTypeCol] : '' }),
-                    "target": nodes[item[1]] || (nodes[item[1]] = { name: item[1], image: targetTypeCol > 0 ? item[targetTypeCol] : '' }),
+                    "source": nodes[item[sourceCol]] ||
+                    (nodes[item[sourceCol]] = { name: item[sourceCol], image: sourceTypeCol > 0 ? item[sourceTypeCol] : '' }),
+                    "target": nodes[item[targetCol]] ||
+                    (nodes[item[targetCol]] = { name: item[targetCol], image: targetTypeCol > 0 ? item[targetTypeCol] : '' }),
                     "filecount": weightCol > 0 ? item[weightCol] : 0,
                     "type": linkTypeCol > 0 ? item[linkTypeCol] : '',
+                };
+                if (linkTypeCol > 0) {
+                    if (!linkDataPoints[item[linkTypeCol]]) {
+                        linkDataPoints[item[linkTypeCol]] = {
+                            label: item[linkTypeCol], index: linkTypeCount++,
+                            identity: SelectionIdBuilder.builder().withCategory(dataView.categorical.categories[linkTypeCol], 0).createSelectionId()
+                        };
+                    }
                 };
                 if (link.filecount < minFiles) { minFiles = link.filecount };
                 if (link.filecount > maxFiles) { maxFiles = link.filecount };
                 links.push(link);
             });
+
             var data = {
-                "nodes": nodes, "links": links, "minFiles": minFiles, "maxFiles": maxFiles, "linkedByName": linkedByName
+                "nodes": nodes, "links": links, "minFiles": minFiles, "maxFiles": maxFiles, "linkedByName": linkedByName, "dataPointsToEnumerate": linkDataPoints
             };
             return data;
         }
@@ -357,6 +431,7 @@ module powerbi.visuals {
             var voptions = this.options;
             var colors = this.colors;
             var scale1to10 = d3.scale.linear().domain([data.minFiles, data.maxFiles]).rangeRound([1, 10]).clamp(true);
+            this.colorHelper = new ColorHelper(colors, forceProps.dataPoint.fill, voptions.defaultLinkColor);
 
             var viewport = options.viewport;
             var w = viewport.width,
