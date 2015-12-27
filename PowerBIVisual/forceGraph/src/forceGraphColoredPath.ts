@@ -47,7 +47,6 @@ module powerbi.visuals {
             charge: <DataViewObjectPropertyIdentifier>{ objectName: 'size', propertyName: 'charge' },
         },
         dataPoint: {
-            defaultColor: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'defaultColor' },
             showAllDataPoints: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'showAllDataPoints' },
             fill: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'fill' },
         },
@@ -68,7 +67,6 @@ module powerbi.visuals {
         private colors: IDataColorPalette;
         private options: ForceGraphOptions;
         private data: ForceGraphData;
-        private colorHelper: ColorHelper;
 
         private getDefaultOptions(): ForceGraphOptions {
             return {
@@ -100,7 +98,6 @@ module powerbi.visuals {
             this.options.imageExt = DataViewObjects.getValue(objects, forceProps.nodes.imageExt, this.options.imageExt);
             this.options.nameMaxLength = DataViewObjects.getValue(objects, forceProps.nodes.nameMaxLength, this.options.nameMaxLength);
             this.options.charge = DataViewObjects.getValue(objects, forceProps.size.charge, this.options.charge);
-            this.options.defaultLinkColor = DataViewObjects.getFillColor(objects, forceProps.dataPoint.defaultColor, this.options.defaultLinkColor);
             this.options.showAllDataPoints = DataViewObjects.getValue(objects, forceProps.dataPoint.showAllDataPoints, this.options.showAllDataPoints);
         }
 
@@ -211,10 +208,6 @@ module powerbi.visuals {
                 dataPoint: {
                     displayName: data.createDisplayNameGetter('Visual_DataPoint'),
                     properties: {
-                        defaultColor: {
-                            displayName: data.createDisplayNameGetter('Visual_DefaultColor'),
-                            type: { fill: { solid: { color: true } } }
-                        },
                         showAllDataPoints: {
                             displayName: data.createDisplayNameGetter('Visual_DataPoint_Show_All'),
                             type: { bool: true }
@@ -299,9 +292,7 @@ module powerbi.visuals {
                         objectName: 'dataPoint',
                         selector: null,
                         properties: {
-                            defaultColor: { solid: { color: this.options.defaultLinkColor } },
                             showAllDataPoints: !!this.options.showAllDataPoints,
-
                         }
                     };
                     instances.push(dp);
@@ -310,11 +301,12 @@ module powerbi.visuals {
                         instances.push({
                             objectName: 'dataPoint',
                             displayName: label,
-                            selector: ColorHelper.normalizeSelector(dataPoints[label].identity.getSelector()),
+                            selector: ColorHelper.normalizeSelector(dataPoints[label].identity.getSelector(), true),
                             properties: {
-                                fill: { solid: { color: this.colors.getColorByIndex(dataPoints[label].index).value } }
+                                fill: { solid: { color: dataPoints[label].color } }
                             },
                         });
+                        console.log("selector", dataPoints[label].identity.getSelector());
                     }
                     break;
             }
@@ -322,15 +314,16 @@ module powerbi.visuals {
             return instances;
         }
 
-        public static converter(dataView: DataView): ForceGraphData {
+        public static converter(dataView: DataView, colors: IDataColorPalette): ForceGraphData {
             var nodes = {};
             var minFiles = Number.MAX_VALUE;
             var maxFiles = 0;
             var linkedByName = {};
             var links = [];
+            var linkTypeCategory;
             var linkDataPoints = {};
-            var sourceCol = -1, targetCol = -1, weightCol = -1, linkTypeCol = -1, sourceTypeCol = -1, targetTypeCol = -1;
             var linkTypeCount = 0;
+            var sourceCol = -1, targetCol = -1, weightCol = -1, linkTypeCol = -1, sourceTypeCol = -1, targetTypeCol = -1;
             var rows;
             if (dataView && dataView.categorical && dataView.categorical.categories && dataView.metadata && dataView.metadata.columns) {
                 var metadataColumns = dataView.metadata.columns;
@@ -344,7 +337,10 @@ module powerbi.visuals {
                         else if (col.roles['Weight'])
                             weightCol = i;
                         else if (col.roles['LinkType'])
+                        {
                             linkTypeCol = i;
+                            linkTypeCategory = dataView.categorical.categories[linkTypeCol];
+                        }
                         else if (col.roles['SourceType'])
                             sourceTypeCol = i;
                         else if (col.roles['TargetType'])
@@ -401,8 +397,13 @@ module powerbi.visuals {
                 if (linkTypeCol > 0) {
                     if (!linkDataPoints[item[linkTypeCol]]) {
                         linkDataPoints[item[linkTypeCol]] = {
-                            label: item[linkTypeCol], index: linkTypeCount++,
-                            identity: SelectionIdBuilder.builder().withCategory(dataView.categorical.categories[linkTypeCol], 0).createSelectionId()
+                            label: item[linkTypeCol],
+                            index: linkTypeCount,
+                            identity: SelectionIdBuilder.builder()
+                                .withCategory(linkTypeCategory, links.length)
+                                .withMeasure(item[linkTypeCol])
+                                .createSelectionId(),
+                            color: colors.getColorByIndex(linkTypeCount++).value,
                         };
                     }
                 };
@@ -425,13 +426,18 @@ module powerbi.visuals {
 
         public update(options: VisualUpdateOptions) {
             if (!options.dataViews || (options.dataViews.length < 1)) return;
-            var data = this.data = ForceGraph.converter(this.dataView = options.dataViews[0]);
+            var colors = this.colors;
+            var data = this.data = ForceGraph.converter(this.dataView = options.dataViews[0], colors);
             if (!data) return;
             this.updateOptions(options.dataViews[0].metadata.objects);
             var voptions = this.options;
-            var colors = this.colors;
             var scale1to10 = d3.scale.linear().domain([data.minFiles, data.maxFiles]).rangeRound([1, 10]).clamp(true);
-            this.colorHelper = new ColorHelper(colors, forceProps.dataPoint.fill, voptions.defaultLinkColor);
+            var colorHelper = new ColorHelper(colors, forceProps.dataPoint.fill, voptions.defaultLinkColor);
+            for (var dpKey in data.dataPointsToEnumerate) {
+                var dp = data.dataPointsToEnumerate[dpKey];
+                var color = colorHelper.getColorForMeasure(options.dataViews[0].metadata.objects, dp.identity.key);
+                console.log("type:color", dpKey, color);
+            }
 
             var viewport = options.viewport;
             var w = viewport.width,
@@ -572,11 +578,7 @@ module powerbi.visuals {
                 if (voptions.colorLink == linkColorType.byWeight)
                     return colors.getColorByIndex(scale1to10(d.filecount)).value;
                 if (voptions.colorLink == linkColorType.byLinkType)
-                    return colors.getColorByIndex(type2Index(d.type)).value;
-            }
-
-            function type2Index(d: string): number {
-                return d ? d.length % 10 : 0;
+                    return data.dataPointsToEnumerate[d.type].color;
             }
 
             function isConnected(a, b) {
