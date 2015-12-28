@@ -22,11 +22,11 @@ module powerbi.visuals {
         imageUrl: string;
         imageExt: string;
         nameMaxLength: number;
+        highlightReachableLinks: boolean;
         charge: number;
         defaultLinkColor: string;
         defaultLinkHighlightColor: string;
         defaultLinkThickness: string;
-        showAllDataPoints: boolean;
     }
 
     export var forceProps = {
@@ -42,13 +42,10 @@ module powerbi.visuals {
             imageUrl: <DataViewObjectPropertyIdentifier>{ objectName: 'nodes', propertyName: 'imageUrl' },
             imageExt: <DataViewObjectPropertyIdentifier>{ objectName: 'nodes', propertyName: 'imageExt' },
             nameMaxLength: <DataViewObjectPropertyIdentifier>{ objectName: 'nodes', propertyName: 'nameMaxLength' },
+            highlightReachableLinks: <DataViewObjectPropertyIdentifier>{ objectName: 'nodes', propertyName: 'highlightReachableLinks' },
         },
         size: {
             charge: <DataViewObjectPropertyIdentifier>{ objectName: 'size', propertyName: 'charge' },
-        },
-        dataPoint: {
-            showAllDataPoints: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'showAllDataPoints' },
-            fill: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'fill' },
         },
     }
 
@@ -79,11 +76,11 @@ module powerbi.visuals {
                 imageUrl: "http://pliupublic.blob.core.windows.net/files/",
                 imageExt: ".png",
                 nameMaxLength: 10,
+                highlightReachableLinks: false,
                 charge: -15,
                 defaultLinkColor: "#bbb",
                 defaultLinkHighlightColor: "#f00",
                 defaultLinkThickness: "1.5px",
-                showAllDataPoints: false,
             };
         }
 
@@ -97,8 +94,9 @@ module powerbi.visuals {
             this.options.imageUrl = DataViewObjects.getValue(objects, forceProps.nodes.imageUrl, this.options.imageUrl);
             this.options.imageExt = DataViewObjects.getValue(objects, forceProps.nodes.imageExt, this.options.imageExt);
             this.options.nameMaxLength = DataViewObjects.getValue(objects, forceProps.nodes.nameMaxLength, this.options.nameMaxLength);
+            this.options.highlightReachableLinks = DataViewObjects.getValue(objects, forceProps.nodes.highlightReachableLinks, this.options.highlightReachableLinks);
             this.options.charge = DataViewObjects.getValue(objects, forceProps.size.charge, this.options.charge);
-            this.options.showAllDataPoints = DataViewObjects.getValue(objects, forceProps.dataPoint.showAllDataPoints, this.options.showAllDataPoints);
+            if (this.options.charge >= 0) this.options.charge = this.getDefaultOptions().charge;
         }
 
         public static capabilities: VisualCapabilities = {
@@ -193,6 +191,11 @@ module powerbi.visuals {
                             displayName: 'Max name length',
                             description: 'Max length of the name of entities displayed',
                         },
+                        highlightReachableLinks: {
+                            type: { bool: true },
+                            displayName: 'Highlight all reachable links',
+                            description: "In interactive mode, whether a node's all reachable links will be highlighted",
+                        },
                     }
                 },
                 size: {
@@ -201,20 +204,7 @@ module powerbi.visuals {
                         charge: {
                             type: { numeric: true },
                             displayName: 'Charge',
-                            description: 'The larger the negative charge the more apart the entities',
-                        },
-                    }
-                },
-                dataPoint: {
-                    displayName: data.createDisplayNameGetter('Visual_DataPoint'),
-                    properties: {
-                        showAllDataPoints: {
-                            displayName: data.createDisplayNameGetter('Visual_DataPoint_Show_All'),
-                            type: { bool: true }
-                        },
-                        fill: {
-                            displayName: data.createDisplayNameGetter('Visual_Fill'),
-                            type: { fill: { solid: { color: true } } }
+                            description: 'The larger the negative charge the more apart the entities, must be negative',
                         },
                     }
                 },
@@ -272,6 +262,7 @@ module powerbi.visuals {
                             imageUrl: this.options.imageUrl,
                             imageExt: this.options.imageExt,
                             nameMaxLength: this.options.nameMaxLength,
+                            highlightReachableLinks: this.options.highlightReachableLinks,
                         }
                     };
                     instances.push(nodes);
@@ -287,28 +278,6 @@ module powerbi.visuals {
                     };
                     instances.push(size);
                     break;
-                case 'dataPoint':
-                    var dp: VisualObjectInstance = {
-                        objectName: 'dataPoint',
-                        selector: null,
-                        properties: {
-                            showAllDataPoints: !!this.options.showAllDataPoints,
-                        }
-                    };
-                    instances.push(dp);
-                    var dataPoints = this.data.dataPointsToEnumerate;
-                    for (var label in dataPoints) {
-                        instances.push({
-                            objectName: 'dataPoint',
-                            displayName: label,
-                            selector: ColorHelper.normalizeSelector(dataPoints[label].identity.getSelector(), true),
-                            properties: {
-                                fill: { solid: { color: dataPoints[label].color } }
-                            },
-                        });
-                        console.log("selector", dataPoints[label].identity.getSelector());
-                    }
-                    break;
             }
 
             return instances;
@@ -320,7 +289,6 @@ module powerbi.visuals {
             var maxFiles = 0;
             var linkedByName = {};
             var links = [];
-            var linkTypeCategory;
             var linkDataPoints = {};
             var linkTypeCount = 0;
             var sourceCol = -1, targetCol = -1, weightCol = -1, linkTypeCol = -1, sourceTypeCol = -1, targetTypeCol = -1;
@@ -337,10 +305,7 @@ module powerbi.visuals {
                         else if (col.roles['Weight'])
                             weightCol = i;
                         else if (col.roles['LinkType'])
-                        {
                             linkTypeCol = i;
-                            linkTypeCategory = dataView.categorical.categories[linkTypeCol];
-                        }
                         else if (col.roles['SourceType'])
                             sourceTypeCol = i;
                         else if (col.roles['TargetType'])
@@ -348,32 +313,33 @@ module powerbi.visuals {
                     }
                 }
             }
-            console.log("dataView", dataView);
             if (test) {
                 sourceCol = 0;
                 targetCol = 1;
-                weightCol = 2;
-                linkTypeCol = 3;
-                sourceTypeCol = 5;
-                targetTypeCol = 4;
+                weightCol = -1;//2;
+                linkTypeCol = -1;//3;
+                sourceTypeCol = -1;//5;
+                targetTypeCol = -1;//4;
+                var rowsSimple = [
+                    ["a", "b"],
+                    ["b", "c"],
+                    ["c", "d"],
+                    ["e", "d"],
+                ]
                 rows = [
                     ["Hutt Valley", "Whanganul", 359, "direct", "Album", "Lock"],
                     ["Hutt Valley", "Wairarapa", 483, "", "Mail"],
                     ["Hutt Valley", "Capital & Coast", 857, "", "Home"],
-                    ["Hutt Valley", "Hawkes Bay", 1304, "", ""],
-                    ["Hutt Valley", "MidCentral", 1526, "co", "Egg"],
                     ["Capital & Coast", "Whanganul", 1183, "", ""],
                     ["Capital & Coast", "Hutt Valley", 735, "", "Heart"],
                     ["Capital & Coast", "Wairarapa", 1172, "", ""],
                     ["Capital & Coast", "MidCentral", 1390, "", ""],
-                    ["Capital & Coast", "Hawkes Bay", 955, "", ""],
-                    ["Hawkes Bay", "Whanganul", 465, "", ""],
+                    ["Whanganul", "Hawkes Bay", 465, "", ""],
                     ["Hawkes Bay", "Wairarapa", 1057, "", ""],
                     ["Hawkes Bay", "MidCentral", 1401, "", ""],
                     ["Hawkes Bay", "Capital & Coast", 1052, "", ""],
-                    ["Hawkes Bay", "Hutt Valley", 213, "", ""]
+                    ["Wairarapa", "Hutt Valley", 213, "", ""]
                 ];
-
             }
             else if (dataView && dataView.table) {
                 rows = dataView.table.rows;
@@ -385,12 +351,15 @@ module powerbi.visuals {
 
             rows.forEach(function (item) {
                 linkedByName[item[sourceCol] + "," + item[targetCol]] = 1;
-                var link;
-                link = {
-                    "source": nodes[item[sourceCol]] ||
-                    (nodes[item[sourceCol]] = { name: item[sourceCol], image: sourceTypeCol > 0 ? item[sourceTypeCol] : '' }),
-                    "target": nodes[item[targetCol]] ||
-                    (nodes[item[targetCol]] = { name: item[targetCol], image: targetTypeCol > 0 ? item[targetTypeCol] : '' }),
+                var source = nodes[item[sourceCol]] ||
+                    (nodes[item[sourceCol]] = { name: item[sourceCol], image: sourceTypeCol > 0 ? item[sourceTypeCol] : '', adj: [] });
+                var target = nodes[item[targetCol]] ||
+                    (nodes[item[targetCol]] = { name: item[targetCol], image: targetTypeCol > 0 ? item[targetTypeCol] : '', adj: [] });
+                source.adj.push(target);
+
+                var link = {
+                    "source": source,
+                    "target": target,
                     "filecount": weightCol > 0 ? item[weightCol] : 0,
                     "type": linkTypeCol > 0 ? item[linkTypeCol] : '',
                 };
@@ -398,11 +367,6 @@ module powerbi.visuals {
                     if (!linkDataPoints[item[linkTypeCol]]) {
                         linkDataPoints[item[linkTypeCol]] = {
                             label: item[linkTypeCol],
-                            index: linkTypeCount,
-                            identity: SelectionIdBuilder.builder()
-                                .withCategory(linkTypeCategory, links.length)
-                                .withMeasure(item[linkTypeCol])
-                                .createSelectionId(),
                             color: colors.getColorByIndex(linkTypeCount++).value,
                         };
                     }
@@ -432,12 +396,6 @@ module powerbi.visuals {
             this.updateOptions(options.dataViews[0].metadata.objects);
             var voptions = this.options;
             var scale1to10 = d3.scale.linear().domain([data.minFiles, data.maxFiles]).rangeRound([1, 10]).clamp(true);
-            var colorHelper = new ColorHelper(colors, forceProps.dataPoint.fill, voptions.defaultLinkColor);
-            for (var dpKey in data.dataPointsToEnumerate) {
-                var dp = data.dataPointsToEnumerate[dpKey];
-                var color = colorHelper.getColorForMeasure(options.dataViews[0].metadata.objects, dp.identity.key);
-                console.log("type:color", dpKey, color);
-            }
 
             var viewport = options.viewport;
             var w = viewport.width,
@@ -585,6 +543,33 @@ module powerbi.visuals {
                 return data.linkedByName[a.name + "," + b.name] || data.linkedByName[b.name + "," + a.name] || a.name == b.name;
             }
 
+            function isReachable(a, b) {
+                if (a.name == b.name) return true;
+                if (data.linkedByName[a.name + "," + b.name]) return true;
+                var visited = {};
+                for (var name in data.nodes) {
+                    visited[name] = false;
+                };
+                visited[a.name] = true;
+
+                var stack = [];
+                stack.push(a.name);
+                while (stack.length > 0) {
+                    var cur = stack.pop();
+                    var node = data.nodes[cur];
+                    for (var i = 0; i < node.adj.length; i++) {
+                        var nb = node.adj[i];
+                        if (nb.name == b.name) return true;
+
+                        if (!visited[nb.name]) {
+                            visited[nb.name] = true;
+                            stack.push(nb.name);
+                        }
+                    }
+                };
+                return false;
+            }
+
             // add the curvy lines
             function tick() {
                 path.each(function () { this.parentNode.insertBefore(this, this); });
@@ -646,16 +631,18 @@ module powerbi.visuals {
                 if (voptions.colorLink != linkColorType.interactive) return;
                 return function (d) {
                     node.style("stroke-opacity", function (o) {
-                        var thisOpacity = isConnected(d, o) ? 1 : opacity;
+                        var thisOpacity = (voptions.highlightReachableLinks ? isReachable(d, o) : isConnected(d, o)) ? 1 : opacity;
                         this.setAttribute('fill-opacity', thisOpacity);
                         return thisOpacity;
                     });
 
                     path.style("stroke-opacity", function (o) {
-                        return o.source === d || o.target === d ? 1 : opacity;
+                        return (voptions.highlightReachableLinks ? isReachable(d, o.source) :
+                            (o.source === d || o.target === d)) ? 1 : opacity;
                     });
                     path.style("stroke", function (o) {
-                        return o.source === d || o.target === d ? voptions.defaultLinkHighlightColor : voptions.defaultLinkColor;
+                        return (voptions.highlightReachableLinks ? isReachable(d, o.source) :
+                            (o.source === d || o.target === d)) ? voptions.defaultLinkHighlightColor : voptions.defaultLinkColor;
                     });
                 };
             }
