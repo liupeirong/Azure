@@ -33,11 +33,12 @@ Map data to the following fields:
 * The minimum requirements for the visual include:
   * a column that represents the source entity
   * a column that represents the target entity
-* Optionally, add the following columns:
+* Optionally, add the following columns:c:
   * a numeric column for the weight of the relationship
   * a column that represents the type of relationship, the links can be colored by this type
   * a column that represents the type of the source entity, images can be displayed for this value, the full image url is "base url + source type + image extension"
   * a column that represents the type of the target entity, images can be displayed for this value, the full image url is "base url + target type + image extension"
+
 For examples, see [sample data](/PowerBIVisual/sampleData). 
 
 ### Formatting options
