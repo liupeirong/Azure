@@ -4,20 +4,6 @@ This custom visual implements a [D3 force-directed graph](https://github.com/mbo
 
 ![Alt text](/PowerBIVisual/screenshots/powerbiForce.PNG?raw=true "Force diagram visual in Power BI") 
 
-### Try it in Power BI dev tool
-
-* Go to powerbi.com, click on "Settings" and then "Dev Tools"
-* Copy and paste forceGraph/forceGraph.ts to the upper left pane
-* Copy and paste forceGraph/forceGraph.css to the lower left pane
-* Chose a dataset that has 2 string columns and a numeric column, or, comment out the following line in forceGraph.ts and uncomment the lines above it where we assign sample row data
-```javascript
-var rows = dataView.table.rows;
-```
-* Click "Compile+Run"
-* You can debug by starting the browser dev tool, and find the source code under "(no domain)" ForceGraphnn...nn.js
-
-![Alt text](/PowerBIVisual/screenshots/devtoolDebug.PNG?raw=true "Debug the visual in Dev Tool") 
-
 ### Import to Power BI
 * Go to powerbi.com, "Get Data" and import a csv in the sampleData folder
 * Import forceGraph/forceGraph.pbiviz
@@ -60,4 +46,18 @@ The following options can be customized for this visual:
   * Highlight all reachable links: whether or not to highlight the immediate neighboring links of a node or all links that a node can reach to 
 * size
   * Charge: the charge of the force directed graph. The larger the negative large, the more spread the visual. This must be a negative value
+
+### Try it in Power BI dev tool
+
+* Go to powerbi.com, click on "Settings" and then "Dev Tools"
+* Copy and paste forceGraph/forceGraph.ts to the upper left pane
+* Copy and paste forceGraph/forceGraph.css to the lower left pane
+* Chose a dataset that has 2 string columns and a numeric column, or, comment out the following line in forceGraph.ts and uncomment the lines above it where we assign sample row data
+```javascript
+var rows = dataView.table.rows;
+```
+* Click "Compile+Run"
+* You can debug by starting the browser dev tool, and find the source code under "(no domain)" ForceGraphnn...nn.js
+
+![Alt text](/PowerBIVisual/screenshots/devtoolDebug.PNG?raw=true "Debug the visual in Dev Tool") 
 
