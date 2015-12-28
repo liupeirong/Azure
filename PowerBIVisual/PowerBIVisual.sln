@@ -28,6 +28,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sampleData", "sampleData", 
 	ProjectSection(SolutionItems) = preProject
 		sampleData\force.csv = sampleData\force.csv
 		sampleData\link1.csv = sampleData\link1.csv
+		sampleData\mailbox.csv = sampleData\mailbox.csv
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "screenshots", "screenshots", "{A3172AFC-FF75-4E39-AE0F-58DAE07FD86C}"
