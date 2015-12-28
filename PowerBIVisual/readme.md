@@ -27,32 +27,36 @@ var rows = dataView.table.rows;
 
 ### Dataset 
 Map data to the following fields:
+
 ![Alt text](/PowerBIVisual/screenshots/mapData.PNG?raw=true "Map data to fields") 
-The minimum requirements for the visual to display include:
-* a column that represents the source entity
-* a column that represents the target entity
-Optionally, add the following columns:
-* a numeric column for the weight of the relationship
-* a column that represents the type of relationship, the links can be colored by this type
-* a column that represents the type of the source entity, images can be displayed for this value, the full image url is "base url + source type + image extension"
-* a column that represents the type of the target entity, images can be displayed for this value, the full image url is "base url + target type + image extension"
+
+* The minimum requirements for the visual include:
+  * a column that represents the source entity
+  * a column that represents the target entity
+* Optionally, add the following columns:
+  * a numeric column for the weight of the relationship
+  * a column that represents the type of relationship, the links can be colored by this type
+  * a column that represents the type of the source entity, images can be displayed for this value, the full image url is "base url + source type + image extension"
+  * a column that represents the type of the target entity, images can be displayed for this value, the full image url is "base url + target type + image extension"
 For examples, see [sample data](/PowerBIVisual/sampleData). 
 
 ### Formatting options
 The following options can be customized for this visual:
+
 ![Alt text](/PowerBIVisual/screenshots/formatOptions.PNG?raw=true "Formatting options") 
-# links
-* Arrow: whether or not to display arrows on the link to represent directional relationship
-* Label: whether or not to display the weight of the relationship in the middle of the curved link
-* Color: highlight the links upon mouse hover, or color the links based on weight, or color the links based on link type
-* Thickness: whether or not to vary the thickness of the link based on the weight of the relationship
-# nodes
-* Image: whether or not to display image instead of circles for the nodes, image is specified in the SourceType or TargetType columns, the first time a node shows up in the dataset, its image is set, it's not changed if it's set later in the dataset
-* Default image: for the nodes that didn't specify image, this default image will be displayed, if this is not specified, a circle is displayed
-* Image url: the base url for images. Full url is composed by "base url + sourceType or targetType + image extension"
-* Image extension: the file extension of the images
-* Max name length: the maximum length of node names to display, if names are too long, the visual could be hard to read
-* Highlight all reachable links: whether or not to highlight the immediate neighboring links of a node or all links that a node can reach to 
-# size
-* Charge: the charge of the force directed graph. The larger the negative large, the more spread the visual. This must be a negative value
+
+* links
+  * Arrow: whether or not to display arrows on the link to represent directional relationship
+  * Label: whether or not to display the weight of the relationship in the middle of the curved link
+  * Color: highlight the links upon mouse hover, or color the links based on weight, or color the links based on link type
+  * Thickness: whether or not to vary the thickness of the link based on the weight of the relationship
+* nodes
+  * Image: whether or not to display image instead of circles for the nodes, image is specified in the SourceType or TargetType columns, the first time a node shows up in the dataset, its image is set, it's not changed if it's set later in the dataset
+  * Default image: for the nodes that didn't specify image, this default image will be displayed, if this is not specified, a circle is displayed
+  * Image url: the base url for images. Full url is composed by "base url + sourceType or targetType + image extension"
+  * Image extension: the file extension of the images
+  * Max name length: the maximum length of node names to display, if names are too long, the visual could be hard to read
+  * Highlight all reachable links: whether or not to highlight the immediate neighboring links of a node or all links that a node can reach to 
+* size
+  * Charge: the charge of the force directed graph. The larger the negative large, the more spread the visual. This must be a negative value
 
