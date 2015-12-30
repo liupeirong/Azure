@@ -15,19 +15,6 @@
         "description": "Admin password for the Virtual Machines"
       }
     },
-    "cmUsername": {
-      "type": "string",
-      "defaultValue": "cmadmin",
-      "metadata": {
-        "description": "User name for the Cloudera Manager"
-      }
-    },
-    "cmPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "password for the Cloudera Manager"
-      }
-    },
     "storageAccountPrefix": {
       "type": "string",
       "metadata": {
@@ -35,10 +22,10 @@
       }
     },
     "dnsNamePrefix": {
-        "type": "string",
-        "metadata": {
-            "description": "Unique public dns name where the Virtual Machines will be exposed"
-        }
+      "type": "string",
+      "metadata": {
+        "description": "Unique public dns name where the Virtual Machines will be exposed"
+      }
     },
     "adDomainName": {
       "type": "string",
@@ -98,13 +85,6 @@
         "description": "Subnet name for the virtual network where resources will be provisioned"
       }
     },
-    "addressPrefix": {
-      "type": "string",
-      "defaultValue": "10.0.0.0/24",
-      "metadata": {
-        "description": "Vnet CIDR"
-      }
-    },
     "subnetPrefix": {
       "type": "string",
       "defaultValue": "10.0.1.0/24",
@@ -150,86 +130,6 @@
       "metadata": {
         "description": "The size of the VMs deployed in the cluster (Defaults to Standard_D14)"
       }
-    },
-    "company": {
-      "type": "string",
-      "defaultValue": "Company",
-      "metadata": {
-        "description": "Your Company"
-      }
-    },
-    "emailAddress": {
-      "type": "string",
-      "defaultValue": "email@yourcompany.com",
-      "metadata": {
-        "description": "your email"
-      }
-    },
-    "businessPhone": {
-      "type": "string",
-      "defaultValue": "123456789",
-      "metadata": {
-        "description": "your business phone number"
-      }
-    },
-    "firstName": {
-      "type": "string",
-      "defaultValue": "FirstName",
-      "metadata": {
-        "description": "Your FirstName"
-      }
-    },
-    "lastName": {
-      "type": "string",
-      "defaultValue": "LastName",
-      "metadata": {
-        "description": "Your LastName"
-      }
-    },
-    "jobRole": {
-      "type": "string",
-      "defaultValue": "Administrator",
-      "metadata": {
-        "description": "Job Role"
-      },
-      "allowedValues": [
-        "Administrator",
-        "Analyst (Industry/Finance)",
-        "Analyst (Technical)",
-        "Architect",
-        "C level",
-        "Consultant",
-        "Developer",
-        "Director",
-        "Engineer",
-        "Individual contributor",
-        "Manager",
-        "Partner",
-        "Student",
-        "VP"
-      ]
-    },
-    "jobFunction": {
-      "type": "string",
-      "defaultValue": "Analytics / Business Intelligence",
-      "metadata": {
-        "description": "Job Function"
-      },
-      "allowedValues": [
-        "Analytics / Business Intelligence",
-        "Big Data / Architecture",
-        "Data Warehouse / Management",
-        "Data Science",
-        "Database",
-        "ETL / ELT",
-        "Infrastructure",
-        "IT",
-        "Marketing / Sales",
-        "Networking",
-        "Manager",
-        "Security / Compliance",
-        "Storage"
-      ]
     }
   },
   "variables": {
@@ -266,6 +166,13 @@
       "virtualNetworkName": "[parameters('virtualNetworkName')]",
       "virtualNetworkSubnetName": "[parameters('subnetName')]",
       "vnetResourceGroup": "[parameters('vnetResourceGroup')]"
+    },
+    "adSpec": {
+      "adDomainName": "[parameters('adDomainName')]",
+      "PDC": "[parameters('PDC')]",
+      "BDC": "[parameters('BDC')]",
+      "PDCIP": "[parameters('PDCIP')]",
+      "BDCIP": "[parameters('BDCIP')]"
     }
   },
   "resources": [
@@ -312,20 +219,8 @@
           "dnsNamePrefix": {
             "value": "[parameters('dnsNamePrefix')]"
           },
-          "adDomainName": {
-            "value": "[parameters('adDomainName')]"
-          },
-          "PDC": {
-            "value": "[parameters('PDC')]"
-          },
-          "BDC": {
-            "value": "[parameters('BDC')]"
-          },
-          "PDCIP": {
-            "value": "[parameters('PDCIP')]"
-          },
-          "BDCIP": {
-            "value": "[parameters('BDCIP')]"
+          "adSpec": {
+            "value": "[variables('adSpec')]"
           },
           "region": {
             "value": "[parameters('region')]"
@@ -368,20 +263,8 @@
           "dnsNamePrefix": {
             "value": "[parameters('dnsNamePrefix')]"
           },
-          "adDomainName": {
-            "value": "[parameters('adDomainName')]"
-          },
-          "PDC": {
-            "value": "[parameters('PDC')]"
-          },
-          "BDC": {
-            "value": "[parameters('BDC')]"
-          },
-          "PDCIP": {
-            "value": "[parameters('PDCIP')]"
-          },
-          "BDCIP": {
-            "value": "[parameters('BDCIP')]"
+          "adSpec": {
+            "value": "[variables('adSpec')]"
           },
           "region": {
             "value": "[parameters('region')]"

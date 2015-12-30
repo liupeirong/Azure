@@ -1,12 +1,24 @@
 {
   "storageAccountPrefix": {
-    "value": "ucluster3"
+    "value": "bgcloudera"
   },
   "dnsNamePrefix": {
-    "value": "ucluster3"
+    "value": "cloudera"
   },
   "adDomainName": {
-    "value": "adseasia1.com"
+    "value": "bigdata.com"
+  },
+  "PDC": {
+    "value": "adPDC"
+  },
+  "BDC": {
+    "value": "adBDC"
+  },
+  "PDCIP": {
+    "value": "10.0.0.4"
+  },
+  "BDCIP": {
+    "value": "10.0.0.5"
   },
   "adminPassword": {
     "value": "MicrosoftDx1"
@@ -25,13 +37,13 @@
     "value": "Premium_LRS"
   },
   "virtualNetworkName": {
-    "value": "adVNET1"
+    "value": "bigdatavnet"
   },
   "subnetName": {
     "value": "hadoopSubnet"
   },
   "vnetResourceGroup": {
-    "value": "adasiadns1"
+    "value": "bigdataad"
   },
   "tshirtSize": {
     "value": "Eval"

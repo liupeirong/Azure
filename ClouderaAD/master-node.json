@@ -26,28 +26,14 @@
     "clusterSpec": {
         "type": "object"
     },
-    "adDomainName": {
-      "type": "string"
-    },
-    "PDC": {
-      "type": "string"
-    },
-    "BDC": {
-      "type": "string"
-    },
-    "PDCIP": {
-      "type": "string"
-    },
-    "BDCIP": {
-      "type": "string"
+    "adSpec": {
+      "type": "object"
     }
   },
   "variables": {
     "vmName": "[concat(parameters('dnsNamePrefix'), '-mn')]",
     "nicName": "[concat(variables('vmName'), '-nic')]",
-    "publicIPAddressName": "[concat(variables('vmName'), '-publicIP')]",
     "storageAccountName": "[concat('nn', parameters('storageAccount').prefix)]",
-    "securityGroupName": "[concat(parameters('dnsNamePrefix'), '-mn-sg')]"
   },
   "resources": [
     {
@@ -115,7 +101,7 @@
           "vmSize": "[parameters('vmSpec').vmSize]"
         },
         "osProfile": {
-          "computername": "[concat(variables('vmName'), copyIndex(), '.', parameters('adDomainName'))]",
+          "computername": "[concat(variables('vmName'), copyIndex(), '.', parameters('adSpec').adDomainName)]",
           "adminUsername": "[parameters('vmSpec').adminUserName]",
           "adminPassword": "[parameters('vmSpec').adminPassword]",
           "linuxConfiguration": {
@@ -213,7 +199,7 @@
             "[concat(parameters('scriptsUri'), '/scripts/prepare-masternode-disks.sh')]",
             "[concat(parameters('scriptsUri'), '/scripts/initialize-node.sh')]"
           ],
-          "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"', parameters('adDomainName'), '\" \"', parameters('PDC'), '\" \"', parameters('BDC'), '\" \"', parameters('PDCIP'), '\" \"', parameters('BDCIP'), '\" ', parameters('clusterSpec').masterNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\" ', 'masternode', ' >> /home/$ADMINUSER/initialize-masternode.log 2>&1')]"
+          "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"', parameters('adSpec').adDomainName, '\" \"', parameters('adSpec').PDC, '\" \"', parameters('adSpec').BDC, '\" \"', parameters('adSpec').PDCIP, '\" \"', parameters('adSpec').BDCIP, '\" ', parameters('clusterSpec').masterNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\" ', 'masternode', ' >> /home/$ADMINUSER/initialize-masternode.log 2>&1')]"
         }
       }
     }
