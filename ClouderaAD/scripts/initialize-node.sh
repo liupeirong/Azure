@@ -14,10 +14,23 @@
 IPPREFIX=$1
 NAMEPREFIX=$2
 NAMESUFFIX=$3
-MASTERNODES=$4
-DATANODES=$5
-ADMINUSER=$6
-NODETYPE=$7
+PDC=$4
+BDC=$5
+PDCIP=$6
+BDCIP=$7
+MASTERNODES=$8
+DATANODES=$9
+ADMINUSER=${10}
+NODETYPE=${11}
+
+replace_ad_params() {
+    target=${1}
+    sed -i "s/ADDOMAIN/${NAMESUFFIX}/g" ${target}
+    sed -i "s/PDC/${PDC}/g" ${target}
+    sed -i "s/BDC/${BDC}/g" ${target}
+    sed -i "s/PDCIP/${PDCIP}/g" ${target}
+    sed -i "s/BDCIP/${BDCIP}/g" ${target}
+}
 
 # Converts a domain like machine.domain.com to domain.com by removing the machine name
 NAMESUFFIX=`echo $NAMESUFFIX | sed 's/^[^.]*\.//'`
@@ -138,6 +151,16 @@ yum -y install openldap-clients
 yum -y install policycoreutils-python
 
 cp -f resolv.conf /etc/resolv.conf
+replace_ad_params /etc/resolv.conf
+cp -f krb5.conf /etc/krb5.conf
+replace_ad_params /etc/krb5.conf
+cp -f smb.conf /etc/samba/smb.conf
+replace_ad_params /etc/smb.conf
+cp -f sssd.conf /etc/sssd/sssd.conf
+replace_ad_params /etc/sssd.conf
+cp -f ntp.conf /etc/ntp.conf
+replace_ad_params /etc/ntp.conf
+
 cat > /etc/dhclient-enter-hooks << EOF
 #!/bin/sh
 make_resolv_conf() {
@@ -146,10 +169,6 @@ echo "do not change resolv.conf"
 EOF
 chmod a+x /etc/dhclient-enter-hooks
 #chattr +i /etc/resolv.conf
-cp -f krb5.conf /etc/krb5.conf
-cp -f smb.conf /etc/samba/smb.conf
-cp -f sssd.conf /etc/sssd/sssd.conf
-cp -f ntp.conf /etc/ntp.conf
 chmod 600 /etc/sssd/sssd.conf
 service ntpd start
 chkconfig ntpd on

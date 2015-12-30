@@ -46,6 +46,30 @@
         "description": "Active Directory domain name"
       }
     },
+    "PDC": {
+      "type": "string",
+      "metadata": {
+        "description": "PDC host name"
+      }
+    },
+    "BDC": {
+      "type": "string",
+      "metadata": {
+        "description": "BDC host name"
+      }
+    },
+    "PDCIP": {
+      "type": "string",
+      "metadata": {
+        "description": "PDC private static IP"
+      }
+    },
+    "BDCIP": {
+      "type": "string",
+      "metadata": {
+        "description": "BDC private static IP"
+      }
+    },
     "region": {
       "type": "string",
       "defaultValue": "japanwest",
@@ -291,6 +315,18 @@
           "adDomainName": {
             "value": "[parameters('adDomainName')]"
           },
+          "PDC": {
+            "value": "[parameters('PDC')]"
+          },
+          "BDC": {
+            "value": "[parameters('BDC')]"
+          },
+          "PDCIP": {
+            "value": "[parameters('PDCIP')]"
+          },
+          "BDCIP": {
+            "value": "[parameters('BDCIP')]"
+          },
           "region": {
             "value": "[parameters('region')]"
           },
@@ -334,6 +370,18 @@
           },
           "adDomainName": {
             "value": "[parameters('adDomainName')]"
+          },
+          "PDC": {
+            "value": "[parameters('PDC')]"
+          },
+          "BDC": {
+            "value": "[parameters('BDC')]"
+          },
+          "PDCIP": {
+            "value": "[parameters('PDCIP')]"
+          },
+          "BDCIP": {
+            "value": "[parameters('BDCIP')]"
           },
           "region": {
             "value": "[parameters('region')]"
