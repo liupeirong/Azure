@@ -23,10 +23,6 @@
   "adminPassword": {
     "value": "MicrosoftDx1"
   },
-  "cmPassword":
-  {
-    "value": "MicrosoftDx1"
-  },
   "numberOfDataNodes": {
     "value": 3
   },
@@ -50,26 +46,5 @@
   },
   "vmSize": {
     "value": "Standard_DS14"
-  },
-  "company": {
-    "value": "Company"
-  },
-  "emailAddress": {
-    "value": "email@yourcompany.com"
-  },
-  "businessPhone": {
-    "value": "123456789"
-  },
-  "firstName": {
-    "value": "FirstName"
-  },
-  "lastName": {
-    "value": "LastName"
-  },
-  "jobRole": {
-    "value": "VP"
-  },
-  "jobFunction": {
-    "value": "IT"
   }
 }

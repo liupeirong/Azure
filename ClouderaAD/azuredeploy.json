@@ -158,7 +158,6 @@
       "dataNodeASName": "[concat(parameters('dnsNamePrefix'), '-dnAS')]"
     },
     "networkSpec": {
-      "addressPrefix": "[parameters('addressPrefix')]",
       "subnetPrefix": "[parameters('subnetPrefix')]",
       "privateIPPrefix": "[parameters('nodeAddressPrefix')]",
       "masterNodeAddressStart": 10,

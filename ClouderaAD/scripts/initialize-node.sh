@@ -25,15 +25,12 @@ NODETYPE=${11}
 
 replace_ad_params() {
     target=${1}
-    sed -i "s/ADDOMAIN/${NAMESUFFIX}/g" ${target}
-    sed -i "s/PDC/${PDC}/g" ${target}
-    sed -i "s/BDC/${BDC}/g" ${target}
-    sed -i "s/PDCIP/${PDCIP}/g" ${target}
-    sed -i "s/BDCIP/${BDCIP}/g" ${target}
+    sed -i "s/REPLACEADDOMAIN/${NAMESUFFIX}/g" ${target}
+    sed -i "s/REPLACEPDC/${PDC}/g" ${target}
+    sed -i "s/REPLACEBDC/${BDC}/g" ${target}
+    sed -i "s/REPLACEPDCIP/${PDCIP}/g" ${target}
+    sed -i "s/REPLACEBDCIP/${BDCIP}/g" ${target}
 }
-
-# Converts a domain like machine.domain.com to domain.com by removing the machine name
-NAMESUFFIX=`echo $NAMESUFFIX | sed 's/^[^.]*\.//'`
 
 #Generate IP Addresses for the cloudera setup
 NODES=()
