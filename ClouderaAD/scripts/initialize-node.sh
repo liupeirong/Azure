@@ -28,8 +28,8 @@ replace_ad_params() {
     sed -i "s/REPLACEADDOMAIN/${NAMESUFFIX}/g" ${target}
     sed -i "s/REPLACEPDC/${PDC}/g" ${target}
     sed -i "s/REPLACEBDC/${BDC}/g" ${target}
-    sed -i "s/REPLACEPDCIP/${PDCIP}/g" ${target}
-    sed -i "s/REPLACEBDCIP/${BDCIP}/g" ${target}
+    sed -i "s/REPLACEIPPDC/${PDCIP}/g" ${target}
+    sed -i "s/REPLACEIPBDC/${BDCIP}/g" ${target}
 }
 
 #Generate IP Addresses for the cloudera setup
@@ -152,9 +152,9 @@ replace_ad_params /etc/resolv.conf
 cp -f krb5.conf /etc/krb5.conf
 replace_ad_params /etc/krb5.conf
 cp -f smb.conf /etc/samba/smb.conf
-replace_ad_params /etc/smb.conf
+replace_ad_params /etc/samba/smb.conf
 cp -f sssd.conf /etc/sssd/sssd.conf
-replace_ad_params /etc/sssd.conf
+replace_ad_params /etc/sssd/sssd.conf
 cp -f ntp.conf /etc/ntp.conf
 replace_ad_params /etc/ntp.conf
 
