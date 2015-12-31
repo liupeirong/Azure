@@ -28,12 +28,6 @@
         "description": "password for the Cloudera Manager"
       }
     },
-    "storageAccountPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "Unique namespace for the Storage Account where the Virtual Machine's disks will be placed"
-      }
-    },
     "dnsNamePrefix": {
       "type": "string",
       "metadata": {
@@ -53,53 +47,11 @@
         "description": "Location where resources will be provisioned"
       }
     },
-    "storageAccountType": {
-      "type": "string",
-      "defaultValue": "Premium_LRS",
-      "metadata": {
-        "description": "The type of the Storage Account to be created (Default to Standard_LRS)"
-      }
-    },
-    "virtualNetworkName": {
-      "type": "string",
-      "defaultValue": "clouderavnet",
-      "metadata": {
-        "description": "The name of the virtual network provisioned for the deployment"
-      }
-    },
-    "subnetName": {
-      "type": "string",
-      "defaultValue": "clouderasubnet",
-      "metadata": {
-        "description": "Subnet name for the virtual network where resources will be provisioned"
-      }
-    },
-    "addressPrefix": {
-      "type": "string",
-      "defaultValue": "10.0.0.0/24",
-      "metadata": {
-        "description": "Vnet CIDR"
-      }
-    },
-    "subnetPrefix": {
-      "type": "string",
-      "defaultValue": "10.0.1.0/24",
-      "metadata": {
-        "description": "Subnet CIDR"
-      }
-    },
     "nodeAddressPrefix": {
       "type": "string",
       "defaultValue": "10.0.1.",
       "metadata": {
         "description": "Address prefix for VMs"
-      }
-    },
-    "vnetResourceGroup": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Resource Group name of the existing vnet"
       }
     },
     "tshirtSize": {
@@ -118,13 +70,6 @@
       "defaultValue": 3,
       "metadata": {
         "description": "Number of data nodes for Prod, default to 3"
-      }
-    },
-    "vmSize": {
-      "type": "string",
-      "defaultValue": "Standard_DS14",
-      "metadata": {
-        "description": "The size of the VMs deployed in the cluster (Defaults to Standard_D14)"
       }
     },
     "company": {
@@ -210,10 +155,6 @@
   },
   "variables": {
     "scriptsUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaAD",
-    "storageAccount": {
-      "prefix": "[parameters('storageAccountPrefix')]",
-      "type": "[parameters('storageAccountType')]"
-    },
     "clusterTshirtSizeEval": {
       "masterNodeCount": 1,
       "dataNodeCount": "[parameters('numberOfDataNodes')]",
@@ -226,22 +167,22 @@
     },
     "clusterSpec": "[variables(concat('clusterTshirtSize', parameters('tshirtSize')))]",
     "vmSpec": {
-      "vmSize": "[parameters('vmSize')]",
-      "privateIPAddressPrefix": "[parameters('nodeAddressPrefix')]",
       "adminUserName": "[parameters('adminUserName')]",
-      "adminPassword": "[parameters('adminPassword')]",
-      "masterNodeASName": "[concat(parameters('dnsNamePrefix'), '-mnAS')]",
-      "dataNodeASName": "[concat(parameters('dnsNamePrefix'), '-dnAS')]"
+      "adminPassword": "[parameters('adminPassword')]"
     },
     "networkSpec": {
-      "addressPrefix": "[parameters('addressPrefix')]",
-      "subnetPrefix": "[parameters('subnetPrefix')]",
       "privateIPPrefix": "[parameters('nodeAddressPrefix')]",
       "masterNodeAddressStart": 10,
-      "dataNodeAddressStart": 20,
-      "virtualNetworkName": "[parameters('virtualNetworkName')]",
-      "virtualNetworkSubnetName": "[parameters('subnetName')]",
-      "vnetResourceGroup": "[parameters('vnetResourceGroup')]"
+      "dataNodeAddressStart": 20
+    },
+    "userInfo": {
+      "company": "[parameters('company')]",
+      "emailAddress": "[parameters('emailAddress')]",
+      "businessPhone": "[parameters('businessPhone')]",
+      "firstName": "[parameters('firstName')]",
+      "lastName": "[parameters('lastName')]",
+      "jobRole": "[parameters('jobRole')]",
+      "jobFunction": "[parameters('jobFunction')]"
     }
   },
   "resources": [
@@ -257,7 +198,7 @@
             },
             "parameters": {
                 "dnsNamePrefix": {
-                    "value": "[parameters('dnsNamePrefix')]"
+                  "value": "[parameters('dnsNamePrefix')]"
                 },
                 "region": {
                     "value": "[parameters('region')]"
@@ -266,7 +207,7 @@
                     "value": "[variables('scriptsUri')]"
                 },
                 "vmSpec": {
-                    "value": "[variables('vmSpec')]"
+                  "value": "[variables('vmSpec')]"
                 },
                 "networkSpec": {
                     "value": "[variables('networkSpec')]"
@@ -283,26 +224,8 @@
                 "cmPassword": {
                     "value": "[parameters('cmPassword')]"
                 },
-                "company": {
-                    "value": "[parameters('Company')]"
-                },
-                "emailAddress": {
-                    "value": "[parameters('emailAddress')]"
-                },
-                "businessPhone": {
-                    "value": "[parameters('businessPhone')]"
-                },
-                "firstName": {
-                    "value": "[parameters('firstName')]"
-                },
-                "lastName": {
-                    "value": "[parameters('lastName')]"
-                },
-                "jobRole": {
-                    "value": "[parameters('jobRole')]"
-                },
-                "jobFunction": {
-                    "value": "[parameters('jobFunction')]"
+                "userInfo": {
+                    "value": "[variables('userInfo')]"
                 }
             }
         }

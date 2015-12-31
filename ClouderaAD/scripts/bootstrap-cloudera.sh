@@ -30,10 +30,10 @@ LASTNAME=${14}
 JOBROLE=${15}
 JOBFUNCTION=${16}
 COMPANY=${17}
+MNStartIP=${18}
+DNStartIP=${19}
 
 CLUSTERNAME=$NAMEPREFIX
-MNStartIP=30
-DNStartIP=40
 
 execname=$0
 
@@ -41,21 +41,8 @@ log() {
   echo "$(date): [${execname}] $@" 
 }
 
-# Converts a domain like machine.domain.com to domain.com by removing the machine name
-NAMESUFFIX=`echo $NAMESUFFIX | sed 's/^[^.]*\.//'`
-
 ManagementNode="${IPPREFIX}${MNStartIP}:${NAMEPREFIX}-mn0.$NAMESUFFIX:${NAMEPREFIX}-mn0"
 mip=$(echo "$ManagementNode" | sed 's/:/ /' | sed 's/:/ /' | cut -d ' ' -f 1)
-
-log "set private key"
-#use the key from the key vault as the SSH private key
-openssl rsa -in /var/lib/waagent/*.prv -out /home/$ADMINUSER/.ssh/id_rsa
-chmod 600 /home/$ADMINUSER/.ssh/id_rsa
-chown $ADMINUSER /home/$ADMINUSER/.ssh/id_rsa
-
-file="/home/$ADMINUSER/.ssh/id_rsa"
-key="/tmp/id_rsa.pem"
-openssl rsa -in $file -outform PEM > $key
 
 #Generate IP Addresses for the cloudera setup
 NODES=()
@@ -92,6 +79,6 @@ log "Worker ip to be supplied to next script: $worker_ip"
 log "Adminuser: $ADMINUSER Adminpassword: $PASSWORD"
 log "BEGIN: Starting detached script to finalize initialization"
 log "CMUSER $CMUSER, CMPASSWORD $CMPASSWORD, ${10}"
-sh initialize-cloudera-server.sh "$CLUSTERNAME" "$key" "$mip" "$worker_ip" $HA $ADMINUSER $PASSWORD $CMUSER $CMPASSWORD $EMAILADDRESS $BUSINESSPHONE $FIRSTNAME $LASTNAME $JOBROLE $JOBFUNCTION $COMPANY>/dev/null 2>&1
+sh initialize-cloudera-server.sh "$CLUSTERNAME" " " "$mip" "$worker_ip" $HA $ADMINUSER $PASSWORD $CMUSER $CMPASSWORD $EMAILADDRESS $BUSINESSPHONE $FIRSTNAME $LASTNAME $JOBROLE $JOBFUNCTION $COMPANY>/dev/null 2>&1
 log "END: Detached script to finalize initialization running. PID: $!"
 
