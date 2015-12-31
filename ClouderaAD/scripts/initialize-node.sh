@@ -25,7 +25,7 @@ NODETYPE=${11}
 
 replace_ad_params() {
     target=${1}
-	shortdomain = echo ${NAMESUFFIX} | sed 's/\.[^.]*$//'
+	shortdomain = `echo ${NAMESUFFIX} | sed 's/\.[^.]*$//'`
     sed -i "s/REPLACEADDOMAIN/${NAMESUFFIX}/g" ${target}
     sed -i "s/REPLACEUPADDOMAIN/${NAMESUFFIX^^}/g" ${target}
     sed -i "s/REPLACESHORTADDOMAIN/${shortdomain}/g" ${target}
