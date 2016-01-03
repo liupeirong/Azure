@@ -1,18 +1,18 @@
 {
   "storageAccountPrefix": {
-    "value": "bgcloudera"
+    "value": "make_me_unique"
   },
   "dnsNamePrefix": {
-    "value": "cloudera"
+    "value": "make_me_unique"
   },
   "adDomainName": {
-    "value": "bigdata.com"
+    "value": "example.com"
   },
   "PDC": {
-    "value": "adPDC"
+    "value": "mypdc"
   },
   "BDC": {
-    "value": "adBDC"
+    "value": "mybdc"
   },
   "PDCIP": {
     "value": "10.0.0.4"
@@ -21,25 +21,25 @@
     "value": "10.0.0.5"
   },
   "adminPassword": {
-    "value": "MicrosoftDx1"
+    "value": "secret"
   },
   "numberOfDataNodes": {
     "value": 3
   },
   "region": {
-    "value": "Southeast Asia"
+    "value": "someplace"
   },
   "storageAccountType": {
     "value": "Premium_LRS"
   },
   "virtualNetworkName": {
-    "value": "bigdatavnet"
+    "value": "myvnet"
   },
   "subnetName": {
     "value": "hadoopSubnet"
   },
   "vnetResourceGroup": {
-    "value": "bigdataad"
+    "value": "myvnetrg"
   },
   "tshirtSize": {
     "value": "Eval"

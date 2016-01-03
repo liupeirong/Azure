@@ -1,0 +1,53 @@
+{
+  "adminUserName": {
+    "value": "testuser"
+  },
+  "adminPassword": {
+    "value": "secret"
+  },
+  "dnsNamePrefix": {
+    "value": "make_me_unique"
+  },
+  "adDomainName": {
+    "value": "example.com"
+  },
+  "cmUsername": {
+    "value": "cmadmin"
+  },
+  "cmPassword": {
+    "value": "secret"
+  },
+  "nodeAddressPrefix": {
+    "value": "10.0.1."
+  },
+  "numberOfDataNodes": {
+    "value": 3
+  },
+  "region": {
+    "value": "someplace"
+  },
+  "tshirtSize": {
+    "value": "Eval"
+  },
+  "company": {
+    "value": ""
+  },
+  "emailAddress": {
+    "value": ""
+  },
+  "businessPhone": {
+    "value": ""
+  },
+  "firstName": {
+    "value": ""
+  },
+  "lastName": {
+    "value": ""
+  },
+  "jobRole": {
+    "value": ""
+  },
+  "jobFunction": {
+    "value": ""
+  }
+}
