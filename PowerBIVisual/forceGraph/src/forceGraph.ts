@@ -55,15 +55,64 @@ module powerbi.visuals {
         minFiles: number;
         maxFiles: number;
         linkedByName: {};
-        dataPointsToEnumerate: {};
+        linkTypes: {};
     }
 
     export class ForceGraph implements IVisual {
+        public static VisualClassName = 'forceGraph';
         private root: D3.Selection;
+        private paths: D3.Selection;
+        private nodes: D3.Selection;
+        private forceLayout: D3.Layout.ForceLayout;
         private dataView: DataView;
         private colors: IDataColorPalette;
         private options: ForceGraphOptions;
         private data: ForceGraphData;
+
+        private marginValue: IMargin;
+        private get margin(): IMargin {
+            return this.marginValue || { left: 0, right: 0, top: 0, bottom: 0 };
+        }
+        private set margin(value: IMargin) {
+            this.marginValue = $.extend({}, value);
+            this.viewportInValue = ForceGraph.substractMargin(this.viewport, this.margin);
+        }
+
+        private viewportValue: IViewport;
+        private get viewport(): IViewport {
+            return this.viewportValue || { width: 0, height: 0 };
+        }
+        private set viewport(value: IViewport) {
+            this.viewportValue = $.extend({}, value);
+            this.viewportInValue = ForceGraph.substractMargin(this.viewport, this.margin);
+        }
+
+        private viewportInValue: IViewport;
+        private get viewportIn(): IViewport {
+            return this.viewportInValue || this.viewport;
+        }
+
+        private static substractMargin(viewport: IViewport, margin: IMargin): IViewport {
+            return {
+                width: Math.max(viewport.width - (margin.left + margin.right), 0),
+                height: Math.max(viewport.height - (margin.top + margin.bottom), 0)
+            };
+        }
+
+        private scale1to10(d) {
+            var scale = d3.scale.linear().domain([this.data.minFiles, this.data.maxFiles]).rangeRound([1, 10]).clamp(true);
+            return scale(d);
+        }
+
+        private getLinkColor(d): string {
+            switch (this.options.colorLink) {
+                case linkColorType.byWeight:
+                    return this.colors.getColorByIndex(this.scale1to10(d.filecount)).value;
+                case linkColorType.byLinkType:
+                    return d.type && this.data.linkTypes[d.type] ? this.data.linkTypes[d.type].color : this.options.defaultLinkColor;
+            };
+            return this.options.defaultLinkColor;
+        }
 
         private getDefaultOptions(): ForceGraphOptions {
             return {
@@ -73,7 +122,7 @@ module powerbi.visuals {
                 thickenLink: true,
                 displayImage: false,
                 defaultImage: "Home",
-                imageUrl: "http://pliupublic.blob.core.windows.net/files/",
+                imageUrl: "https://pliupublic.blob.core.windows.net/files/",
                 imageExt: ".png",
                 nameMaxLength: 10,
                 highlightReachableLinks: false,
@@ -316,52 +365,63 @@ module powerbi.visuals {
             if (test) {
                 sourceCol = 0;
                 targetCol = 1;
-                weightCol = -1;//2;
-                linkTypeCol = -1;//3;
-                sourceTypeCol = -1;//5;
-                targetTypeCol = -1;//4;
-                var rowsSimple = [
-                    ["a", "b"],
-                    ["b", "c"],
-                    ["c", "d"],
-                    ["e", "d"],
-                ]
-                rows = [
-                    ["Hutt Valley", "Whanganul", 359, "direct", "Album", "Lock"],
-                    ["Hutt Valley", "Wairarapa", 483, "", "Mail"],
-                    ["Hutt Valley", "Capital & Coast", 857, "", "Home"],
-                    ["Capital & Coast", "Whanganul", 1183, "", ""],
-                    ["Capital & Coast", "Hutt Valley", 735, "", "Heart"],
-                    ["Capital & Coast", "Wairarapa", 1172, "", ""],
-                    ["Capital & Coast", "MidCentral", 1390, "", ""],
-                    ["Whanganul", "Hawkes Bay", 465, "", ""],
-                    ["Hawkes Bay", "Wairarapa", 1057, "", ""],
-                    ["Hawkes Bay", "MidCentral", 1401, "", ""],
-                    ["Hawkes Bay", "Capital & Coast", 1052, "", ""],
-                    ["Wairarapa", "Hutt Valley", 213, "", ""]
-                ];
+                if (false) // for testing highlightallreachable 
+                {
+                    weightCol = -1;
+                    linkTypeCol = -1;
+                    sourceTypeCol = -1;
+                    targetTypeCol = -1;
+                    rows = [
+                        ["a", "b"],
+                        ["b", "c"],
+                        ["c", "d"],
+                        ["e", "f"],
+                    ]
+                }
+                else {
+                    weightCol = 2;
+                    linkTypeCol = 3;
+                    sourceTypeCol = 5;
+                    targetTypeCol = 4;
+
+                    rows = [
+                        ["Hutt Valley", "Whanganul", 359, "direct", "Album", "Lock"],
+                        ["Hutt Valley", "Wairarapa", 483, "", "Mail"],
+                        ["Hutt Valley", "Capital & Coast", 857, "", "Home"],
+                        ["Capital & Coast", "Whanganul", 1183, "", ""],
+                        ["Capital & Coast", "Hutt Valley", 735, "", "Heart"],
+                        ["Capital & Coast", "Wairarapa", 1172, "", ""],
+                        ["Capital & Coast", "MidCentral", 1390, "", ""],
+                        ["Whanganul", "Hawkes Bay", 465, "", ""],
+                        ["Hawkes Bay", "Wairarapa", 1057, "", ""],
+                        ["Hawkes Bay", "MidCentral", 1401, "", ""],
+                        ["Hawkes Bay", "Capital & Coast", 1052, "", ""],
+                        ["Wairarapa", "Hutt Valley", 213, "", ""]
+                    ];
+                }
             }
             else if (dataView && dataView.table) {
                 rows = dataView.table.rows;
             }
             if (sourceCol < 0 || targetCol < 0)
                 return <ForceGraphData>{
-                    "nodes": {}, "links": [], "minFiles": 0, "maxFiles": 0, "linkedByName": {}, "dataPointsToEnumerate": {}
+                    "nodes": {}, "links": [], "minFiles": 0, "maxFiles": 0, "linkedByName": {}, "linkTypes": {}
                 };
 
             rows.forEach(function (item) {
                 linkedByName[item[sourceCol] + "," + item[targetCol]] = 1;
                 var source = nodes[item[sourceCol]] ||
-                    (nodes[item[sourceCol]] = { name: item[sourceCol], image: sourceTypeCol > 0 ? item[sourceTypeCol] : '', adj: [] });
+                    (nodes[item[sourceCol]] = { name: item[sourceCol], image: sourceTypeCol > 0 ? item[sourceTypeCol] : '', adj: {} });
                 var target = nodes[item[targetCol]] ||
-                    (nodes[item[targetCol]] = { name: item[targetCol], image: targetTypeCol > 0 ? item[targetTypeCol] : '', adj: [] });
-                source.adj.push(target);
+                    (nodes[item[targetCol]] = { name: item[targetCol], image: targetTypeCol > 0 ? item[targetTypeCol] : '', adj: {} });
+                source.adj[target.name] = 1;
+                target.adj[source.name] = 1;
 
                 var link = {
-                    "source": source,
-                    "target": target,
-                    "filecount": weightCol > 0 ? item[weightCol] : 0,
-                    "type": linkTypeCol > 0 ? item[linkTypeCol] : '',
+                    source: source,
+                    target: target,
+                    filecount: weightCol > 0 ? item[weightCol] : 0,
+                    type: linkTypeCol > 0 ? item[linkTypeCol] : '',
                 };
                 if (linkTypeCol > 0) {
                     if (!linkDataPoints[item[linkTypeCol]]) {
@@ -377,49 +437,45 @@ module powerbi.visuals {
             });
 
             var data = {
-                "nodes": nodes, "links": links, "minFiles": minFiles, "maxFiles": maxFiles, "linkedByName": linkedByName, "dataPointsToEnumerate": linkDataPoints
+                "nodes": nodes, "links": links, "minFiles": minFiles, "maxFiles": maxFiles, "linkedByName": linkedByName, "linkTypes": linkDataPoints
             };
             return data;
         }
 
         public init(options: VisualInitOptions): void {
             this.root = d3.select(options.element.get(0));
+            this.forceLayout = d3.layout.force();
             this.colors = options.style.colorPalette.dataColors;
             this.options = this.getDefaultOptions();
         }
 
         public update(options: VisualUpdateOptions) {
             if (!options.dataViews || (options.dataViews.length < 1)) return;
-            var colors = this.colors;
-            var data = this.data = ForceGraph.converter(this.dataView = options.dataViews[0], colors);
-            if (!data) return;
+            this.data = ForceGraph.converter(this.dataView = options.dataViews[0], this.colors);
+            if (!this.data) return;
             this.updateOptions(options.dataViews[0].metadata.objects);
-            var voptions = this.options;
-            var scale1to10 = d3.scale.linear().domain([data.minFiles, data.maxFiles]).rangeRound([1, 10]).clamp(true);
-
-            var viewport = options.viewport;
-            var w = viewport.width,
-                h = viewport.height;
-            var k = Math.sqrt(Object.keys(data.nodes).length / (w * h));
+            this.viewport = options.viewport;
+            var k = Math.sqrt(Object.keys(this.data.nodes).length / (this.viewport.width * this.viewport.height));
 
             this.root.selectAll("svg").remove();
 
             var svg = this.root
                 .append("svg")
-                .attr("width", w)
-                .attr("height", h);
+                .attr("width", this.viewport.width)
+                .attr("height", this.viewport.height)
+                .classed(ForceGraph.VisualClassName, true);
 
-            var force = d3.layout.force()
+            this.forceLayout
                 .gravity(100 * k)
-                .nodes(d3.values(data.nodes))
-                .links(data.links)
-                .size([w, h])
+                .links(this.data.links)
+                .size([this.viewport.width, this.viewport.height])
                 .linkDistance(100)
-                .charge(voptions.charge / k)
-                .on("tick", tick)
-                .start();
+                .charge(this.options.charge / k)
+                .on("tick", this.tick());
+            this.updateNodes();
+            this.forceLayout.start();
 
-            if (voptions.showArrow) {
+            if (this.options.showArrow) {
                 // build the arrow.
                 function marker(d, i) {
                     var val = "mid_" + i;
@@ -437,36 +493,29 @@ module powerbi.visuals {
                         .append("path")
                         .attr("d", "M0,-5L10,0L0,5")
                     //below works if no marker-end workaround needed
-                        .style("fill", function (d) { return getLinkColor(d); })
+                        .style("fill", d => this.getLinkColor(d))
                     ;
                     return "url(#" + val + ")";
                 }
             }
-            var path = svg.selectAll(".link")
-                .data(force.links())
+            this.paths = svg.selectAll(".link")
+                .data(this.forceLayout.links())
                 .enter().append("path")
                 .attr("class", "link")
-                .attr("id", function (d, i) { return "linkid_" + i; })
+                .attr("id", (d, i) => "linkid_" + i)
             // uncomment if we don't need the marker-end workaround
             //.attr("marker-end", function (d, i) { return marker(d, i); })
-                .attr("stroke-width", function (d) {
-                    return voptions.thickenLink ? scale1to10(d.filecount) : voptions.defaultLinkThickness;
-                })
-                .style("stroke", function (d) {
-                    return getLinkColor(d);
-                })
+                .attr("stroke-width", d => this.options.thickenLink ? this.scale1to10(d.filecount) : this.options.defaultLinkThickness)
+                .style("stroke", d => this.getLinkColor(d))
             // no need for "fill" if we don't need the marker-end workaround
-                .style("fill", function (d) {
-                    if (!voptions.showArrow) return;
-                    return getLinkColor(d);
-                })
-                .on("mouseover", fadePath(.3))
-                .on("mouseout", fadePath(1))
-                ;
+                .style("fill", d => { if (this.options.showArrow) return this.getLinkColor(d); })
+                .on("mouseover", this.fadePath(.3))
+                .on("mouseout", this.fadePath(1))
+            ;
 
-            if (voptions.showLabel) {
+            if (this.options.showLabel) {
                 var linktext = svg.selectAll(".linklabelholder")
-                    .data(force.links())
+                    .data(this.forceLayout.links())
                     .enter().append("g")
                     .attr("class", "linklabelholder")
                     .append("text")
@@ -475,189 +524,175 @@ module powerbi.visuals {
                     .attr("text-anchor", "middle")
                     .style("fill", "#000")
                     .append("textPath")
-                    .attr("xlink:href", function (d, i) { return "#linkid_" + i; })
+                    .attr("xlink:href", (d, i) => "#linkid_" + i)
                     .attr("startOffset", "25%") //use "50%" if we don't need the marker-end workaround
-                    .text(function (d) { return d.filecount; });
+                    .text(d => this.options.colorLink === linkColorType.byLinkType ? d.type : d.filecount);
             } else {
-                path.append("title")
-                    .text(function (d) { return d.source.name + "-" + d.target.name + ":" + d.filecount });
+                this.paths.append("title")
+                    .text(d => this.options.colorLink === linkColorType.byLinkType ? d.type : d.source.name + "-" + d.target.name + ":" + d.filecount);
             }
             // define the nodes
-            var node = svg.selectAll(".node")
-                .data(force.nodes())
+            this.nodes = svg.selectAll(".node")
+                .data(this.forceLayout.nodes())
                 .enter().append("g")
                 .attr("class", "node")
-                .call(force.drag)
-                .on("mouseover", fadeNode(.3))
-                .on("mouseout", fadeNode(1))
-                .on("mousedown", function () { d3.event.stopPropagation(); })
-                ;
+                .call(this.forceLayout.drag)
+                .on("mouseover", this.fadeNode(.3))
+                .on("mouseout", this.fadeNode(1))
+                .on("mousedown", () => d3.event.stopPropagation())
+            ;
 
             // add the nodes
-            if (voptions.displayImage) {
-                node.append("image")
-                    .attr("xlink:href", function (d) {
-                        return d.image && d.image != '' ?
-                            voptions.imageUrl + d.image + voptions.imageExt :
+            if (this.options.displayImage) {
+                this.nodes.append("image")
+                    .attr("xlink:href", d =>
+                        d.image && d.image != '' ?
+                            this.options.imageUrl + d.image + this.options.imageExt :
                             (
-                                voptions.defaultImage && voptions.defaultImage != '' ?
-                                    voptions.imageUrl + voptions.defaultImage + voptions.imageExt :
+                                this.options.defaultImage && this.options.defaultImage != '' ?
+                                    this.options.imageUrl + this.options.defaultImage + this.options.imageExt :
                                     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAbCAMAAAHNDTTxAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACuUExURQAAAMbGxvLy8sfHx/Hx8fLy8vHx8cnJycrKyvHx8fHx8cvLy/Ly8szMzM3NzfHx8dDQ0PHx8fLy8vHx8e/v79LS0tPT0/Ly8tTU1NXV1dbW1vHx8fHx8fDw8NjY2PT09PLy8vLy8vHx8fLy8vHx8fHx8enp6fDw8PLy8uPj4+Tk5OXl5fHx8b+/v/Pz8+bm5vHx8ejo6PLy8vHx8fLy8sTExPLy8vLy8sXFxfHx8YCtMbUAAAA6dFJOUwD/k/+b7/f///+r/////0z/w1RcEP//ZP///4fj/v8Yj3yXn/unDEhQ////YP9Y/8//aIMU/9+L/+fzC4s1AAAACXBIWXMAABcRAAAXEQHKJvM/AAABQElEQVQoU5WS61LCMBCFFymlwSPKVdACIgWkuNyL+P4v5ibZ0jKjP/xm0uw5ySa7mRItAhnMoIC5TwQZdCZiZjcoC8WU6EVsmZgzoqGdxafgvJAvjUXCb2M+0cXNsd/GDarZqSf7av3M2P1E3xhfLkPUvLD5joEYwVVJQXM6+9McWUwLf4nDTCQZAy96UoDjNI/jhl3xPLbQamu8xD7iaIsPKw7GJ7KZEnWLY3Gi8EFj5nqibXnwD5VEGjJXk5sbpLppfvvo1RazQVrhSopPK4TODrtnjS3dY4ic8KurruWQYF+UG60BacexTMyT2jlNg41dOmKvTpkUd/Jevy7ZxQ61ULRUpoododx8GeDPvIrktbFVdUsK6f8Na5VlVpjZJtowTXVy7kfXF5wCaV1tqXAFuIdWJu+JviaQzNzfQvQDGKRXXEmy83cAAAAASUVORK5CYII='
-                            );
-                    })
+                            )
+                    )
                     .attr("x", "-12px")
                     .attr("y", "-12px")
                     .attr("width", "24px")
                     .attr("height", "24px");
             } else {
-                node.append("circle")
-                    .attr("r", function (d) {
-                        if (d.weight < 5) {
-                            d.radius = 5;
-                        } else {
-                            d.radius = d.weight;
-                        }
-                        return d.radius;
-                    });
+                this.nodes.append("circle")
+                    .attr("r", d => d.weight < 5 ? 5 : d.weight);
             }
 
             // add the text 
-            node.append("text")
+            this.nodes.append("text")
                 .attr("x", 12)
                 .attr("dy", ".35em")
-                .text(function (d) {
-                    var name: string = d.name;
-                    return name ? (name.length > voptions.nameMaxLength ? name.substr(0, voptions.nameMaxLength) : name) : '';
+                .text(d => d.name ? (d.name.length > this.options.nameMaxLength ? d.name.substr(0, this.options.nameMaxLength) : d.name) : '');
+        }
+
+        private updateNodes() {
+            var oldNodes = this.forceLayout.nodes();
+            this.forceLayout.nodes(d3.values(this.data.nodes));
+            this.forceLayout.nodes().forEach((node, i) => {
+                if (!oldNodes[i]) {
+                    return;
+                }
+                node.x = oldNodes[i].x;
+                node.y = oldNodes[i].y;
+                node.px = oldNodes[i].px;
+                node.py = oldNodes[i].py;
+                node.weight = oldNodes[i].weight;
+            });
+        }
+
+        private tick() {
+            //use this if we don't need the marker-end workaround
+            //path.attr("d", function (d) {
+            //    var dx = d.target.x - d.source.x,
+            //        dy = d.target.y - d.source.y,
+            //        dr = Math.sqrt(dx * dx + dy * dy);
+            //    // x and y distances from center to outside edge of target node
+            //    var offsetX = (dx * d.target.radius) / dr;
+            //    var offsetY = (dy * d.target.radius) / dr;
+            //    return "M" +
+            //        d.source.x + "," +
+            //        d.source.y + "A" +
+            //        dr + "," + dr + " 0 0,1 " +
+            //        (d.target.x - offsetX) + "," +
+            //        (d.target.y - offsetY);
+            //});
+
+            var getPath = this.options.showArrow ?
+                //this is for marker-end workaround, build the marker with the path
+                d => {
+                    var dx = d.target.x - d.source.x,
+                        dy = d.target.y - d.source.y,
+                        dr = Math.sqrt(dx * dx + dy * dy),
+                        theta = Math.atan2(dy, dx) + Math.PI / 7.85,
+                        d90 = Math.PI / 2,
+                        dtxs = d.target.x - 6 * Math.cos(theta),
+                        dtys = d.target.y - 6 * Math.sin(theta);
+                    return "M" +
+                        d.source.x + "," +
+                        d.source.y + "A" +
+                        dr + "," + dr + " 0 0 1," +
+                        d.target.x + "," +
+                        d.target.y +
+                        "A" + dr + "," + dr + " 0 0 0," + d.source.x + "," + d.source.y + "M" + dtxs + "," + dtys + "l" + (3.5 * Math.cos(d90 - theta) - 10 * Math.cos(theta)) + "," + (-3.5 * Math.sin(d90 - theta) - 10 * Math.sin(theta)) + "L" + (dtxs - 3.5 * Math.cos(d90 - theta) - 10 * Math.cos(theta)) + "," + (dtys + 3.5 * Math.sin(d90 - theta) - 10 * Math.sin(theta)) + "z";
+                } :
+                d => {
+                    var dx = d.target.x - d.source.x,
+                        dy = d.target.y - d.source.y,
+                        dr = Math.sqrt(dx * dx + dy * dy);
+                    return "M" +
+                        d.source.x + "," +
+                        d.source.y + "A" +
+                        dr + "," + dr + " 0 0,1 " +
+                        d.target.x + "," +
+                        d.target.y;
+                };
+
+            return () => {
+                this.paths.each(function () { this.parentNode.insertBefore(this, this); });
+                this.paths.attr("d", getPath);
+                this.nodes.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
+            };
+        }
+
+        private fadePath(opacity: number) {
+            if (this.options.colorLink != linkColorType.interactive) return;
+            return d => {
+                this.paths.style("stroke-opacity", o => o.source === d.source && o.target === d.target ? 1 : opacity);
+                this.paths.style("stroke", o => o.source === d.source && o.target === d.target ?
+                    this.options.defaultLinkHighlightColor : this.options.defaultLinkColor);
+            };
+        }
+
+        private isReachable(a, b): boolean {
+            if (a.name === b.name) return true;
+            if (this.data.linkedByName[a.name + "," + b.name]) return true;
+            var visited = {};
+            for (var name in this.data.nodes) {
+                visited[name] = false;
+            };
+            visited[a.name] = true;
+
+            var stack = [];
+            stack.push(a.name);
+            while (stack.length > 0) {
+                var cur = stack.pop();
+                var node = this.data.nodes[cur];
+                for (var nb in node.adj) {
+                    if (nb === b.name) return true;
+
+                    if (!visited[nb]) {
+                        visited[nb] = true;
+                        stack.push(nb);
+                    }
+                }
+            };
+            return false;
+        }
+
+        private fadeNode(opacity: number) {
+            if (this.options.colorLink != linkColorType.interactive) return;
+            var isConnected = (a, b) => this.data.linkedByName[a.name + "," + b.name] || this.data.linkedByName[b.name + "," + a.name] || a.name == b.name;
+
+            return d => {
+                var that = this;
+                this.nodes.style("stroke-opacity", function (o) {
+                    var thisOpacity = (that.options.highlightReachableLinks ? that.isReachable(d, o) : isConnected(d, o)) ? 1 : opacity;
+                    this.setAttribute('fill-opacity', thisOpacity);
+                    return thisOpacity;
                 });
 
-            function getLinkColor(d): string {
-                if (voptions.colorLink == linkColorType.interactive)
-                    return voptions.defaultLinkColor;
-                if (voptions.colorLink == linkColorType.byWeight)
-                    return colors.getColorByIndex(scale1to10(d.filecount)).value;
-                if (voptions.colorLink == linkColorType.byLinkType)
-                    return data.dataPointsToEnumerate[d.type].color;
-            }
-
-            function isConnected(a, b) {
-                return data.linkedByName[a.name + "," + b.name] || data.linkedByName[b.name + "," + a.name] || a.name == b.name;
-            }
-
-            function isReachable(a, b) {
-                if (a.name == b.name) return true;
-                if (data.linkedByName[a.name + "," + b.name]) return true;
-                var visited = {};
-                for (var name in data.nodes) {
-                    visited[name] = false;
-                };
-                visited[a.name] = true;
-
-                var stack = [];
-                stack.push(a.name);
-                while (stack.length > 0) {
-                    var cur = stack.pop();
-                    var node = data.nodes[cur];
-                    for (var i = 0; i < node.adj.length; i++) {
-                        var nb = node.adj[i];
-                        if (nb.name == b.name) return true;
-
-                        if (!visited[nb.name]) {
-                            visited[nb.name] = true;
-                            stack.push(nb.name);
-                        }
-                    }
-                };
-                return false;
-            }
-
-            // add the curvy lines
-            function tick() {
-                path.each(function () { this.parentNode.insertBefore(this, this); });
-                //use this if we don't need the marker-end workaround
-                //path.attr("d", function (d) {
-                //    var dx = d.target.x - d.source.x,
-                //        dy = d.target.y - d.source.y,
-                //        dr = Math.sqrt(dx * dx + dy * dy);
-                //    // x and y distances from center to outside edge of target node
-                //    var offsetX = (dx * d.target.radius) / dr;
-                //    var offsetY = (dy * d.target.radius) / dr;
-                //    return "M" +
-                //        d.source.x + "," +
-                //        d.source.y + "A" +
-                //        dr + "," + dr + " 0 0,1 " +
-                //        (d.target.x - offsetX) + "," +
-                //        (d.target.y - offsetY);
-                //});
-
-                if (voptions.showArrow) {
-                    //this is for marker-end workaround, build the marker with the path
-                    path.attr("d", function (d) {
-                        var dx = d.target.x - d.source.x,
-                            dy = d.target.y - d.source.y,
-                            dr = Math.sqrt(dx * dx + dy * dy),
-                            theta = Math.atan2(dy, dx) + Math.PI / 7.85,
-                            d90 = Math.PI / 2,
-                            dtxs = d.target.x - 6 * Math.cos(theta),
-                            dtys = d.target.y - 6 * Math.sin(theta);
-                        return "M" +
-                            d.source.x + "," +
-                            d.source.y + "A" +
-                            dr + "," + dr + " 0 0 1," +
-                            d.target.x + "," +
-                            d.target.y +
-                            "A" + dr + "," + dr + " 0 0 0," + d.source.x + "," + d.source.y + "M" + dtxs + "," + dtys + "l" + (3.5 * Math.cos(d90 - theta) - 10 * Math.cos(theta)) + "," + (-3.5 * Math.sin(d90 - theta) - 10 * Math.sin(theta)) + "L" + (dtxs - 3.5 * Math.cos(d90 - theta) - 10 * Math.cos(theta)) + "," + (dtys + 3.5 * Math.sin(d90 - theta) - 10 * Math.sin(theta)) + "z";
-                    });
-                } else {
-                    path.attr("d", function (d) {
-                        var dx = d.target.x - d.source.x,
-                            dy = d.target.y - d.source.y,
-                            dr = Math.sqrt(dx * dx + dy * dy);
-                        return "M" +
-                            d.source.x + "," +
-                            d.source.y + "A" +
-                            dr + "," + dr + " 0 0,1 " +
-                            d.target.x + "," +
-                            d.target.y;
-                    });
-                }
-
-                node
-                    .attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
+                this.paths.style("stroke-opacity", o =>
+                    (this.options.highlightReachableLinks ? this.isReachable(d, o.source) :
+                        (o.source === d || o.target === d)) ? 1 : opacity);
+                this.paths.style("stroke", o =>
+                    (this.options.highlightReachableLinks ? this.isReachable(d, o.source) :
+                        (o.source === d || o.target === d)) ? this.options.defaultLinkHighlightColor : this.options.defaultLinkColor);
             };
-
-            function fadeNode(opacity) {
-                if (voptions.colorLink != linkColorType.interactive) return;
-                return function (d) {
-                    node.style("stroke-opacity", function (o) {
-                        var thisOpacity = (voptions.highlightReachableLinks ? isReachable(d, o) : isConnected(d, o)) ? 1 : opacity;
-                        this.setAttribute('fill-opacity', thisOpacity);
-                        return thisOpacity;
-                    });
-
-                    path.style("stroke-opacity", function (o) {
-                        return (voptions.highlightReachableLinks ? isReachable(d, o.source) :
-                            (o.source === d || o.target === d)) ? 1 : opacity;
-                    });
-                    path.style("stroke", function (o) {
-                        return (voptions.highlightReachableLinks ? isReachable(d, o.source) :
-                            (o.source === d || o.target === d)) ? voptions.defaultLinkHighlightColor : voptions.defaultLinkColor;
-                    });
-                };
-            }
-
-            function fadePath(opacity) {
-                if (voptions.colorLink != linkColorType.interactive) return;
-                return function (d) {
-                    path.style("stroke-opacity", function (o) {
-                        return o.source === d.source && o.target === d.target ? 1 : opacity;
-                    });
-                    path.style("stroke", function (o) {
-                        return o.source === d.source && o.target === d.target ? voptions.defaultLinkHighlightColor : voptions.defaultLinkColor;
-                    });
-                };
-            }
         }
 
         public destroy(): void {
