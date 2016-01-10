@@ -36,6 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "screenshots", "screenshots"
 		screenshots\devtoolDebug.PNG = screenshots\devtoolDebug.PNG
 		screenshots\force220by176.png = screenshots\force220by176.png
 		screenshots\force410by424.png = screenshots\force410by424.png
+		screenshots\force410by424v2.png = screenshots\force410by424v2.png
 		screenshots\formatOptions.PNG = screenshots\formatOptions.PNG
 		screenshots\import2Powerbi.PNG = screenshots\import2Powerbi.PNG
 		screenshots\mapData.PNG = screenshots\mapData.PNG

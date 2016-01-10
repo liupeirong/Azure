@@ -43,7 +43,7 @@ The following options can be customized for this visual:
   * Image url: the base url for images. Full url is composed by "base url + sourceType or targetType + image extension"
   * Image extension: the file extension of the images
   * Max name length: the maximum length of node names to display, if names are too long, the visual could be hard to read
-  * Highlight all reachable links: whether or not to highlight the immediate neighboring links of a node or all links that a node can reach to 
+  * Highlight all reachable links: whether or not to highlight the immediate neighboring links of a node or all links that a node can reach to.  This can be used to identify clusters of connected nodes. 
 * size
   * Charge: the charge of the force directed graph. The larger the negative large, the more spread the visual. This must be a negative value
 
@@ -61,3 +61,5 @@ var rows = dataView.table.rows;
 
 ![Alt text](/PowerBIVisual/screenshots/devtoolDebug.PNG?raw=true "Debug the visual in Dev Tool") 
 
+### License
+MIT
