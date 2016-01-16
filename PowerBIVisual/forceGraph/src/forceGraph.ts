@@ -208,7 +208,7 @@ module powerbi.visuals {
             this.options.nameMaxLength = DataViewObjects.getValue(objects, forceProps.nodes.nameMaxLength, this.options.nameMaxLength);
             this.options.highlightReachableLinks = DataViewObjects.getValue(objects, forceProps.nodes.highlightReachableLinks, this.options.highlightReachableLinks);
             this.options.charge = DataViewObjects.getValue(objects, forceProps.size.charge, this.options.charge);
-            if (this.options.charge >= 0) this.options.charge = this.getDefaultOptions().charge;
+            if (this.options.charge >= 0 || this.options.charge < -100) this.options.charge = this.getDefaultOptions().charge;
         }
 
         public static capabilities: VisualCapabilities = {
@@ -316,7 +316,7 @@ module powerbi.visuals {
                         charge: {
                             type: { numeric: true },
                             displayName: 'Charge',
-                            description: 'The larger the negative charge the more apart the entities, must be negative',
+                            description: 'The larger the negative charge the more apart the entities, must be negative but greater than -100',
                         },
                     }
                 },
@@ -573,8 +573,8 @@ module powerbi.visuals {
                 .style("stroke", d => this.getLinkColor(d))
             // no need for "fill" if we don't need the marker-end workaround
                 .style("fill", d => { if (this.options.showArrow) return this.getLinkColor(d); })
-                .on("mouseover", this.fadePath(.3))
-                .on("mouseout", this.fadePath(1))
+                .on("mouseover", this.fadePath(.3, this.options.defaultLinkHighlightColor))
+                .on("mouseout", this.fadePath(1, this.options.defaultLinkColor))
             ;
 
             if (this.options.showLabel) {
@@ -601,8 +601,8 @@ module powerbi.visuals {
                 .enter().append("g")
                 .attr("class", "node")
                 .call(this.forceLayout.drag)
-                .on("mouseover", this.fadeNode(.3))
-                .on("mouseout", this.fadeNode(1))
+                .on("mouseover", this.fadeNode(.3, this.options.defaultLinkHighlightColor))
+                .on("mouseout", this.fadeNode(1, this.options.defaultLinkColor))
                 .on("mousedown", () => d3.event.stopPropagation())
             ;
 
@@ -650,6 +650,13 @@ module powerbi.visuals {
         }
 
         private tick() {
+            var viewport = this.viewportIn;
+            // limitX and limitY is necessary when you minimize the graph and then resize it to normal.
+            //"width/height * 20" seems enough to move nodes freely by force layout.
+            var maxWidth = viewport.width * 20;
+            var maxHeight = viewport.height * 20;
+            var limitX = x => Math.max((viewport.width - maxWidth) / 2, Math.min((viewport.width + maxWidth) / 2, x));
+            var limitY = y => Math.max((viewport.height - maxHeight) / 2, Math.min((viewport.height + maxHeight) / 2, y));
             //use this if we don't need the marker-end workaround
             //path.attr("d", function (d) {
             //    var dx = d.target.x - d.source.x,
@@ -669,6 +676,10 @@ module powerbi.visuals {
             var getPath = this.options.showArrow ?
                 //this is for marker-end workaround, build the marker with the path
                 d => {
+                    d.source.x = limitX(d.source.x);
+                    d.source.y = limitY(d.source.y);
+                    d.target.x = limitX(d.target.x);
+                    d.target.y = limitY(d.target.y);
                     var dx = d.target.x - d.source.x,
                         dy = d.target.y - d.source.y,
                         dr = Math.sqrt(dx * dx + dy * dy),
@@ -685,6 +696,10 @@ module powerbi.visuals {
                         "A" + dr + "," + dr + " 0 0 0," + d.source.x + "," + d.source.y + "M" + dtxs + "," + dtys + "l" + (3.5 * Math.cos(d90 - theta) - 10 * Math.cos(theta)) + "," + (-3.5 * Math.sin(d90 - theta) - 10 * Math.sin(theta)) + "L" + (dtxs - 3.5 * Math.cos(d90 - theta) - 10 * Math.cos(theta)) + "," + (dtys + 3.5 * Math.sin(d90 - theta) - 10 * Math.sin(theta)) + "z";
                 } :
                 d => {
+                    d.source.x = limitX(d.source.x);
+                    d.source.y = limitY(d.source.y);
+                    d.target.x = limitX(d.target.x);
+                    d.target.y = limitY(d.target.y);
                     var dx = d.target.x - d.source.x,
                         dy = d.target.y - d.source.y,
                         dr = Math.sqrt(dx * dx + dy * dy);
@@ -699,16 +714,15 @@ module powerbi.visuals {
             return () => {
                 this.paths.each(function () { this.parentNode.insertBefore(this, this); });
                 this.paths.attr("d", getPath);
-                this.nodes.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
+                this.nodes.attr("transform", d => "translate(" + limitX(d.x) + "," + limitY(d.y) + ")");
             };
         }
 
-        private fadePath(opacity: number) {
+        private fadePath(opacity: number, highlight: string) {
             if (this.options.colorLink !== linkColorType.interactive) return;
             return d => {
                 this.paths.style("stroke-opacity", o => o.source === d.source && o.target === d.target ? 1 : opacity);
-                this.paths.style("stroke", o => o.source === d.source && o.target === d.target ?
-                    this.options.defaultLinkHighlightColor : this.options.defaultLinkColor);
+                this.paths.style("stroke", o => o.source === d.source && o.target === d.target ? highlight : this.options.defaultLinkColor);
             };
         }
 
@@ -738,7 +752,7 @@ module powerbi.visuals {
             return false;
         }
 
-        private fadeNode(opacity: number) {
+        private fadeNode(opacity: number, highlight: string) {
             if (this.options.colorLink !== linkColorType.interactive) return;
             var isConnected = (a, b) => this.data.linkedByName[a.name + "," + b.name] || this.data.linkedByName[b.name + "," + a.name] || a.name === b.name;
 
@@ -755,7 +769,7 @@ module powerbi.visuals {
                         (o.source === d || o.target === d)) ? 1 : opacity);
                 this.paths.style("stroke", o =>
                     (this.options.highlightReachableLinks ? this.isReachable(d, o.source) :
-                        (o.source === d || o.target === d)) ? this.options.defaultLinkHighlightColor : this.options.defaultLinkColor);
+                        (o.source === d || o.target === d)) ? highlight : this.options.defaultLinkColor);
             };
         }
 
