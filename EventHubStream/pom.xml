@@ -5,7 +5,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <properties>
     <scala.binary.version>2.10</scala.binary.version>
-    <spark.version>1.3.1</spark.version>
+    <spark.version>1.5.0</spark.version>
     <sbt.project.name>eventhubstream</sbt.project.name>
   </properties>
   <packaging>jar</packaging>
@@ -30,6 +30,32 @@
       <artifactId>spark-streaming-eventhubs_${scala.binary.version}</artifactId>
       <version>0.1.0</version>
     </dependency>
+    <dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>adal4j</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>oauth2-oidc-sdk</artifactId>
+			<version>4.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20090211</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.1.2</version>
+		</dependency>
   </dependencies>  
   <build>
     <sourceDirectory>src</sourceDirectory>

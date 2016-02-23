@@ -1,0 +1,1 @@
+The rest of this project is currently built for Spark 1.3. Only the jar in this folder is for spark 1.5. If you run spark on HDInsight, or Cloudera 5.5, then you need this version for Spark 1.5. 
