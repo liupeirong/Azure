@@ -18,7 +18,9 @@ namespace telcodatagen
     class CallStore
     {
         public string[] CallNos;
-        public string[] switchCountries = { "US", "China", "UK", "Germany", "Australia" };
+        public string[] switchCountries = { "US", "China", "UK", "Germany", "Australia", "India", "Japan", "Canada", "Russia" };
+        public double[] dollarPerMin = { 0.01, 0.02, 0.01, 0.01, 0.03, 0.03, 0.01, 0.01, 0.02 };
+        //public string[] switchCountries = { "Brazil", "Brazil", "Brazil"};
         static string[] NumPrefix = { "0123", "1234", "2345", "3456","4567","5678", "6789","7890" };
 
         public CallStore(int size)

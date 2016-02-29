@@ -27,12 +27,8 @@ namespace telcodatagen
         public String SystemIdentity {get; set; }
         
         [DataMember]
-        public String FileNum {get; set; }
-        
-        [DataMember]
         public String SwitchNum {get; set; }
 
-        
         [DataMember]
         public String CallingNum {get; set; }
 
@@ -46,30 +42,22 @@ namespace telcodatagen
         public String CalledIMSI {get; set; }
 
         [DataMember]
-        public String DateS {get; set; }
-
-
-        [DataMember]
-        public String TimeS {get; set; }
-
-
-        [DataMember]
         public int TimeType {get; set; }
 
         [DataMember]
         public  int CallPeriod {get; set; }
 
         [DataMember]
-        public String CallingCellID {get; set; }
-
-        [DataMember]
-        public String CalledCellID {get; set; }
+        public double UnitPrice { get; set; }
 
         [DataMember]
         public String ServiceType {get; set; }
 
         [DataMember]
         public int Transfer {get; set; }
+
+        [DataMember]
+        public String EndType { get; set; }
 
         [DataMember]
         public String IncomingTrunk {get; set; }
@@ -81,20 +69,12 @@ namespace telcodatagen
         public String MSRN {get; set; }
 
         [DataMember]
-        public String CalledNum2 {get; set; }
-
-        [DataMember]
-        public String FCIFlag {get; set; }
-
-        [DataMember]
         public String callrecTime {get; set; }
 
-        
 
-
-        static string[] columns = {"RecordType","SystemIdentity","FileNum","SwitchNum","CallingNum","CallingIMSI",
-                            "CalledNum","CalledIMSI","Date","Time","TimeType","CallPeriod","CallingCellID","CalledCellID",
-                            "ServiceType","Transfer","IMEI","EndType","IncomingTrunk","OutgoingTrunk","MSRN","CalledNum2","FCIFlag","DateTime"};
+        static string[] columns = {"RecordType","SystemIdentity","SwitchNum","CallingNum","CallingIMSI",
+            "CalledNum","CalledIMSI","TimeType","CallPeriod","UnitPrice","ServiceType",
+            "Transfer","EndType","IncomingTrunk","OutgoingTrunk","MSRN","DateTime"};
 
         static string[] ServiceTypeList = { "a", "b", "S", "V" };
         static string[] TimeTypeList = { "a", "d", "r", "s" };
@@ -170,9 +150,6 @@ namespace telcodatagen
                 case "SystemIdentity":
                     this.SystemIdentity = value;
                     break;
-                case "FileNum":
-                    this.FileNum = value;
-                    break;
                 case "SwitchNum":
                     this.SwitchNum = value;
                     break;
@@ -188,23 +165,14 @@ namespace telcodatagen
                 case "CalledIMSI":
                     this.CalledIMSI = value;
                     break;
-                case "Date":
-                    this.DateS = value;
-                    break;
-                case "Time":
-                    break;
-                    this.TimeS = value;
                 case "TimeType":
                     this.TimeType = Int32.Parse(value);
                     break;
                 case "CallPeriod":
                     this.CallPeriod = Int32.Parse(value);
                     break;
-                case "CallingCellID":
-                    this.CallingCellID = value;
-                    break;
-                case "CalledCellID":
-                    this.CalledCellID = value;
+                case "UnitPrice":
+                    this.UnitPrice = Double.Parse(value);
                     break;
                 case "ServiceType":
                     this.ServiceType = value;
@@ -220,12 +188,6 @@ namespace telcodatagen
                     break;
                 case "MSRN":
                     this.MSRN = value;
-                    break;
-                case "CalledNum2":
-                    this.CalledNum2 = value;
-                    break;
-                case "FCIFlag":
-                    this.FCIFlag = value;
                     break;
                 case "DateTime":
                     if (value.Length > 13) { 
