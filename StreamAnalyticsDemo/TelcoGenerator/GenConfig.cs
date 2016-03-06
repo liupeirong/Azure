@@ -24,11 +24,12 @@ namespace telcodatagen
         public float nCallBackPercent { get; set; }
         public float nInvalidPercent { get; set; }
         public int nDurationHours { get; set; }
+        public bool isPowerBiPro { get; set; }
 
         // Constructor
-        
+
         // Assume there is only 1 file, and 1 set
-        public GenConfig(float _invalid, float _callback, int hours)
+        public GenConfig(float _invalid, float _callback, int hours, int powerbiPro)
         {
             nSets = 1;
             nFilesPerDump = 1;
@@ -36,6 +37,7 @@ namespace telcodatagen
             nInvalidPercent = _invalid;
             nCallBackPercent = _callback;
             nDurationHours = hours;
+            isPowerBiPro = (powerbiPro == 1);
         }
 
         override public String ToString()

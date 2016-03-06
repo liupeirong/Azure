@@ -28,6 +28,7 @@ import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.entity.StringEntity
 import com.google.gson.Gson
 import java.util.Calendar
+import java.util.TimeZone
 
 object SparkEventHubSample {
   case class FraudEntity(DetectedAt:String, IMSI:String, Number1:String, Number2:String, Country1:String, Country2:String, Duration:Long, Cost:Long)
@@ -44,9 +45,9 @@ object SparkEventHubSample {
     //Power BI settings
     val fraudUrl:String = "https://api.powerbi.com/v1.0/myorg/datasets/<your dataset id>/tables/FraudCalls/rows"
     val statsUrl:String = "https://api.powerbi.com/v1.0/myorg/datasets/<your dataset id>/tables/CallStats/rows"
-    
+
     val AUTHORITY:String = "https://login.windows.net/common/oauth2/authorize";
-    val CLIENT_ID:String = "client id"; 
+    val CLIENT_ID:String = "client id";
     val service:ExecutorService = Executors.newFixedThreadPool(1);
     val context:AuthenticationContext = new AuthenticationContext(AUTHORITY, false, service);
     val result:AuthenticationResult = context.acquireToken("https://analysis.windows.net/powerbi/api", CLIENT_ID, "<username>", "<password>", null).get();
@@ -128,7 +129,7 @@ object SparkEventHubSample {
     }
   ]
 }
-*/    
+*/
     val ehParams = Map[String, String](
        "eventhubs.policyname" -> "<your policy>",
        "eventhubs.policykey" -> "<your key>",
@@ -138,7 +139,7 @@ object SparkEventHubSample {
        "eventhubs.consumergroup" -> "$default",
        "eventhubs.checkpoint.dir" -> "sparkcheckpoint", //for simplicity we are not using reliable receiver with checkpoint in this example
        "eventhubs.checkpoint.interval" -> "60")
-
+       
     // ----if spark-shell, comment out the following 2 lines
     val sparkConf = new SparkConf().setAppName("SparkEventHubSample")
     val sc = new SparkContext(sparkConf);
@@ -155,24 +156,25 @@ object SparkEventHubSample {
     def roundUp: (Double => Long) = (d: Double) => math.ceil(d).toLong
     val roundfunc = udf(roundUp)
 
-    val wlines = lines.window(Seconds(streamBatchIntervalInSeconds*2), Seconds(streamBatchIntervalInSeconds))
-    wlines.foreachRDD { rdd => if (!rdd.isEmpty()) 
+    isoformat.setTimeZone(TimeZone.getTimeZone("UTC"))
+    //val wlines = lines.window(Seconds(streamBatchIntervalInSeconds*2), Seconds(streamBatchIntervalInSeconds))
+    lines.foreachRDD { rdd => if (!rdd.isEmpty()) 
         {
             val now = isoformat.format(Calendar.getInstance.getTime())
             val sqlContext = SQLContext.getOrCreate(rdd.sparkContext)
             val rawdf = sqlContext.read.json(rdd)
             val df = rawdf.withColumn("callTime", sqlfunc(rawdf("callrecTime"))).withColumn("DetectedAt", lit(now));
             df.registerTempTable("calls")
-            val frauddfraw = sqlContext.sql("SELECT CS1.DetectedAt as DetectedAt, CS1.CallingIMSI, CS1.CallingNum as CallingNum1,CS2.CallingNum as CallingNum2, CS1.SwitchNum as Switch1, CS2.SwitchNum as Switch2, CS1.CallPeriod + CS2.CallPeriod as Duration, CS1.CallPeriod * CS1.UnitPrice + CS2.CallPeriod * CS2.UnitPrice as DCost FROM calls CS1 inner join calls CS2 ON CS1.CallingIMSI = CS2.CallingIMSI WHERE CS1.SwitchNum != CS2.SwitchNum and (CS1.callTime - CS2.callTime) > 0 and (CS1.callTime - CS2.callTime)<5000")
-            val frauddf = frauddfraw.withColumn("Cost", roundfunc(frauddfraw("DCost")))
-            val fraudstats = frauddf.groupBy("DetectedAt").agg(count("CallingIMSI").alias("FraudCount"), roundfunc(avg("Duration")).alias("FraudDuration"), roundfunc(sum("Cost")).alias("FraudCost"))
+            val frauddfraw = sqlContext.sql("SELECT CS1.DetectedAt as DetectedAt, CS1.CallingIMSI, CS1.CalledNum as CalledNum1,CS2.CalledNum as CalledNum2, CS1.SwitchNum as Switch1, CS2.SwitchNum as Switch2, (CS1.CallPeriod + CS2.CallPeriod)/2 as DDuration, CS1.CallPeriod * CS1.UnitPrice + CS2.CallPeriod * CS2.UnitPrice as DCost FROM calls CS1 inner join calls CS2 ON CS1.CallingIMSI = CS2.CallingIMSI and CS1.CallingNum = CS2.CallingNum and  CS1.SwitchNum != CS2.SwitchNum where (CS1.callTime - CS2.callTime) > 0 and (CS1.callTime - CS2.callTime)<5000")
+            val frauddf = frauddfraw.withColumn("Duration", roundfunc(frauddfraw("DDuration"))).withColumn("Cost", roundfunc(frauddfraw("DCost")))
+            val fraudstats = frauddf.groupBy("DetectedAt").agg((count("CallingIMSI")*2).alias("FraudCount"), roundfunc(avg("Duration")).alias("FraudDuration"), roundfunc(sum("Cost")).alias("FraudCost"))
             //frauddf.show()
             val callstats = df.groupBy("DetectedAt").agg(count("CallingIMSI").alias("CallCount"), roundfunc(avg("CallPeriod")).alias("CallDuration"), roundfunc(sum(df("CallPeriod") * df("UnitPrice"))).alias("Revenue"))
             val statsdf = callstats.join(fraudstats, "DetectedAt")
             //statsdf.show()
             
             //push to Power BI
-            val frauditems = frauddf.na.fill("").map( e => FraudEntity(e(0).toString, e(1).toString, e(2).toString, e(3).toString, e(4).toString, e(5).toString, e(6).asInstanceOf[Long], e(8).asInstanceOf[Long]) ).collect()
+            val frauditems = frauddf.na.fill("").map( e => FraudEntity(e(0).toString, e(1).toString, e(2).toString, e(3).toString, e(4).toString, e(5).toString, e(8).asInstanceOf[Long], e(9).asInstanceOf[Long]) ).collect()
             val ft = new FraudTable(frauditems)
             val ftAsJson = new Gson().toJson(ft)
             val fse:StringEntity = new StringEntity(ftAsJson)

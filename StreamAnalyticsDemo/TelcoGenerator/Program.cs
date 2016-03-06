@@ -62,7 +62,7 @@ namespace telcodatagen
             Queue callBackQ = new Queue();
 
             // probability of invalid calls, probability of fraud, and number of hours
-            GenConfig config = new GenConfig(float.Parse(args[0]), float.Parse(args[1]), Int32.Parse(args[2]));
+            GenConfig config = new GenConfig(float.Parse(args[0]), float.Parse(args[1]), Int32.Parse(args[2]), Int32.Parse(args[3]));
             Console.Error.WriteLine(config);
 
             CallStore mobileNos = new CallStore(100000);
@@ -72,8 +72,8 @@ namespace telcodatagen
             DateTimeOffset currentTime = DateTimeOffset.Now;
             DateTimeOffset endTime = currentTime.AddHours(config.nDurationHours);
             // power bi free subscription won't allow more than 10,000 records per hour per dataset, so roughly 3 records per second
-            // we can generate a cdr per second, plus a fraud cdr, plus aggregation record
-            int milliSecPerCDR = 100; //1000 for powerbi free, 100 for pro
+            // we can generate a cdr per second, plus a fraud cdr, plus aggregation record, so at least 1000ms 
+            int milliSecPerCDR = config.isPowerBiPro ? 10 : 1000; 
             int fraudConsecutiveCallInSec = 5;
             int total = 0;
             int fraudTotal = 0;
