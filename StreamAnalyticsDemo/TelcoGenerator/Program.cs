@@ -71,10 +71,12 @@ namespace telcodatagen
             bool genCallback = false;
             DateTimeOffset currentTime = DateTimeOffset.Now;
             DateTimeOffset endTime = currentTime.AddHours(config.nDurationHours);
-            // power bi free subscription won't allow more than 10,000 records per hour per dataset, so roughly 3 records per hour
+            // power bi free subscription won't allow more than 10,000 records per hour per dataset, so roughly 3 records per second
             // we can generate a cdr per second, plus a fraud cdr, plus aggregation record
-            int milliSecPerCDR = 1000;
+            int milliSecPerCDR = 100; //1000 for powerbi free, 100 for pro
             int fraudConsecutiveCallInSec = 5;
+            int total = 0;
+            int fraudTotal = 0;
 
             while (endTime.Subtract(currentTime) >= TimeSpan.Zero)
             {
@@ -89,11 +91,7 @@ namespace telcodatagen
                     pvalue = r.NextDouble();
                     genCallback = (pvalue < config.nCallBackPercent);
                     
-                    // Determine called and calling num
-                    int calledIdx = r.Next(0, mobileNos.CallNos.Length);
-                    int callingIdx = r.Next(0, mobileNos.CallNos.Length);
-                    
-                    CDRrecord rec = new CDRrecord();
+                    CDRrecord rec = new CDRrecord(); ++total;
 
                     int switchIdx = r.Next(0, mobileNos.switchCountries.Length);
                     int switchAltIdx = r.Next(0, mobileNos.switchCountries.Length);
@@ -101,6 +99,14 @@ namespace telcodatagen
                         switchAltIdx = r.Next(0, mobileNos.switchCountries.Length);
                     rec.setData("SwitchNum", mobileNos.switchCountries[switchIdx]);
                     rec.setData("UnitPrice", "" + mobileNos.dollarPerMin[switchIdx]);
+
+                    int calledIdx = r.Next(0, mobileNos.CallNos.Length);
+                    int callingIdx = r.Next(0, mobileNos.CallNos.Length);
+                    String calledNum = mobileNos.CallNos[calledIdx];
+                    String callingNum = mobileNos.CallNos[callingIdx];
+                    rec.setData("CalledNum", calledNum);
+                    rec.setData("CallingNum", callingNum);
+
                     #endregion
 
                     if (invalidRec)
@@ -113,21 +119,17 @@ namespace telcodatagen
                         String callTime = String.Format("{0:HHmmss}", currentTime);
                         rec.setData("DateTime", callDate + " " + callTime);
 
-                        String calledNum = mobileNos.CallNos[calledIdx];
-                        String callingNum = mobileNos.CallNos[callingIdx];
-                        rec.setData("CalledNum", calledNum);
-                        rec.setData("CallingNum", callingNum);
                         int callPeriod = r.Next(1, 80);
                         rec.setData("CallPeriod", "" + callPeriod);
 
                         #region simFraudRecord
                         if (genCallback)
                         {
-                            // need to generate another set of no
-                            calledIdx = r.Next(0, mobileNos.CallNos.Length); ;
-                            callingIdx = r.Next(0, mobileNos.CallNos.Length);
+                            CDRrecord callbackRec = new CDRrecord();++fraudTotal;
 
-                            CDRrecord callbackRec = new CDRrecord();
+                            // Set it as the same calling IMSI
+                            callbackRec.setData("CallingIMSI", rec.CallingIMSI);
+
                             callbackRec.setData("SwitchNum", mobileNos.switchCountries[switchAltIdx]);
                             callbackRec.setData("UnitPrice", "" + mobileNos.dollarPerMin[switchAltIdx]);
 
@@ -137,18 +139,15 @@ namespace telcodatagen
                             callTime = String.Format("{0:HHmmss}", currentTime.AddSeconds(pertubs));
                             callbackRec.setData("DateTime", callDate + " " + callTime);
 
-                            // Set it as the same calling IMSI
-                            callbackRec.setData("CallingIMSI", rec.CallingIMSI);
-
+                            // called number is different but calling number is same
+                            calledIdx = r.Next(0, mobileNos.CallNos.Length);
                             calledNum = mobileNos.CallNos[calledIdx];
-                            callingNum = mobileNos.CallNos[callingIdx];
                             callbackRec.setData("CalledNum", calledNum);
                             callbackRec.setData("CallingNum", callingNum);
 
-                            callPeriod = r.Next(1, 100);
+                            callPeriod = r.Next(1, 60);
                             callbackRec.setData("CallPeriod", "" + callPeriod);
 
-                            // Enqueue the call back rec 
                             callBackQ.Enqueue(callbackRec);
                             cdr++;
                         }
@@ -156,15 +155,22 @@ namespace telcodatagen
                     }
 
                     outputCDRRecs(rec);
-                    //get those consecutive fraud calls after the interval passed
-                    while (callBackQ.Count > 0 && cdr % (fraudConsecutiveCallInSec+1) == 0) 
+                    //output those consecutive fraud calls that happened in the past not future
+                    while (callBackQ.Count > 0) 
                     {
-                        CDRrecord drec;
-                        drec = (CDRrecord)callBackQ.Dequeue();
-                        outputCDRRecs(drec);
+                        CDRrecord drec, prec;
+                        prec = (CDRrecord)callBackQ.Peek();
+                        DateTimeOffset oldest = DateTimeOffset.Parse(prec.callrecTime);
+                        if (currentTime.Subtract(oldest) >= TimeSpan.Zero)
+                        {
+                            drec = (CDRrecord)callBackQ.Dequeue();
+                            outputCDRRecs(drec);
+                        }
+                        else break;
                     }
 
                     System.Threading.Thread.Sleep(milliSecPerCDR);
+                    Console.WriteLine("Total:" + total + ", Fraud Total:" + fraudTotal);
                     currentTime = DateTimeOffset.Now;
                 } // cdr
 
