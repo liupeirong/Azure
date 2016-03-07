@@ -69,7 +69,7 @@ namespace telcodatagen
             Random r = new Random();
             bool invalidRec = false;
             bool genCallback = false;
-            DateTimeOffset currentTime = DateTimeOffset.Now;
+            DateTimeOffset currentTime = DateTimeOffset.UtcNow;
             DateTimeOffset endTime = currentTime.AddHours(config.nDurationHours);
             // power bi free subscription won't allow more than 10,000 records per hour per dataset, so roughly 3 records per second
             // we can generate a cdr per second, plus a fraud cdr, plus aggregation record, so at least 1s (1000ms) per record;
@@ -161,7 +161,7 @@ namespace telcodatagen
                     {
                         CDRrecord drec, prec;
                         prec = (CDRrecord)callBackQ.Peek();
-                        DateTimeOffset oldest = DateTimeOffset.Parse(prec.callrecTime);
+                        DateTimeOffset oldest = DateTimeOffset.Parse(prec.callrecTime, null, System.Globalization.DateTimeStyles.AssumeUniversal);
                         if (currentTime.Subtract(oldest) >= TimeSpan.Zero)
                         {
                             drec = (CDRrecord)callBackQ.Dequeue();
