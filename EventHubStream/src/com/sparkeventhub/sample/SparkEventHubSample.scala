@@ -52,7 +52,17 @@ object SparkEventHubSample {
     val context:AuthenticationContext = new AuthenticationContext(AUTHORITY, false, service);
     val result:AuthenticationResult = context.acquireToken("https://analysis.windows.net/powerbi/api", CLIENT_ID, "<username>", "<password>", null).get();
     val tk=result.getAccessToken()
-    
+
+    val ehParams = Map[String, String](
+       "eventhubs.policyname" -> "<your policy>",
+       "eventhubs.policykey" -> "<your key>",
+       "eventhubs.namespace" -> "<your ns>",
+       "eventhubs.name" -> "<your name>",
+       "eventhubs.partition.count" -> "4", //executor core count must be twice that of partition count
+       "eventhubs.consumergroup" -> "$default",
+       "eventhubs.checkpoint.dir" -> "sparkcheckpoint", //for simplicity we are not using reliable receiver with checkpoint in this example
+       "eventhubs.checkpoint.interval" -> "60")
+    	    	       
     //Create Power BI dataset
 /*    {
   "name": "StrataDemo",
@@ -130,16 +140,6 @@ object SparkEventHubSample {
   ]
 }
 */
-    val ehParams = Map[String, String](
-       "eventhubs.policyname" -> "<your policy>",
-       "eventhubs.policykey" -> "<your key>",
-       "eventhubs.namespace" -> "<your ns>",
-       "eventhubs.name" -> "<your name>",
-       "eventhubs.partition.count" -> "4", //executor core count must be twice that of partition count
-       "eventhubs.consumergroup" -> "$default",
-       "eventhubs.checkpoint.dir" -> "sparkcheckpoint", //for simplicity we are not using reliable receiver with checkpoint in this example
-       "eventhubs.checkpoint.interval" -> "60")
-       
     // ----if spark-shell, comment out the following 2 lines
     val sparkConf = new SparkConf().setAppName("SparkEventHubSample")
     val sc = new SparkContext(sparkConf);
@@ -170,7 +170,7 @@ object SparkEventHubSample {
             val fraudstats = frauddf.groupBy("DetectedAt").agg((count("CallingIMSI")*2).alias("FraudCount"), roundfunc(avg("Duration")).alias("FraudDuration"), roundfunc(sum("Cost")).alias("FraudCost"))
             //frauddf.show()
             val callstats = df.groupBy("DetectedAt").agg(count("CallingIMSI").alias("CallCount"), roundfunc(avg("CallPeriod")).alias("CallDuration"), roundfunc(sum(df("CallPeriod") * df("UnitPrice"))).alias("Revenue"))
-            val statsdf = callstats.join(fraudstats, "DetectedAt")
+            val statsdf = callstats.join(fraudstats, fraudstats("DetectedAt") === callstats("DetectedAt"), "left_outer").drop(fraudstats("DetectedAt"))
             //statsdf.show()
             
             //push to Power BI
