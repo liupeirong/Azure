@@ -72,7 +72,8 @@ namespace telcodatagen
             DateTimeOffset currentTime = DateTimeOffset.Now;
             DateTimeOffset endTime = currentTime.AddHours(config.nDurationHours);
             // power bi free subscription won't allow more than 10,000 records per hour per dataset, so roughly 3 records per second
-            // we can generate a cdr per second, plus a fraud cdr, plus aggregation record, so at least 1000ms 
+            // we can generate a cdr per second, plus a fraud cdr, plus aggregation record, so at least 1s (1000ms) per record;
+            // power bi pro allows for 1,000,000 records per hour, so 100 every sec, 6,000 per min, 360,000 per hour, plus agg;
             int milliSecPerCDR = config.isPowerBiPro ? 10 : 1000; 
             int fraudConsecutiveCallInSec = 5;
             int total = 0;
