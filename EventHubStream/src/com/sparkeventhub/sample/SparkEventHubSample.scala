@@ -29,6 +29,8 @@ import org.apache.http.entity.StringEntity
 import com.google.gson.Gson
 import java.util.Calendar
 import java.util.TimeZone
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
 
 object SparkEventHubSample {
   case class FraudEntity(DetectedAt:String, IMSI:String, Number1:String, Number2:String, Country1:String, Country2:String, Duration:Long, Cost:Long)
@@ -62,7 +64,7 @@ object SparkEventHubSample {
        "eventhubs.consumergroup" -> "$default",
        "eventhubs.checkpoint.dir" -> "sparkcheckpoint", //for simplicity we are not using reliable receiver with checkpoint in this example
        "eventhubs.checkpoint.interval" -> "60")
-    	    	       
+
     //Create Power BI dataset
 /*    {
   "name": "StrataDemo",
@@ -150,13 +152,16 @@ object SparkEventHubSample {
     //lines.print()  //above is all we need to verify we can see each message from EventHub
 
     //convert international datetime string to unix time
-    val isoformat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'")
+    val isoformat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
     def date2long: (String => Long) = (s: String) => try { isoformat.parse(s).getTime() } catch { case _: Throwable => 0 }
     val sqlfunc = udf(date2long)
     def roundUp: (Double => Long) = (d: Double) => math.ceil(d).toLong
     val roundfunc = udf(roundUp)
 
     isoformat.setTimeZone(TimeZone.getTimeZone("UTC"))
+    //Logger.getLogger("org").setLevel(Level.ERROR)
+    //Logger.getLogger("akka").setLevel(Level.ERROR)
+
     //val wlines = lines.window(Seconds(streamBatchIntervalInSeconds*2), Seconds(streamBatchIntervalInSeconds))
     lines.foreachRDD { rdd => if (!rdd.isEmpty()) 
         {
