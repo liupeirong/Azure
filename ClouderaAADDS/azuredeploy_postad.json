@@ -1,0 +1,234 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUserName": {
+      "type": "string",
+      "defaultValue": "testuser",
+      "metadata": {
+        "description": "Admin user name for the Virtual Machines"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the Virtual Machines"
+      }
+    },
+    "cmUsername": {
+      "type": "string",
+      "defaultValue": "cmadmin",
+      "metadata": {
+        "description": "User name for the Cloudera Manager"
+      }
+    },
+    "cmPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "password for the Cloudera Manager"
+      }
+    },
+    "dnsNamePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique public dns name where the Virtual Machines will be exposed"
+      }
+    },
+    "adDomainName": {
+      "type": "string",
+      "metadata": {
+        "description": "Active Directory domain name"
+      }
+    },
+    "region": {
+      "type": "string",
+      "defaultValue": "japanwest",
+      "metadata": {
+        "description": "Location where resources will be provisioned"
+      }
+    },
+    "nodeAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.1.",
+      "metadata": {
+        "description": "Address prefix for VMs"
+      }
+    },
+    "tshirtSize": {
+      "type": "string",
+      "defaultValue": "Eval",
+      "allowedValues": [
+        "Eval",
+        "Prod"
+      ],
+      "metadata": {
+        "description": "T-shirt size of the Cloudera cluster (Eval, Prod)"
+      }
+    },
+    "numberOfDataNodes": {
+      "type": "int",
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Number of data nodes for Prod, default to 3"
+      }
+    },
+    "company": {
+      "type": "string",
+      "defaultValue": "Company",
+      "metadata": {
+        "description": "Your Company"
+      }
+    },
+    "emailAddress": {
+      "type": "string",
+      "defaultValue": "email@yourcompany.com",
+      "metadata": {
+        "description": "your email"
+      }
+    },
+    "businessPhone": {
+      "type": "string",
+      "defaultValue": "123456789",
+      "metadata": {
+        "description": "your business phone number"
+      }
+    },
+    "firstName": {
+      "type": "string",
+      "defaultValue": "FirstName",
+      "metadata": {
+        "description": "Your FirstName"
+      }
+    },
+    "lastName": {
+      "type": "string",
+      "defaultValue": "LastName",
+      "metadata": {
+        "description": "Your LastName"
+      }
+    },
+    "jobRole": {
+      "type": "string",
+      "defaultValue": "Administrator",
+      "metadata": {
+        "description": "Job Role"
+      },
+      "allowedValues": [
+        "Administrator",
+        "Analyst (Industry/Finance)",
+        "Analyst (Technical)",
+        "Architect",
+        "C level",
+        "Consultant",
+        "Developer",
+        "Director",
+        "Engineer",
+        "Individual contributor",
+        "Manager",
+        "Partner",
+        "Student",
+        "VP"
+      ]
+    },
+    "jobFunction": {
+      "type": "string",
+      "defaultValue": "Analytics / Business Intelligence",
+      "metadata": {
+        "description": "Job Function"
+      },
+      "allowedValues": [
+        "Analytics / Business Intelligence",
+        "Big Data / Architecture",
+        "Data Warehouse / Management",
+        "Data Science",
+        "Database",
+        "ETL / ELT",
+        "Infrastructure",
+        "IT",
+        "Marketing / Sales",
+        "Networking",
+        "Manager",
+        "Security / Compliance",
+        "Storage"
+      ]
+    }
+  },
+  "variables": {
+    "scriptsUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaAD",
+    "clusterTshirtSizeEval": {
+      "masterNodeCount": 1,
+      "dataNodeCount": "[parameters('numberOfDataNodes')]",
+      "highAvailability": "false"
+    },
+    "clusterTshirtSizeProd": {
+      "masterNodeCount": 3,
+      "dataNodeCount": "[parameters('numberOfDataNodes')]",
+      "highAvailability": "true"
+    },
+    "clusterSpec": "[variables(concat('clusterTshirtSize', parameters('tshirtSize')))]",
+    "vmSpec": {
+      "adminUserName": "[parameters('adminUserName')]",
+      "adminPassword": "[parameters('adminPassword')]"
+    },
+    "networkSpec": {
+      "privateIPPrefix": "[parameters('nodeAddressPrefix')]",
+      "masterNodeAddressStart": 10,
+      "dataNodeAddressStart": 20
+    },
+    "userInfo": {
+      "company": "[parameters('company')]",
+      "emailAddress": "[parameters('emailAddress')]",
+      "businessPhone": "[parameters('businessPhone')]",
+      "firstName": "[parameters('firstName')]",
+      "lastName": "[parameters('lastName')]",
+      "jobRole": "[parameters('jobRole')]",
+      "jobFunction": "[parameters('jobFunction')]"
+    }
+  },
+  "resources": [
+    {
+        "name": "setup-cloudera",
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2015-01-01",
+        "properties": {
+            "mode": "Incremental",
+            "templateLink": {
+                "uri": "[concat(variables('scriptsUri'), '/setup-cloudera.json')]",
+                "contentVersion": "1.0.0.0"
+            },
+            "parameters": {
+                "dnsNamePrefix": {
+                  "value": "[parameters('dnsNamePrefix')]"
+                },
+                "region": {
+                    "value": "[parameters('region')]"
+                },
+                "scriptsUri": {
+                    "value": "[variables('scriptsUri')]"
+                },
+                "vmSpec": {
+                  "value": "[variables('vmSpec')]"
+                },
+                "networkSpec": {
+                    "value": "[variables('networkSpec')]"
+                },
+                "clusterSpec": {
+                    "value": "[variables('clusterSpec')]"
+                },
+                "adDomainName": {
+                    "value": "[parameters('adDomainName')]"
+                },
+                "cmUsername": {
+                    "value": "[parameters('cmUsername')]"
+                },
+                "cmPassword": {
+                    "value": "[parameters('cmPassword')]"
+                },
+                "userInfo": {
+                    "value": "[variables('userInfo')]"
+                }
+            }
+        }
+    }
+  ]
+}
