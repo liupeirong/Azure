@@ -133,7 +133,7 @@
     }
   },
   "variables": {
-    "scriptsUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaAD",
+    "scriptsUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaAADDS",
     "storageAccount": {
       "prefix": "[parameters('storageAccountPrefix')]",
       "type": "[parameters('storageAccountType')]"

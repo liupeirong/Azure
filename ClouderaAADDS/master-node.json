@@ -192,7 +192,6 @@
         "settings": {
           "fileUris": [
             "[concat(parameters('scriptsUri'), '/config/krb5.conf')]",
-            "[concat(parameters('scriptsUri'), '/config/smb.conf')]",
             "[concat(parameters('scriptsUri'), '/config/sssd.conf')]",
             "[concat(parameters('scriptsUri'), '/config/ntp.conf')]",
             "[concat(parameters('scriptsUri'), '/config/resolv.conf')]",
