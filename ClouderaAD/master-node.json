@@ -24,7 +24,7 @@
       "type": "object"
     },
     "clusterSpec": {
-        "type": "object"
+      "type": "object"
     },
     "adSpec": {
       "type": "object"
@@ -199,7 +199,7 @@
             "[concat(parameters('scriptsUri'), '/scripts/prepare-masternode-disks.sh')]",
             "[concat(parameters('scriptsUri'), '/scripts/initialize-node.sh')]"
           ],
-          "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"', parameters('adSpec').adDomainName, '\" \"', parameters('adSpec').PDC, '\" \"', parameters('adSpec').BDC, '\" \"', parameters('adSpec').PDCIP, '\" \"', parameters('adSpec').BDCIP, '\" ', parameters('clusterSpec').masterNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\" ', 'masternode', ' >> /home/$ADMINUSER/initialize-masternode.log 2>&1')]"
+          "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"', parameters('adSpec').adDomainName, '\" \"', parameters('adSpec').PDC, '\" \"', parameters('adSpec').BDC, '\" \"', parameters('adSpec').PDCIP, '\" \"', parameters('adSpec').BDCIP, '\" ', parameters('clusterSpec').masterNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\" ', 'masternode ', parameters('adSpec').useLdapIDMapping, ' >> /home/$ADMINUSER/initialize-masternode.log 2>&1')]"
         }
       }
     }

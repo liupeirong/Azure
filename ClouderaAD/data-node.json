@@ -1,35 +1,35 @@
 {
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {
-        "dnsNamePrefix": {
-            "type": "string"
-        },
-        "region": {
-            "type": "string"
-        },
-        "scriptsUri": {
-            "type": "string"
-        },
-        "storageAccount": {
-            "type": "object"
-        },
-        "vmCount": {
-            "type": "int"
-        },
-        "vmSpec": {
-            "type": "object"
-        },
-        "networkSpec": {
-            "type": "object"
-        },
-        "clusterSpec": {
-            "type": "object"
-        },
-        "adSpec": {
-            "type": "object"
-        }
+  "parameters": {
+    "dnsNamePrefix": {
+      "type": "string"
     },
+    "region": {
+      "type": "string"
+    },
+    "scriptsUri": {
+      "type": "string"
+    },
+    "storageAccount": {
+      "type": "object"
+    },
+    "vmCount": {
+      "type": "int"
+    },
+    "vmSpec": {
+      "type": "object"
+    },
+    "networkSpec": {
+      "type": "object"
+    },
+    "clusterSpec": {
+      "type": "object"
+    },
+    "adSpec": {
+      "type": "object"
+    }
+  },
     "variables": {
         "vmName": "[concat(parameters('dnsNamePrefix'), '-dn')]",
         "nicName": "[concat(variables('vmName'), '-nic')]",
@@ -187,18 +187,18 @@
                 "publisher": "Microsoft.OSTCExtensions",
                 "type": "CustomScriptForLinux",
                 "typeHandlerVersion": "1.4",
-                "settings": {
-                    "fileUris": [
-                        "[concat(parameters('scriptsUri'), '/config/krb5.conf')]",
-                        "[concat(parameters('scriptsUri'), '/config/smb.conf')]",
-                        "[concat(parameters('scriptsUri'), '/config/sssd.conf')]",
-                        "[concat(parameters('scriptsUri'), '/config/ntp.conf')]",
-                        "[concat(parameters('scriptsUri'), '/config/resolv.conf')]",
-                        "[concat(parameters('scriptsUri'), '/scripts/prepare-datanode-disks.sh')]",
-                        "[concat(parameters('scriptsUri'), '/scripts/initialize-node.sh')]"
-                    ],
-                    "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"', parameters('adSpec').adDomainName, '\" \"', parameters('adSpec').PDC, '\" \"', parameters('adSpec').BDC, '\" \"', parameters('adSpec').PDCIP, '\" \"', parameters('adSpec').BDCIP, '\" ', parameters('clusterSpec').masterNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\" ', 'datanode', ' >> /home/$ADMINUSER/initialize-datanode.log 2>&1')]"
-                }
+              "settings": {
+                "fileUris": [
+                  "[concat(parameters('scriptsUri'), '/config/krb5.conf')]",
+                  "[concat(parameters('scriptsUri'), '/config/smb.conf')]",
+                  "[concat(parameters('scriptsUri'), '/config/sssd.conf')]",
+                  "[concat(parameters('scriptsUri'), '/config/ntp.conf')]",
+                  "[concat(parameters('scriptsUri'), '/config/resolv.conf')]",
+                  "[concat(parameters('scriptsUri'), '/scripts/prepare-datanode-disks.sh')]",
+                  "[concat(parameters('scriptsUri'), '/scripts/initialize-node.sh')]"
+                ],
+                "commandToExecute": "[concat('sh initialize-node.sh \"', parameters('networkSpec').privateIPPrefix, '\" \"', parameters('dnsNamePrefix'), '\" \"', parameters('adSpec').adDomainName, '\" \"', parameters('adSpec').PDC, '\" \"', parameters('adSpec').BDC, '\" \"', parameters('adSpec').PDCIP, '\" \"', parameters('adSpec').BDCIP, '\" ', parameters('clusterSpec').masterNodeCount, ' ', parameters('clusterSpec').dataNodeCount, ' \"', parameters('vmSpec').adminUserName, '\" ', 'datanode ', parameters('adSpec').useLdapIDMapping, ' >> /home/$ADMINUSER/initialize-datanode.log 2>&1')]"
+              }
             }
         }
     ]

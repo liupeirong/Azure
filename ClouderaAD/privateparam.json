@@ -1,57 +1,57 @@
 {
   "storageAccountPrefix": {
-    "value": "make_me_unique"
+    "value": "pliuclouderads"
   },
   "dnsNamePrefix": {
-    "value": "make_me_unique"
+    "value": "contoso"
   },
   "adDomainName": {
-    "value": "example.com"
+    "value": "bigdata.local"
   },
   "PDC": {
-    "value": "mypdc"
+    "value": "ad1"
   },
   "BDC": {
-    "value": "mybdc"
+    "value": "ad2"
   },
   "PDCIP": {
-    "value": "10.0.0.4"
+    "value": "10.1.1.4"
   },
   "BDCIP": {
-    "value": "10.0.0.5"
+    "value": "10.1.1.5"
   },
   "useLdapIDMapping": {
-    "value": "False"
+    "value": "True"
   },
   "adminUserName": {
-    "value": "testuser"
+    "value": "pliu"
   },
   "adminPassword": {
-    "value": "secret"
+    "value": "MicrosoftDx1"
   },
   "numberOfDataNodes": {
     "value": 3
   },
   "region": {
-    "value": "someplace"
+    "value": "southeastasia"
   },
   "storageAccountType": {
     "value": "Premium_LRS"
   },
   "virtualNetworkName": {
-    "value": "myvnet"
+    "value": "contosovnet"
   },
   "subnetName": {
-    "value": "hadoopSubnet"
+    "value": "hadoopsubnet"
   },
   "vnetResourceGroup": {
-    "value": "myvnetrg"
+    "value": "contosobigdata"
   },
   "subnetPrefix": {
-    "value": "10.0.1.0/24"
+    "value": "10.7.1.0/24"
   },
   "nodeAddressPrefix": {
-    "value": "10.0.1."
+    "value": "10.7.1."
   },
   "tshirtSize": {
     "value": "Eval"

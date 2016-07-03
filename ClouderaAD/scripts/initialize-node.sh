@@ -22,6 +22,7 @@ MASTERNODES=$8
 DATANODES=$9
 ADMINUSER=${10}
 NODETYPE=${11}
+USEIDMAPPING=${12}
 
 replace_ad_params() {
     target=${1}
@@ -33,6 +34,7 @@ replace_ad_params() {
     sed -i "s/REPLACEBDC/${BDC}/g" ${target}
     sed -i "s/REPLACEIPPDC/${PDCIP}/g" ${target}
     sed -i "s/REPLACEIPBDC/${BDCIP}/g" ${target}
+    sed -i "s/REPLACEIDMAPPING/${USEIDMAPPING}/g" ${target}
 }
 
 #Generate IP Addresses for the cloudera setup

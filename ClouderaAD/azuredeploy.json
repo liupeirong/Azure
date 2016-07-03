@@ -57,6 +57,13 @@
         "description": "BDC private static IP"
       }
     },
+    "useLdapIDMapping": {
+      "type": "string",
+      "defaultValue": "False",
+      "metadata": {
+        "description": "determines whether to use ldap id mapping on linux (case sensitive True or False)"
+      }
+    },
     "region": {
       "type": "string",
       "defaultValue": "japanwest",
@@ -171,7 +178,8 @@
       "PDC": "[parameters('PDC')]",
       "BDC": "[parameters('BDC')]",
       "PDCIP": "[parameters('PDCIP')]",
-      "BDCIP": "[parameters('BDCIP')]"
+      "BDCIP": "[parameters('BDCIP')]",
+      "useLdapIDMapping": "[parameters('useLdapIDMapping')]"
     }
   },
   "resources": [
