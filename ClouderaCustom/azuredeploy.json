@@ -219,7 +219,7 @@
     "installCDH": "True",
     "addressPrefix": "[parameters('addressPrefix')]",
     "subnetPrefix": "[parameters('subnetPrefix')]",
-    "scriptsUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaAD",
+    "scriptsUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaCustom",
     "share-resourcesUri": "[concat(variables('scriptsUri'), '/shared-resources-', parameters('vnetNewOrExisting'), '-vnet.json')]",
     "data-nodeUri": "[concat(variables('scriptsUri'), '/data-node-', toLower(subString(parameters('vmSize'), 9, 4)), '.json')]",
     "sa": "[parameters('masterNodeIPAddress')]",
