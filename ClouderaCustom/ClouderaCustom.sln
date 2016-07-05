@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{81862F10-E7A0-4F9C-A16C-4DC55C7C26FF}"
+	ProjectSection(SolutionItems) = preProject
+		azuredeploy.json = azuredeploy.json
+		azuredeploy.parameters.json = azuredeploy.parameters.json
+		data-node-ds13.json = data-node-ds13.json
+		data-node-ds14.json = data-node-ds14.json
+		deploy_cdh.ps1 = deploy_cdh.ps1
+		ds13.json = ds13.json
+		LICENSE.txt = LICENSE.txt
+		master-node.json = master-node.json
+		metadata.json = metadata.json
+		README.md = README.md
+		setup-cloudera.json = setup-cloudera.json
+		shared-resources-existing-vnet.json = shared-resources-existing-vnet.json
+		shared-resources-new-vnet.json = shared-resources-new-vnet.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{AFAA2762-54DF-44DE-9E64-0232527641FF}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\bootstrap-cloudera.sh = scripts\bootstrap-cloudera.sh
+		scripts\cmxDeployOnIbiza.py = scripts\cmxDeployOnIbiza.py
+		scripts\initialize-cloudera-server.sh = scripts\initialize-cloudera-server.sh
+		scripts\initialize-node.sh = scripts\initialize-node.sh
+		scripts\install-postgresql.sh = scripts\install-postgresql.sh
+		scripts\prepare-datanode-disks.sh = scripts\prepare-datanode-disks.sh
+		scripts\prepare-masternode-disks.sh = scripts\prepare-masternode-disks.sh
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AFAA2762-54DF-44DE-9E64-0232527641FF} = {81862F10-E7A0-4F9C-A16C-4DC55C7C26FF}
+	EndGlobalSection
+EndGlobal
