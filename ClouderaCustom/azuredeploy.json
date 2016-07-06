@@ -221,7 +221,7 @@
     "subnetPrefix": "[parameters('subnetPrefix')]",
     "scriptsUri": "https://raw.githubusercontent.com/liupeirong/Azure/master/ClouderaCustom",
     "share-resourcesUri": "[concat(variables('scriptsUri'), '/shared-resources-', parameters('vnetNewOrExisting'), '-vnet.json')]",
-    "data-nodeUri": "[concat(variables('scriptsUri'), '/data-node-', toLower(subString(parameters('vmSize'), 9, 4)), '.json')]",
+    "data-nodeUri": "[concat(variables('scriptsUri'), '/data-node.json')]",
     "sa": "[parameters('masterNodeIPAddress')]",
     "ipOctet01": "[concat(split(variables('sa'), '.')[0], '.', split(variables('sa'), '.')[1], '.')]",
     "ipOctet2": "[int(split(variables('sa'), '.')[2])]",

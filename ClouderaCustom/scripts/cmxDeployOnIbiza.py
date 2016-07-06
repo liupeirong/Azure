@@ -33,7 +33,15 @@ def getParameterValue(vmsize, parameter):
         "Standard_DS13:impalad_memory_limit": "21500000000"
 
     }
-    return switcher.get(vmsize+":"+parameter, "0")
+    found = switcher.get(vmsize+":"+parameter, "0")
+    if found == "0":
+        switcher = {
+            "yarn_nodemanager_resource_cpu_vcores": "3",
+            "yarn_nodemanager_resource_memory_mb": "18000",
+            "impalad_memory_limit": "18000000000"
+        }
+        found = switcher.get(parameter, "0")
+    return found
 
 def getDataDiskCount():
     bashCommand="lsblk | grep /data | grep -v /data/ | wc -l"
