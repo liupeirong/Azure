@@ -23,16 +23,18 @@
     },
     "nsgName": {
       "type": "string"
+    },
+    "resourceAPIVersion": {
+      "type": "string"
     }
   },
   "variables": {
-    "resourceAPIVersion": "2015-06-15",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "dbSubnet": "[concat(variables('vnetID'),'/subnets/',parameters('dbSubnetName'))]"
   },
   "resources": [
     {
-      "apiVersion": "[variables('resourceAPIVersion')]",
+      "apiVersion": "[parameters('resourceAPIVersion')]",
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[parameters('virtualNetworkName')]",
       "location": "[parameters('location')]",

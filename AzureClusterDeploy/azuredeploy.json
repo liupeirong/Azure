@@ -209,6 +209,9 @@
           },
           "virtualNetworkExistingRGName": {
             "value": "[parameters('virtualNetworkExistingRGName')]"
+          },
+          "resourceAPIVersion": {
+            "value": "[variables('resourceAPIVersion')]"
           }
         }
       }

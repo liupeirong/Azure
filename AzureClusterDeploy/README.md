@@ -8,11 +8,13 @@
 # A Generic Template for deploying a cluster of VMs in Azure
 
 Use this template as the basis for your cluster deployment if your deployment has the following characteristics:
-* You need to deploy a number of VMs in parallel
+* You need to deploy a number of VMs in parallel, to a new or existing vnet
 * After the VMs are up, you need to run install scripts from one VM, and from there, ssh into other nodes to set them up
 * You need to handle the ssh keys securely
 * Disks attached to the VMs will be automatically formatted and mounted to /data0, /data1...
 * You may want to put your scripts and config files in a secred Azure storage account than public github
+
+For instructions on how to create and upload keys to Key Vault, please see createUploadKey.txt.
 
 ```
 
