@@ -1,0 +1,46 @@
+# 
+# This script creates a pfx from scratch on Windows, and uploads it to Azure Key Vault.
+# When a VM is deployed in Azure, the private/public key can be automatically downloaded to the VM
+#
+# Run this in a PowerShell console, although the only part that relies on PowerShell is get the byte
+# stream of the pfx file and encode it to base64.  If you have another way to do this, you don't need 
+# PowerShell or Windows.  Azure cross platform client tool is used for Key Vault management. 
+#
+
+#
+# Create a pfx from scratch.  If you already have a pfx file, skip this.
+#
+makecert -r -sv mytest.pvk -n "CN=Contoso" mytest.cer -b 07/01/2016 -e 07/01/2050
+pvk2pfx -pvk mytest.pvk -spc mytest.cer -pfx mytest.pfx
+
+#
+# Encode pfx to base64.  This part uses PowerShell
+#
+$fileContentBytes = get-content mytest.pfx -Encoding Byte
+$fileContentEncoded = [System.Convert]::ToBase64String($fileContentBytes)
+$jsonObject = @"
+{
+"data": "$filecontentencoded",
+"dataType" :"pfx",
+"password": ""
+}
+"@
+$jsonObjectBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonObject)
+$jsonEncoded = [System.Convert]::ToBase64String($jsonObjectBytes)
+$env:SECRET=$jsonEncoded
+
+#
+# Create Key Vault using Azure Cli tool, assuming you are already loggedin.
+# If you already have a Key Vault, skip this.
+#
+azure provider register Microsoft.KeyVault
+azure keyvault create --vault-name ContosoKeyVault --resource-group contosorg --location westus
+
+#
+# Upload the key to Key Vault, the command will return an ID for the key in the format of:
+# https://contosokeyvault.vault.azure.net/secrets/MyTestSSHPfx/<random string>
+# This is the Uri to use when retrieving the key
+#
+azure keyvault secret set --vault-name ContosoKeyVault --secret-name MyTestSSHPfx --value %SECRET%
+azure keyvault set-policy ContosoKeyVault --enabled-for-template-deployment true
+azure keyvault set-policy ContosoKeyVault --enabled-for-deployment true

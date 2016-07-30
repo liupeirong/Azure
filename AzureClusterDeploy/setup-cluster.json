@@ -1,0 +1,46 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "dnsName": {
+      "type": "string"
+    },
+    "nodeCount": {
+      "type": "int"
+    },
+    "artifactsPath": {
+      "type": "string"
+    },
+    "artifactsSAS": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "resourceAPIVersion": {
+      "type": "string"
+    },
+    "handlerVersion": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "[parameters('resourceAPIVersion')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('dnsName'), '0/initializeNode')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "[parameters('handlerVersion')]",
+        "settings": {
+          "fileUris": [
+            "[concat(parameters('artifactsPath'), '/installCluster.sh', parameters('artifactsSAS'))]"
+          ],
+          "commandToExecute": "[concat('bash installCluster.sh ', parameters('dnsName'), ' ', parameters('nodeCount'))]"
+        }
+      }
+    }
+  ]
+}
