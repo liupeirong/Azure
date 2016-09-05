@@ -1,0 +1,209 @@
+#cloud-config
+coreos:
+  update:
+    reboot-strategy: "off"
+  flannel:
+    interface: $private_ipv4
+    etcd_endpoints: http://REPLACE_CONTROLLERIP:2379
+  units:
+    - name: docker.service
+      drop-ins:
+        - name: 40-flannel.conf
+          content: |
+            [Unit]
+            Requires=flanneld.service
+            After=flanneld.service
+
+    - name: kubelet.service
+      enable: true
+      command: start
+      content: |
+        [Unit]
+        Requires=docker.service
+        After=docker.service
+
+        [Service]
+        Environment=KUBELET_VERSION=v1.3.3_coreos.0
+        Environment=KUBELET_ACI=quay.io/coreos/hyperkube
+        Environment="RKT_OPTS=--volume dns,kind=host,source=/etc/resolv.conf --mount volume=dns,target=/etc/resolv.conf"
+        ExecStart=/usr/lib/coreos/kubelet-wrapper \
+        --api-servers=https://REPLACE_CONTROLLERIP:443 \
+        --network-plugin-dir=/etc/kubernetes/cni/net.d \
+        --network-plugin= \
+        --register-node=true \
+        --allow-privileged=true \
+        --config=/etc/kubernetes/manifests \
+        --cluster_dns=REPLACE_KUBEDNSIP \
+        --cluster_domain=cluster.local \
+        --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
+        --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
+        --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem
+        Restart=always
+        RestartSec=10
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: calico-node.service
+      command: start
+      enable: false
+      content: |
+        [Unit]
+        Description=Calico per-host agent
+        Requires=network-online.target
+        After=network-online.target
+
+        [Service]
+        Slice=machine.slice
+        Environment=CALICO_DISABLE_FILE_LOGGING=true
+        Environment=HOSTNAME=$private_ipv4
+        Environment=IP=$private_ipv4
+        Environment=FELIX_FELIXHOSTNAME=$private_ipv4
+        Environment=CALICO_NETWORKING=false
+        Environment=NO_DEFAULT_POOLS=true
+        Environment=ETCD_ENDPOINTS=http://REPLACE_CONTROLLERIP:2379
+        ExecStart=/usr/bin/rkt run --inherit-env --stage1-from-dir=stage1-fly.aci \
+        --volume=modules,kind=host,source=/lib/modules,readOnly=false \
+        --mount=volume=modules,target=/lib/modules \
+        --trust-keys-from-https quay.io/calico/node:v0.19.0
+        KillMode=mixed
+        Restart=always
+        TimeoutStartSec=0
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: azure-get-cifs.service
+      enable: true
+      command: start
+      content: |
+        [Unit]
+        Description=Copy CIFS mount
+        After=network.target docker.service
+        Requires=docker.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        TimeoutStartSec=0
+        ExecStartPre = -/usr/bin/mkdir -p /opt/sbin
+        ExecStart=/bin/sh -c "rm -fr /opt/sbin && rsync -a /usr/sbin/ /opt/sbin/ && /usr/bin/docker run -v /opt/sbin:/target so0k/mount.cifs_copy /target && mount --bind /opt/sbin/ /usr/sbin/"
+
+        [Install]
+        WantedBy = multi-user.target
+        
+    - name: azure-mount-afs.service
+      enable: true
+      command: start
+      content: |
+        [Unit]
+        Description=mount azure file system
+        After=azure-get-cifs.service
+        Requires=azure-get-cifs.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/opt/bin/mount-afs
+
+        [Install]
+        WantedBy= multi-user.target
+
+write_files:
+  - path: /etc/kubernetes/ssl/worker.pem
+    encoding: base64
+    content: STRIPPED_WORKERPEM
+  - path: /etc/kubernetes/ssl/worker-key.pem
+    encoding: base64
+    content: STRIPPED_WORKERKEYPEM
+  - path: /etc/kubernetes/ssl/ca.pem
+    encoding: base64
+    content: STRIPPED_CAPEM
+  - path: /opt/bin/mount-afs
+    owner: root:root
+    permissions: 0700
+    content: |
+      #!/bin/bash -e
+
+      mkdir -p /data/shared
+      /opt/sbin/mount.cifs -o vers=2.1,username=REPLACE_AFSACCOUNT,password=REPLACE_AFSKEY,dir_mode=0777,file_mode=0777 \
+      //REPLACE_AFSACCOUNT.file.core.windows.net/REPLACE_AFSSHARE /data/shared
+
+  - path: /etc/kubernetes/manifests/kube-proxy.yaml
+    content: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: kube-proxy
+          namespace: kube-system
+        spec:
+          hostNetwork: true
+          containers:
+          - name: kube-proxy
+            image: quay.io/coreos/hyperkube:v1.3.3_coreos.0
+            command:
+            - /hyperkube
+            - proxy
+            - --master=https://REPLACE_CONTROLLERIP:443
+            - --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml
+            - --proxy-mode=iptables
+            securityContext:
+              privileged: true
+            volumeMounts:
+              - mountPath: /etc/ssl/certs
+                name: "ssl-certs"
+              - mountPath: /etc/kubernetes/worker-kubeconfig.yaml
+                name: "kubeconfig"
+                readOnly: true
+              - mountPath: /etc/kubernetes/ssl
+                name: "etc-kube-ssl"
+                readOnly: true
+          volumes:
+            - name: "ssl-certs"
+              hostPath:
+                path: "/usr/share/ca-certificates"
+            - name: "kubeconfig"
+              hostPath:
+                path: "/etc/kubernetes/worker-kubeconfig.yaml"
+            - name: "etc-kube-ssl"
+              hostPath:
+                path: "/etc/kubernetes/ssl"
+
+  - path: /etc/kubernetes/worker-kubeconfig.yaml
+    content: |
+        apiVersion: v1
+        kind: Config
+        clusters:
+        - name: local
+          cluster:
+            certificate-authority: /etc/kubernetes/ssl/ca.pem
+        users:
+        - name: kubelet
+          user:
+            client-certificate: /etc/kubernetes/ssl/worker.pem
+            client-key: /etc/kubernetes/ssl/worker-key.pem
+        contexts:
+        - context:
+            cluster: local
+            user: kubelet
+          name: kubelet-context
+        current-context: kubelet-context
+
+  - path: /etc/kubernetes/cni/net.d/10-calico.conf
+    content: |
+        {
+            "name": "calico",
+            "type": "flannel",
+            "delegate": {
+                "type": "calico",
+                "etcd_endpoints": "http://REPLACE_CONTROLLERIP:2379",
+                "log_level": "none",
+                "log_level_stderr": "info",
+                "hostname": "$private_ipv4",
+                "policy": {
+                    "type": "k8s",
+                    "k8s_api_root": "https://REPLACE_CONTROLLERIP:443/api/v1/",
+                    "k8s_client_key": "/etc/kubernetes/ssl/worker-key.pem",
+                    "k8s_client_certificate": "/etc/kubernetes/ssl/worker.pem"
+                }
+            }
+        }

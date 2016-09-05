@@ -1,0 +1,711 @@
+#cloud-config
+coreos:
+  update:
+    reboot-strategy: "off"
+  flannel:
+    interface: $private_ipv4
+    etcd_endpoints: http://REPLACE_CONTROLLERIP:2379
+  etcd2:
+    name: controller
+    advertise-client-urls: http://$private_ipv4:2379
+    initial-advertise-peer-urls: http://$private_ipv4:2380
+    listen-client-urls: http://0.0.0.0:2379
+    listen-peer-urls: http://0.0.0.0:2380
+    initial-cluster: controller=http://$private_ipv4:2380
+  units:
+    - name: etcd2.service
+      command: start
+
+    - name: docker.service
+      drop-ins:
+        - name: 40-flannel.conf
+          content: |
+            [Unit]
+            Requires=flanneld.service
+            After=flanneld.service
+
+    - name: flanneld.service
+      drop-ins:
+        - name: 10-etcd.conf
+          content: |
+            [Service]
+            ExecStartPre=/usr/bin/curl --silent -X PUT -d \
+            "value={\"Network\" : \"REPLACE_KUBEPODNETWORKCIDR\", \"Backend\" : {\"Type\" : \"vxlan\"}}" \
+            http://localhost:2379/v2/keys/coreos.com/network/config?prevExist=false
+    - name: kubelet.service
+      command: start
+      enable: true
+      content: |
+        [Service]
+        Environment=KUBELET_VERSION=v1.3.3_coreos.0
+        Environment=KUBELET_ACI=quay.io/coreos/hyperkube
+        Environment="RKT_OPTS=--volume dns,kind=host,source=/etc/resolv.conf --mount volume=dns,target=/etc/resolv.conf"
+        ExecStart=/usr/lib/coreos/kubelet-wrapper \
+        --api-servers=http://localhost:8080 \
+        --network-plugin-dir=/etc/kubernetes/cni/net.d \
+        --network-plugin= \
+        --register-schedulable=false \
+        --allow-privileged=true \
+        --config=/etc/kubernetes/manifests \
+        --cluster_dns=REPLACE_KUBEDNSIP \
+        --cluster_domain=cluster.local
+        Restart=always
+        RestartSec=10
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: calico-node.service
+      command: start
+      enable: false
+      content: |
+        [Unit]
+        Description=Calico per-host agent
+        Requires=network-online.target
+        After=network-online.target
+
+        [Service]
+        Slice=machine.slice
+        Environment=CALICO_DISABLE_FILE_LOGGING=true
+        Environment=HOSTNAME=$private_ipv4
+        Environment=IP=$private_ipv4
+        Environment=FELIX_FELIXHOSTNAME=$private_ipv4
+        Environment=CALICO_NETWORKING=false
+        Environment=NO_DEFAULT_POOLS=true
+        Environment=ETCD_ENDPOINTS=http://REPLACE_CONTROLLERIP:2379
+        ExecStart=/usr/bin/rkt run --inherit-env --stage1-from-dir=stage1-fly.aci \
+        --volume=modules,kind=host,source=/lib/modules,readOnly=false \
+        --mount=volume=modules,target=/lib/modules \
+        --trust-keys-from-https quay.io/calico/node:v0.19.0
+        KillMode=mixed
+        Restart=always
+        TimeoutStartSec=0
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: install-kube-system.service
+      command: start
+      content: |
+        [Unit]
+        Requires=kubelet.service docker.service
+        After=kubelet.service docker.service
+
+        [Service]
+        Type=simple
+        StartLimitInterval=0
+        Restart=on-failure
+        ExecStartPre=/usr/bin/curl http://127.0.0.1:8080/version
+        ExecStart=/opt/bin/install-kube-system
+
+    - name: install-calico-system.service
+      command: start
+      enable: false
+      content: |
+        [Unit]
+        Requires=kubelet.service docker.service
+        After=kubelet.service docker.service
+
+        [Service]
+        Type=simple
+        StartLimitInterval=0
+        Restart=on-failure
+        ExecStartPre=/usr/bin/curl http://127.0.0.1:8080/version
+        ExecStart=/opt/bin/install-calico-system
+
+write_files:
+  - path: /opt/bin/install-kube-system
+    permissions: 0700
+    owner: root:root
+    content: |
+      #!/bin/bash -e
+      /usr/bin/curl -H "Content-Type: application/json" -XPOST -d @"/srv/kubernetes/manifests/kube-system.json" "http://127.0.0.1:8080/api/v1/namespaces"
+
+      /usr/bin/curl  -H "Content-Type: application/json" -XPOST \
+      -d @"/srv/kubernetes/manifests/kube-dns-rc.json" \
+      "http://127.0.0.1:8080/api/v1/namespaces/kube-system/replicationcontrollers"
+
+      /usr/bin/curl  -H "Content-Type: application/json" -XPOST \
+      -d @"/srv/kubernetes/manifests/heapster-dc.json" \
+      "http://127.0.0.1:8080/apis/extensions/v1beta1/namespaces/kube-system/deployments"
+
+      for manifest in {kube-dns,heapster}-svc.json;do
+          /usr/bin/curl  -H "Content-Type: application/json" -XPOST \
+          -d @"/srv/kubernetes/manifests/$manifest" \
+          "http://127.0.0.1:8080/api/v1/namespaces/kube-system/services"
+      done
+
+  - path: /opt/bin/install-calico-system
+    permissions: 0700
+    owner: root:root
+    content: |
+      #!/bin/bash -e
+      /usr/bin/curl -H "Content-Type: application/json" -XPOST -d @"/srv/kubernetes/manifests/calico-system.json" "http://127.0.0.1:8080/api/v1/namespaces"
+
+      /usr/bin/curl -H "Content-Type: application/json" -XPOST \
+      -d @"/srv/kubernetes/manifests/network-policy.json" \
+      "http://127.0.0.1:8080/apis/extensions/v1beta1/namespaces/default/thirdpartyresources"
+
+
+      /usr/bin/cp /srv/kubernetes/manifests/calico-policy-agent.yaml /etc/kubernetes/manifests
+
+  - path: /etc/kubernetes/manifests/kube-proxy.yaml
+    content: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: kube-proxy
+          namespace: kube-system
+        spec:
+          hostNetwork: true
+          containers:
+          - name: kube-proxy
+            image: quay.io/coreos/hyperkube:v1.3.3_coreos.0
+            command:
+            - /hyperkube
+            - proxy
+            - --master=http://127.0.0.1:8080
+            - --proxy-mode=iptables
+            securityContext:
+              privileged: true
+            volumeMounts:
+            - mountPath: /etc/ssl/certs
+              name: ssl-certs-host
+              readOnly: true
+          volumes:
+          - hostPath:
+              path: /usr/share/ca-certificates
+            name: ssl-certs-host
+
+  - path: /etc/kubernetes/manifests/kube-apiserver.yaml
+    content: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: kube-apiserver
+        namespace: kube-system
+      spec:
+        hostNetwork: true
+        containers:
+        - name: kube-apiserver
+          image: quay.io/coreos/hyperkube:v1.3.3_coreos.0
+          command:
+          - /hyperkube
+          - apiserver
+          - --bind-address=0.0.0.0
+          - --etcd-servers=http://localhost:2379
+          - --allow-privileged=true
+          - --service-cluster-ip-range=REPLACE_KUBESERVICECIDR
+          - --secure-port=443
+          - --advertise-address=$private_ipv4
+          - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,ResourceQuota
+          - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
+          - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+          - --client-ca-file=/etc/kubernetes/ssl/ca.pem
+          - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+          - --runtime-config=extensions/v1beta1/deployments=true,extensions/v1beta1/daemonsets=true,extensions/v1beta1=true,extensions/v1beta1/thirdpartyresources=true,extensions/v1beta1/networkpolicies=true
+          ports:
+          - containerPort: 443
+            hostPort: 443
+            name: https
+          - containerPort: 8080
+            hostPort: 8080
+            name: local
+          volumeMounts:
+          - mountPath: /etc/kubernetes/ssl
+            name: ssl-certs-kubernetes
+            readOnly: true
+          - mountPath: /etc/ssl/certs
+            name: ssl-certs-host
+            readOnly: true
+        volumes:
+        - hostPath:
+            path: /etc/kubernetes/ssl
+          name: ssl-certs-kubernetes
+        - hostPath:
+            path: /usr/share/ca-certificates
+          name: ssl-certs-host
+
+  - path: /etc/kubernetes/manifests/kube-controller-manager.yaml
+    content: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: kube-controller-manager
+        namespace: kube-system
+      spec:
+        containers:
+        - name: kube-controller-manager
+          image: quay.io/coreos/hyperkube:v1.3.3_coreos.0
+          command:
+          - /hyperkube
+          - controller-manager
+          - --master=http://127.0.0.1:8080
+          - --leader-elect=true
+          - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+          - --root-ca-file=/etc/kubernetes/ssl/ca.pem
+          livenessProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /healthz
+              port: 10252
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          volumeMounts:
+          - mountPath: /etc/kubernetes/ssl
+            name: ssl-certs-kubernetes
+            readOnly: true
+          - mountPath: /etc/ssl/certs
+            name: ssl-certs-host
+            readOnly: true
+        hostNetwork: true
+        volumes:
+        - hostPath:
+            path: /etc/kubernetes/ssl
+          name: ssl-certs-kubernetes
+        - hostPath:
+            path: /usr/share/ca-certificates
+          name: ssl-certs-host
+
+  - path: /etc/kubernetes/manifests/kube-scheduler.yaml
+    content: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: kube-scheduler
+        namespace: kube-system
+      spec:
+        hostNetwork: true
+        containers:
+        - name: kube-scheduler
+          image: quay.io/coreos/hyperkube:v1.3.3_coreos.0
+          command:
+          - /hyperkube
+          - scheduler
+          - --master=http://127.0.0.1:8080
+          - --leader-elect=true
+          livenessProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /healthz
+              port: 10251
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+
+  - path: /srv/kubernetes/manifests/calico-policy-agent.yaml
+    content: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: calico-policy-agent
+        namespace: calico-system
+      spec:
+        hostNetwork: true
+        containers:
+          # The Calico policy agent.
+          - name: k8s-policy-agent
+            image: calico/k8s-policy-agent:v0.1.4
+            env:
+              - name: ETCD_ENDPOINTS
+                value: "http://REPLACE_CONTROLLERIP:2379"
+              - name: K8S_API
+                value: "http://127.0.0.1:8080"
+              - name: LEADER_ELECTION
+                value: "true"
+          # Leader election container used by the policy agent.
+          - name: leader-elector
+            image: quay.io/calico/leader-elector:v0.1.0
+            imagePullPolicy: IfNotPresent
+            args:
+              - "--election=calico-policy-election"
+              - "--election-namespace=calico-system"
+              - "--http=127.0.0.1:4040"
+
+  - path: /srv/kubernetes/manifests/kube-system.json
+    content: |
+        {
+          "apiVersion": "v1",
+          "kind": "Namespace",
+          "metadata": {
+            "name": "kube-system"
+          }
+        }
+
+  - path: /srv/kubernetes/manifests/calico-system.json
+    content: |
+        {
+          "apiVersion": "v1",
+          "kind": "Namespace",
+          "metadata": {
+            "name": "calico-system"
+          }
+        }
+
+  - path: /srv/kubernetes/manifests/network-policy.json
+    content: |
+        {
+          "kind": "ThirdPartyResource",
+          "apiVersion": "extensions/v1beta1",
+          "metadata": {
+            "name": "network-policy.net.alpha.kubernetes.io"
+          },
+          "description": "Specification for a network isolation policy",
+          "versions": [
+            {
+              "name": "v1alpha1"
+            }
+          ]
+        }
+
+  - path: /srv/kubernetes/manifests/kube-dns-rc.json
+    content: |
+        {
+          "apiVersion": "v1",
+          "kind": "ReplicationController",
+          "metadata": {
+            "labels": {
+              "k8s-app": "kube-dns",
+              "kubernetes.io/cluster-service": "true",
+              "version": "v11"
+            },
+            "name": "kube-dns-v11",
+            "namespace": "kube-system"
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "k8s-app": "kube-dns",
+              "version": "v11"
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "k8s-app": "kube-dns",
+                  "kubernetes.io/cluster-service": "true",
+                  "version": "v11"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "command": [
+                      "/usr/local/bin/etcd",
+                      "-data-dir",
+                      "/var/etcd/data",
+                      "-listen-client-urls",
+                      "http://127.0.0.1:2379,http://127.0.0.1:4001",
+                      "-advertise-client-urls",
+                      "http://127.0.0.1:2379,http://127.0.0.1:4001",
+                      "-initial-cluster-token",
+                      "skydns-etcd"
+                    ],
+                    "image": "gcr.io/google_containers/etcd-amd64:2.2.1",
+                    "name": "etcd",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "500Mi"
+                      },
+                      "requests": {
+                        "cpu": "100m",
+                        "memory": "50Mi"
+                      }
+                    },
+                    "volumeMounts": [
+                      {
+                        "mountPath": "/var/etcd/data",
+                        "name": "etcd-storage"
+                      }
+                    ]
+                  },
+                  {
+                    "args": [
+                      "--domain=cluster.local"
+                    ],
+                    "image": "gcr.io/google_containers/kube2sky:1.14",
+                    "livenessProbe": {
+                      "failureThreshold": 5,
+                      "httpGet": {
+                        "path": "/healthz",
+                        "port": 8080,
+                        "scheme": "HTTP"
+                      },
+                      "initialDelaySeconds": 60,
+                      "successThreshold": 1,
+                      "timeoutSeconds": 5
+                    },
+                    "name": "kube2sky",
+                    "readinessProbe": {
+                      "httpGet": {
+                        "path": "/readiness",
+                        "port": 8081,
+                        "scheme": "HTTP"
+                      },
+                      "initialDelaySeconds": 30,
+                      "timeoutSeconds": 5
+                    },
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "200Mi"
+                      },
+                      "requests": {
+                        "cpu": "100m",
+                        "memory": "50Mi"
+                      }
+                    }
+                  },
+                  {
+                    "args": [
+                      "-machines=http://127.0.0.1:4001",
+                      "-addr=0.0.0.0:53",
+                      "-ns-rotate=false",
+                      "-domain=cluster.local."
+                    ],
+                    "image": "gcr.io/google_containers/skydns:2015-10-13-8c72f8c",
+                    "name": "skydns",
+                    "ports": [
+                      {
+                        "containerPort": 53,
+                        "name": "dns",
+                        "protocol": "UDP"
+                      },
+                      {
+                        "containerPort": 53,
+                        "name": "dns-tcp",
+                        "protocol": "TCP"
+                      }
+                    ],
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "200Mi"
+                      },
+                      "requests": {
+                        "cpu": "100m",
+                        "memory": "50Mi"
+                      }
+                    }
+                  },
+                  {
+                    "args": [
+                      "-cmd=nslookup kubernetes.default.svc.cluster.local 127.0.0.1 >/dev/null",
+                      "-port=8080"
+                    ],
+                    "image": "gcr.io/google_containers/exechealthz:1.0",
+                    "name": "healthz",
+                    "ports": [
+                      {
+                        "containerPort": 8080,
+                        "protocol": "TCP"
+                      }
+                    ],
+                    "resources": {
+                      "limits": {
+                        "cpu": "10m",
+                        "memory": "20Mi"
+                      },
+                      "requests": {
+                        "cpu": "10m",
+                        "memory": "20Mi"
+                      }
+                    }
+                  }
+                ],
+                "dnsPolicy": "Default",
+                "volumes": [
+                  {
+                    "emptyDir": {},
+                    "name": "etcd-storage"
+                  }
+                ]
+              }
+            }
+          }
+        }
+
+  - path: /srv/kubernetes/manifests/kube-dns-svc.json
+    content: |
+        {
+          "apiVersion": "v1",
+          "kind": "Service",
+          "metadata": {
+            "name": "kube-dns",
+            "namespace": "kube-system",
+            "labels": {
+              "k8s-app": "kube-dns",
+              "kubernetes.io/name": "KubeDNS",
+              "kubernetes.io/cluster-service": "true"
+            }
+          },
+          "spec": {
+            "clusterIP": "REPLACE_KUBEDNSIP",
+            "ports": [
+              {
+                "protocol": "UDP",
+                "name": "dns",
+                "port": 53
+              },
+              {
+                "protocol": "TCP",
+                "name": "dns-tcp",
+                "port": 53
+              }
+            ],
+            "selector": {
+              "k8s-app": "kube-dns"
+            }
+          }
+        }
+
+  - path: /srv/kubernetes/manifests/heapster-dc.json
+    content: |
+        {
+          "apiVersion": "extensions/v1beta1",
+          "kind": "Deployment",
+          "metadata": {
+            "labels": {
+              "k8s-app": "heapster",
+              "kubernetes.io/cluster-service": "true",
+              "version": "v1.0.2"
+            },
+            "name": "heapster-v1.0.2",
+            "namespace": "kube-system"
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "matchLabels": {
+                "k8s-app": "heapster",
+                "version": "v1.0.2"
+              }
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "k8s-app": "heapster",
+                  "version": "v1.0.2"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "command": [
+                      "/heapster",
+                      "--source=kubernetes.summary_api:''",
+                      "--metric_resolution=60s"
+                    ],
+                    "image": "gcr.io/google_containers/heapster:v1.0.2",
+                    "name": "heapster",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "250Mi"
+                      },
+                      "requests": {
+                        "cpu": "100m",
+                        "memory": "250Mi"
+                      }
+                    }
+                  },
+                  {
+                    "command": [
+                      "/pod_nanny",
+                      "--cpu=100m",
+                      "--extra-cpu=0m",
+                      "--memory=250Mi",
+                      "--extra-memory=4Mi",
+                      "--threshold=5",
+                      "--deployment=heapster-v1.0.2",
+                      "--container=heapster",
+                      "--poll-period=300000"
+                    ],
+                    "env": [
+                      {
+                        "name": "MY_POD_NAME",
+                        "valueFrom": {
+                          "fieldRef": {
+                            "fieldPath": "metadata.name"
+                          }
+                        }
+                      },
+                      {
+                        "name": "MY_POD_NAMESPACE",
+                        "valueFrom": {
+                          "fieldRef": {
+                            "fieldPath": "metadata.namespace"
+                          }
+                        }
+                      }
+                    ],
+                    "image": "gcr.io/google_containers/addon-resizer:1.0",
+                    "name": "heapster-nanny",
+                    "resources": {
+                      "limits": {
+                        "cpu": "50m",
+                        "memory": "100Mi"
+                      },
+                      "requests": {
+                        "cpu": "50m",
+                        "memory": "100Mi"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+
+  - path: /srv/kubernetes/manifests/heapster-svc.json
+    content: |
+        {
+          "kind": "Service",
+          "apiVersion": "v1",
+          "metadata": {
+            "name": "heapster",
+            "namespace": "kube-system",
+            "labels": {
+              "kubernetes.io/cluster-service": "true",
+              "kubernetes.io/name": "Heapster"
+            }
+          },
+          "spec": {
+            "ports": [
+              {
+                "port": 80,
+                "targetPort": 8082
+              }
+            ],
+            "selector": {
+              "k8s-app": "heapster"
+            }
+          }
+        }
+
+  - path: /etc/kubernetes/ssl/ca.pem
+    encoding: base64
+    content: STRIPPED_CAPEM
+  - path: /etc/kubernetes/ssl/apiserver.pem
+    encoding: base64
+    content: STRIPPED_APISERVERPEM
+  - path: /etc/kubernetes/ssl/apiserver-key.pem
+    encoding: base64
+    content: STRIPPED_APISERVERKEYPEM
+  - path: /etc/kubernetes/cni/net.d/10-calico.conf
+    content: |
+        {
+            "name": "calico",
+            "type": "flannel",
+            "delegate": {
+                "type": "calico",
+                "etcd_endpoints": "http://REPLACE_CONTROLLERIP:2379",
+                "log_level": "none",
+                "log_level_stderr": "info",
+                "hostname": "$private_ipv4",
+                "policy": {
+                    "type": "k8s",
+                    "k8s_api_root": "http://127.0.0.1:8080/api/v1/"
+                }
+            }
+        }

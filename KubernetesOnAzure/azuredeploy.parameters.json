@@ -1,0 +1,66 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "DNSName": {
+      "value": "mydns"
+    },
+    "azurefsAccount": {
+      "value": "myafs"
+    },
+    "azurefsKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/path-to-keyvault"
+        },
+        "secretName": "afskey"
+      }
+    },
+    "azurefsShare": {
+      "value": "myafsshare"
+    },
+    "sshPublicKey": {
+      "value": "ssh-rsa my-ssh-public-key"
+    },
+    "capem": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/path-to-keyvault"
+        },
+        "secretName": "capem"
+      }
+    },
+    "apiserverpem": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/path-to-keyvault"
+        },
+        "secretName": "apiserverpem"
+      }
+    },
+    "apiserverkeypem": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/path-to-keyvault"
+        },
+        "secretName": "apiserverkeypem"
+      }
+    },
+    "workerpem": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/path-to-keyvault"
+        },
+        "secretName": "workerpem"
+      }
+    },
+    "workerkeypem": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/path-to-keyvault"
+        },
+        "secretName": "workerkeypem"
+      }
+    }
+  }
+}

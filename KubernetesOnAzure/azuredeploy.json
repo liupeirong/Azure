@@ -1,0 +1,503 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "DNSName": {
+      "type": "string",
+      "metadata": {
+        "description": "The external DNS address of kubernetes cluster"
+      },
+      "minLength": 1,
+      "maxLength": 81
+    },
+    "VNetCidr": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/16",
+      "metadata": {
+        "description": "IP address in CIDR for virtual network"
+      },
+      "minLength": 10,
+      "maxLength": 41
+    },
+    "VNetName": {
+      "type": "string",
+      "defaultValue": "kubeVNet",
+      "metadata": {
+        "description": "Virtual network name for the cluster"
+      }
+    },
+    "WorkerName": {
+      "type": "string",
+      "defaultValue": "kubeWorker",
+      "metadata": {
+        "description": "Prefix of worker instances"
+      },
+      "MinLength": 1,
+      "MaxLength": 41
+    },
+    "ControllerName": {
+      "type": "string",
+      "defaultValue": "kubeController",
+      "metadata": {
+        "description": "Name of controller instance"
+      },
+      "MinLength": 1,
+      "MaxLength": 41
+    },
+    "adminUserName": {
+      "type": "string",
+      "defaultValue": "admin",
+      "metadata": {
+        "description": "VM admin username"
+      },
+      "minLength": 1,
+      "maxLength": 16
+    },
+    "sshPublicKey": {
+      "type": "string",
+      "metadata": {
+        "description": "SSH rsa public key file as a string."
+      }
+    },
+    "capem": {
+      "type": "securestring",
+      "metadata": {
+        "description": "ca.pem file."
+      }
+    },
+    "apiserverpem": {
+      "type": "securestring",
+      "metadata": {
+        "description": "apiserver.pem file."
+      }
+    },
+    "apiserverkeypem": {
+      "type": "securestring",
+      "metadata": {
+        "description": "apiserver-key.pem file."
+      }
+    },
+    "workerpem": {
+      "type": "securestring",
+      "metadata": {
+        "description": "worker.pem file."
+      }
+    },
+    "workerkeypem": {
+      "type": "securestring",
+      "metadata": {
+        "description": "worker-key.pem file."
+      }
+    },
+    "azurefsAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "Storage account name for Azure File Service"
+      }
+    },
+    "azurefsKey": {
+      "type": "string",
+      "metadata": {
+        "description": "Storage account name for Azure File Service"
+      }
+    },
+    "azurefsShare": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure File Service share name"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[concat(parameters('ControllerName'), '-pip')]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('DNSName')]"
+        }
+      },
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "controllerNsg",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "SSH",
+            "properties": {
+              "description": "Allows SSH traffic",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "HTTPS",
+            "properties": {
+              "description": "Allows HTTPS traffic",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 102,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "ETCD",
+            "properties": {
+              "description": "Allows ETCD traffic from worker",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "2379",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 103,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      },
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "workerNsg",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "SSH",
+            "properties": {
+              "description": "Allows SSH traffic",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Ctrl2Flannel",
+            "properties": {
+              "description": "Worker ingress between controller and flannel",
+              "protocol": "Udp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "8472",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 102,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Ctrl2Kubelet",
+            "properties": {
+              "description": "Worker ingress from controller to kubelet",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "10250",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 103,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Ctrl2cAdvisor",
+            "properties": {
+              "description": "Worker ingress from controller to cAdvisor",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "4194",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 104,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Wkr2WkrKubelet",
+            "properties": {
+              "description": "Worker ingress from worker to worker kubelet",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "10255",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 105,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      },
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[parameters('VNetName')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', 'controllerNsg')]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', 'workerNsg')]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('VNetCidr')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('controllerSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('controllerSubnetCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'controllerNsg')]"
+              }
+            }
+          },
+          {
+            "name": "[variables('workerSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('workerSubnetCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'workerNsg')]"
+              }
+            }
+          }
+        ]
+      },
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(parameters('ControllerName'), '-nic')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', parameters('ControllerName'), '-pip')]",
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('VNetName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfigctl",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[variables('controllerIP')]",
+              "subnet": {
+                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks/', parameters('VNetName')), '/subnets/', variables('controllerSubnetName'))]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('ControllerName'), '-pip'))]"
+              }
+            }
+          }
+        ]
+      },
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('controllerStorageAccount')]",
+      "properties": {
+        "accountType": "Premium_LRS"
+      },
+      "apiVersion": "[variables('storageApiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('ControllerName')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', parameters('ControllerName'), '-nic')]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('controllerStorageAccount'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('controllerSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('ControllerName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "customData": "[base64(concat(variables('customDataCtrl1'), variables('customDataCtrl2')))]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": "true",
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "[concat('/home/', parameters('adminUserName'), '/.ssh/authorized_keys')]",
+                  "keyData": "[parameters('sshPublicKey')]"
+                }
+              ]
+            }
+          }
+        },
+        "storageProfile": {
+          "imageReference": "[variables('imageReference')]",
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('controllerStorageAccount')), variables('storageAPIVersion')).primaryEndpoints.blob, 'vhds/', parameters('ControllerName'), 'osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[concat(resourceId('Microsoft.Network/networkInterfaces', parameters('ControllerName')), '-nic')]"
+            }
+          ]
+        }
+      },
+      "apiVersion": "[variables('computeApiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('uniqueStringArray')[copyIndex()]]",
+      "copy": {
+        "name": "storageLoop",
+        "count": "[variables('workerCount')]"
+      },
+      "properties": {
+        "accountType": "Standard_LRS"
+      },
+      "apiVersion": "[variables('storageApiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachineScaleSets",
+      "name": "[variables('vmssName')]",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('uniqueStringArray')[0])]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('uniqueStringArray')[1])]",
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('VNetName'))]"
+      ],
+      "sku": {
+        "name": "[variables('workerSize')]",
+        "tier": "Standard",
+        "capacity": "[variables('workerCount')]"
+      },
+      "properties": {
+        "overprovision": "true",
+        "upgradePolicy": {
+          "mode": "Manual"
+        },
+        "virtualMachineProfile": {
+          "storageProfile": {
+            "osDisk": {
+              "vhdContainers": [
+                "[concat('https://', variables('uniqueStringArray')[0], '.blob.core.windows.net/vhds')]",
+                "[concat('https://', variables('uniqueStringArray')[1], '.blob.core.windows.net/vhds')]"
+              ],
+              "name": "osdisk",
+              "caching": "ReadOnly",
+              "createOption": "FromImage"
+            },
+            "imageReference": "[variables('imageReference')]"
+          },
+          "osProfile": {
+            "computerNamePrefix": "[variables('vmssName')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "customData": "[base64(variables('customDataWorker'))]",
+            "linuxConfiguration": {
+              "disablePasswordAuthentication": "true",
+              "ssh": {
+                "publicKeys": [
+                  {
+                    "path": "[concat('/home/', parameters('adminUserName'), '/.ssh/authorized_keys')]",
+                    "keyData": "[parameters('sshPublicKey')]"
+                  }
+                ]
+              }
+            }
+          },
+          "networkProfile": {
+            "networkInterfaceConfigurations": [
+              {
+                "name": "[concat(variables('vmssName'), '-nic')]",
+                "properties": {
+                  "primary": "true",
+                  "ipConfigurations": [
+                    {
+                      "name": "ipconfig1",
+                      "properties": {
+                        "subnet": {
+                          "id": "[concat(resourceId('Microsoft.Network/virtualNetworks/', parameters('VNetName')), '/subnets/', variables('workerSubnetName'))]"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "apiVersion": "[variables('computeApiVersion')]",
+      "location": "[variables('location')]"
+    }
+  ],
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "workerCount": 2,
+    "controllerSize": "Standard_DS1_v2",
+    "workerSize": "Standard_D1_v2",
+    "controllerSubnetName": "subnet0",
+    "workerSubnetName": "subnet1",
+    "controllerSubnetCidr": "10.0.0.0/24",
+    "controllerIP": "10.0.0.50",
+    "workerSubnetCidr": "10.0.1.0/24",
+    "kubePodNetworkCidr": "10.2.0.0/16",
+    "kubeServiceCidr": "10.3.0.0/24",
+    "kubeDNSIP": "10.3.0.10",
+    "osType": {
+      "publisher": "CoreOS",
+      "offer": "CoreOS",
+      "sku": "Stable",
+      "version": "latest"
+    },
+    "imageReference": "[variables('osType')]",
+    "controllerStorageAccount": "[substring(concat(uniqueString(resourceGroup().id), toLower(parameters('ControllerName'))), 0, 15)]",
+
+    "vmssName": "[toLower(parameters('WorkerName'))]",
+    "uniqueVmssName": "[uniqueString(concat(resourceGroup().id, variables('vmssName')))]",
+    "uniqueStringArray": [
+      "[concat(substring(variables('uniqueVmssName'), 0, 12), '0')]",
+      "[concat(substring(variables('uniqueVmssName'), 0, 12), '1')]"
+    ],
+
+    "computeApiVersion": "2016-03-30",
+    "networkApiVersion": "2016-03-30",
+    "storageApiVersion": "2015-06-15",
+
+    "customDataCtrl1": "REPLACE_WITH_OUTPUT_FROM_convert_cloud_init.sh, max length of variable is 16000, the script will split the output into 2 parts",
+    
+    "customDataCtrl2": "REPLACE_WITH_OUTPUT_FROM_convert_cloud_init.sh, max length of variable is 16000, the script will split the output into 2 parts",
+    
+    "customDataWorker":"REPLACE_WITH_OUTPUT_FROM_convert_cloud_init.sh"
+  }
+}
