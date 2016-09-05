@@ -1,0 +1,16 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/MTPbiOdata/.vs
+/MTPbiOdata/AcmeOData/bin
+/MTPbiOdata/AcmeOData/obj
+/MTPbiOdata/ContosoOData/bin
+/MTPbiOdata/ContosoOData/obj
+*.user
+/MTPbiOdata/ISVWebApp/App_Data
+/MTPbiOdata/ISVWebApp/bin
+/MTPbiOdata/ISVWebApp/obj
+*.1
+/MTPbiOdata/packages
+/MTPbiOdata/PublishScripts
