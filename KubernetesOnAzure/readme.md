@@ -2,8 +2,8 @@
 
 This folder contains the necessary templates and scripts to automate the deployment of a Kubernetes cluster to Azure.  By default it deploys a cluster with a single Kubernetes controller and two workers. You can customize cloud init configuration to meet your needs.  All the certificates used by Kubernetes are stored in Azure Key Vault.
 
-### Create or customize cloud init configuration
-* Customize controller and worker cloud init files in the cloud_init folder to meet your needs. The default files included here deploy a generic cluster
+### Create cloud init configuration
+* Create master and worker cloud init files to meet your needs. See examples [here](https://coreos.com/os/docs/latest/cloud-config.html)
 * Run convert_cloud_init.sh to convert your cloud init files into the format for Azure template. The script will automatically split a file into 2 output strings if it is longer than 500 lines
 * Replace the CustomData variables at the end of azuredeploy.json with the output from the above step
 
