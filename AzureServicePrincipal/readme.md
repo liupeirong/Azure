@@ -24,7 +24,7 @@ azure ad sp create -n <my service principal name> -m http://<my url> -p <my pass
 # data:                             12345678-9012-3456-7890-123456789012
 # data:                             http://<my unique url>
 ```
-* Assign the service principal a role to access Azure subscription 
+* Assign the service principal a role to access Azure subscription, objectId comes from the output of the above "azure ad sp create" command
 ```sh
 # add the --scope parameter to limit access to a specific resource, for example, a resource group instead of the entire subscription
 azure role assignment create --objectId 00000000-5689-4f09-958d-b0ae2c5d9dbc --roleName contributor
@@ -33,7 +33,7 @@ azure role assignment create --objectId 00000000-5689-4f09-958d-b0ae2c5d9dbc --r
 azure account show
 ```
 
-* In another session, use the service principal to log in to Azure Cli and start manage resources
+* In another session, use the service principal to log in to Azure Cli and start manage resources, user id comes from the output of the above "azure ad sp create" command, password is the input to the "azure ad sp create" command, and tenant id comes from the output to the "azure account show" command
 ```sh
 azure login --service-principal -u 12345678-9012-3456-7890-123456789012 -p <my password> --tenant <my tenant id>
 ```
