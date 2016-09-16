@@ -1,15 +1,16 @@
 #!/bin/bash
 
 tsize=1000
-nentries=$[$tsize*1000*1000*1000/100]
-tdisks=10
+replication=1
 nnodes=10
+tdisks=10
+nentries=$[$tsize*1000*1000*1000/100]
 mappers=$[$tdisks*$nnodes]
 mapMB=2048
-replication=1
 TGTDIRIN=/benchmarks/tera/in
-hadoop fs -rm -r $TGTDIRIN
-hadoop fs -rm -r $TGTDIROUT
+TGTDIROUT=/benchmarks/tera/out
+hadoop fs -rm -r -skipTrash $TGTDIRIN
+hadoop fs -rm -r -skipTrash $TGTDIROUT
 
 #supply your own teragen test script or comment this line and uncomment the following block to run a general teragen cmd
 ${1} -p teragen -x $replication -m $mappers -M $mapMB -d $nentries -s regular -i $TGTDIRIN -o $TGTDIROUT
