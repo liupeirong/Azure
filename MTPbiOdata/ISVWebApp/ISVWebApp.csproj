@@ -215,7 +215,7 @@
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <None Include="Properties\PublishProfiles\ISVWebApp.pubxml" />
+    <None Include="Properties\PublishProfiles\isvwebapp - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -252,6 +252,7 @@
     <Content Include="Views\Dashboard\Report.cshtml" />
     <Content Include="Views\Dashboard\Reports.cshtml" />
     <Content Include="Scripts\powerbi.js.map" />
+    <Content Include="Web.config.private" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

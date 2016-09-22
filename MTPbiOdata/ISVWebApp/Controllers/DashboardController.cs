@@ -47,7 +47,7 @@ namespace ISVWebApp.Controllers
         public async Task<ActionResult> Report(string reportId = "")
         {
             string tenantID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
-            string reportName = "AdventureWorks"; // Startup.tenantODataMap[tenantID][1];
+            string reportName = Startup.tenantODataMap[tenantID][1];
             using (var client = this.CreatePowerBIClient())
             {
                 var reportsResponse = await client.Reports.GetReportsAsync(this.workspaceCollection, this.workspaceId);
