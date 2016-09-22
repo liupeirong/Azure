@@ -1,7 +1,7 @@
 ﻿@model ISVWebApp.Models.ReportViewModel
 
 <div class="side-body padding-top">
-    <div class="col-md-9">
+    <div >
         @Html.PowerBIReportFor(m => m.Report, new { id = "pbi-report", style = "height:85vh", powerbi_access_token = Model.AccessToken })
     </div>
 </div>
