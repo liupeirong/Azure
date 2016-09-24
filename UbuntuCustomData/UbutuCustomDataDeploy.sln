@@ -7,11 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		azuredeploy.json = azuredeploy.json
 		azuredeploy.parameters.json = azuredeploy.parameters.json
-		cluster.conf = cluster.conf
-		createUploadKey.txt = createUploadKey.txt
+		convert_cloud_init.sh = convert_cloud_init.sh
 		initializeNode.sh = initializeNode.sh
 		README.md = README.md
-		setup-cluster.json = setup-cluster.json
 		vnet-existing.json = vnet-existing.json
 		vnet-new.json = vnet-new.json
 	EndProjectSection
