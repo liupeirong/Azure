@@ -1,0 +1,24 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "eastus2"
+    },
+    "dnsName": {
+      "value": "somethingunique"
+    },
+    "userName": {
+      "value": "azureuser"
+    },
+    "password": {
+      "value": "somesecret"
+    },
+    "customData": {
+      "value": "H4sICK7l5lcAA215LnNoAI1WbW/bNhD+XP2KiyI0TltFbtoNWFqlSBd7CNA6RZxsH9LUoCXKIixRikg5yVLvt++OpPySYkO/WBZ5vOe5516o3Z1oKmQ0ZSr3vN1UKDYtOLC6Zk1ZNV7EdRIJKfRBGnWLoDlr0upOem2dMs3DJjlIIcxWp6DhZbXg6I9pzZIc0O3cS5iGY4h0WaPDutXq8EDl8P497A1Gp3ueVzccj/NJK8uqlZqnk0VVtCVXvX3v0QPYhQH5KoTkkFRSMyEVMAlc6uYBl+ccopQvovf4IxIOkpX8GM99Pr8aXQ5OJ3+ef7r6PBjHQS/NIMzhO8wQEcIKwgH438zZ62/XR6pmCT+6uXnh73s/B7uFCD1ZWSKAEWXift846V3mAs/dzUEljag1bgqpFeicQ8GUhkzwIoUqA77gxjHi3QntkGVbTnljPCFrFB2zkCOLwwNyf/Lp0+TLycXl2eXZ+YgiJJy94egCBT+ERwMFwWi43IOobqokQqG10KKSio7/bhS6iPv4P8P00S4ICcG233eQVmhBHM4yhMd4Vn5wiyuQlUZdUsubOdLQI5GKB1xYm2OczPly2Qab7f1XIJyj21YsWIE6g66MTqyoczblWiRQV83KDxrnRhvytoYwJFIxE6gylh45IG5rNhaQdNSQMzQqUNn0Aaacy21uSIrhUUfMVQFSJo2elJc5KDK4voYdCB6JzhLif+C6H/52E8Dz52Z5W1hjEJCpsSKjp25hJ4YXxuQF3Ny8w2AsRQCe5FUH5Ja6TqK2Az/CHmWBy7FP71ibxpXv7Lv8B71eZ/fy9f6+2c0EPtJKcnzcMaFRFCoRVhRG0SlL5rMGVUq3UbNWJiYLCVoqSmBSlXXBNfeW61YnU9fdRuk4eE1oppvi4JDabziO+b1+a/5Nzr9cjmMf27Vgfz9MhKZZNaHpFL/2yfguF9iq5TxTB8FwbLplSEyJJXFAT2+8Lj3BBwixs/qkJ6wEtXhv3H+HSEKhEMYhFoFrd1ccHzr2q4lyC37waI2WvsMjuDgmtA0wkzs/cP7Qs3NJh3ih+IbRX6yRQs6OYHBxMj4b/YFJwzyNLsdwPgTnweazCx9C3HAhdBYQltD31k1MZghLEQNmlZR+ZehB00rQreSHmYJQIO8wwR/UsLsiMoWaJjlP5spUBFWZaynlrbrAIMTgE4JPs3b9/tbf0iJSdA+tIQmxDysdu2LckOQziYWarILDcguMgv4afwdCTukw68ttSNIqFc3G9rrkzaRlNFhMnV9dnZ2aMOlF1TwRGU4hi2s5TYsqmYsUm8hGMi3w7bspiFUQ381c7ubx4XLPLITDr/H2qsLZEnJfRV/9KJrZewgJ2SpDEVOesbbQ6pWsmBYl36y3zWhcHGOuoa1tvxIrmy+rmb3GcJCZmz5T2FObGlPccfDogls6fU0WfyDRh74Px8ebnozG9oQj5dlWwife+p5H3x1UWr6q2gbpPPk8eAf/+VWA0e3iVaypv8sHdVt4Jt+UbTPx+tu5tpm2O5G1f1ZICNXWGkQL1kSFmHYmSV5WeCu/vH+6Qz5p8NUsTWG91Cre0ErYQDiz6/Cjqy0WqPMdErmwdkeOx5YJq3U4M0mk7y3vGb+n+w9OBx/PTkaT4YUZBaexrHBE4KcBw9G7sMOjO9kpFT5YmBB54ndG+MvBrz/B4CmP//NGPfovkBtrn1UKAAA="
+    },
+    "artifactsPath": {
+      "value": "https://raw.githubusercontent.com/liupeirong/Azure/master/MySQLReplication"
+    }
+  }
+}

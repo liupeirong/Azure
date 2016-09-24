@@ -100,28 +100,17 @@
         "description": "Start IP address in the subnet for the VMs"
       }
     },
+    "customData": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "cloud init user data to initialize the VMs"
+      }
+    },
     "artifactsPath": {
       "type": "string",
       "metadata": {
         "description": "Azure storage account URI or GitHub URI where the scripts live, no trailing slash"
-      }
-    },
-    "keyVaultResourceGroup": {
-      "type": "string",
-      "metadata": {
-        "description": "The resource group containing the key vault which provides the private key used for SSH login."
-      }
-    },
-    "keyVaultName": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the key vault which provides the private key used for SSH login."
-      }
-    },
-    "keyVaultKeyUri": {
-      "type": "string",
-      "metadata": {
-        "description": "The url of the private key used for SSH login."
       }
     }
   },
@@ -136,8 +125,6 @@
     "nicName": "[concat(parameters('dnsName'), '-nic')]",
     "availabilitySetName": "[concat(parameters('dnsName'), '-set')]",
     "virtualNetworkSetupURL": "[concat(parameters('artifactsPath'),'/vnet-',parameters('vnetNewOrExisting'),'.json')]",
-    "clusterSetupURL": "[concat(parameters('artifactsPath'),'/setup-cluster.json')]",
-    "keyVaultResourceId": "[resourceId(parameters('keyVaultResourceGroup'), 'Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
     "sa": "[parameters('dbSubnetStartAddress')]",
     "ipOctet01": "[concat(split(variables('sa'), '.')[0], '.', split(variables('sa'), '.')[1], '.')]",
     "ipOctet2": "[int(split(variables('sa'), '.')[2])]",
@@ -301,18 +288,7 @@
           "computerName": "[concat(parameters('dnsName'), copyIndex())]",
           "adminUsername": "[parameters('userName')]",
           "adminPassword": "[parameters('password')]",
-          "secrets": [
-            {
-              "sourceVault": {
-                "id": "[variables('keyVaultResourceId')]"
-              },
-              "vaultCertificates": [
-                {
-                  "certificateUrl": "[parameters('keyVaultKeyUri')]"
-                }
-              ]
-            }
-          ]
+          "CustomData": "[parameters('customData')]"
         },
         "storageProfile": {
           "imageReference": {
@@ -347,66 +323,6 @@
               "id": "[concat(resourceId('Microsoft.Network/networkInterfaces',variables('nicName')), copyIndex())]"
             }
           ]
-        }
-      }
-    },
-    {
-      "apiVersion": "[variables('resourceAPIVersion')]",
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('dnsName'), copyIndex(), '/initializeNode')]",
-      "location": "[variables('location')]",
-      "copy": {
-        "name": "extLoop",
-        "count": "[parameters('nodeCount')]"
-      },
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', parameters('dnsName'), copyIndex())]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.OSTCExtensions",
-        "type": "CustomScriptForLinux",
-        "typeHandlerVersion": "[variables('handlerVersion')]",
-        "settings": {
-          "fileUris": [
-            "[concat(parameters('artifactsPath'), '/initializeNode.sh')]",
-            "[concat(parameters('artifactsPath'), '/prepareDisks.sh')]"
-          ],
-          "commandToExecute": "[concat('bash initializeNode.sh ', parameters('userName'))]" 
-        }
-      }
-    },
-    {
-      "name": "setup-cluster",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "[variables('templateAPIVersion')]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', parameters('dnsName'), '0/extensions/initializeNode')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('clusterSetupURL')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "dnsName": {
-            "value": "[parameters('dnsName')]"
-          },
-          "nodeCount": {
-            "value": "[parameters('nodeCount')]"
-          },
-          "artifactsPath": {
-            "value": "[parameters('artifactsPath')]"
-          },
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "resourceAPIVersion": {
-            "value": "[variables('resourceAPIVersion')]"
-          },
-          "handlerVersion": {
-            "value": "[variables('handlerVersion')]"
-          }
         }
       }
     }
