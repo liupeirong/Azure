@@ -1,8 +1,10 @@
 #!/bin/bash
 
 #disable apparmor
+/etc/init.d/apparmor stop
 /etc/init.d/apparmor teardown
 update-rc.d -f apparmor remove
+apt-get remove apparmor apparmor-utils -y
 
 #attach disk
 cat > /tmp/inputs2.sh << 'END'
@@ -85,15 +87,15 @@ bash -c "source /tmp/inputs2.sh; prepare_unmounted_volumes"
 #install mysql
 if [ -e "/data0" ]; then
     mkdir /data0/mysql
-	ln -s /data0/mysql /var/lib/mysql
-	chmod o+x /var/lib/mysql
+    ln -s /data0/mysql /var/lib/mysql
+    chmod o+x /var/lib/mysql
     groupadd mysql
     useradd -r -g mysql mysql
-	chmod o+x /data0/mysql
-	chown -R mysql:mysql /data0/mysql
-	apt-get update
-	export DEBIAN_FRONTEND=noninteractive
+    chmod o+x /data0/mysql
+    chown -R mysql:mysql /data0/mysql
+    apt-get update
+    export DEBIAN_FRONTEND=noninteractive
     apt-get install -y mysql-server-5.6
-	chown -R mysql:mysql /data0/mysql/mysql
-	apt-get install -y mysql-server-5.6
+    chown -R mysql:mysql /data0/mysql/mysql
+    apt-get install -y mysql-server-5.6
 fi

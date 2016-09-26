@@ -5,17 +5,7 @@
 inputFile=$1
 outputFile=$2
 
-function convert_tmp {
-    inFile=$1
-    tFile=$2
-    sed "s/'/''/g" $inFile > $tFile
-    sed -i 's/\\/\\\\/g' $tFile
-    sed -i ':a;N;$!ba;s/\n/\\n/g' $tFile
-    sed -i 's/"/\\"/g' $tFile
-}
-
-convert_tmp ${inputFile} ${outputFile}
-gzip ${outputFile} 
-openssl enc -base64 -in ${outputFile}.gz | tr -d '\n' > ${outputFile}
+gzip -c ${inputFile} > ${inputFile}.gz 
+openssl enc -base64 -in ${inputFile}.gz | tr -d '\n' > ${outputFile}
 cat ${outputFile}
 echo ' '
