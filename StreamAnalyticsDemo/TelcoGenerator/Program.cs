@@ -61,9 +61,16 @@ namespace telcodatagen
         {
             Queue callBackQ = new Queue();
 
-            // probability of invalid calls, probability of fraud, and number of hours
-            GenConfig config = new GenConfig(float.Parse(args[0]), float.Parse(args[1]), Int32.Parse(args[2]), Int32.Parse(args[3]));
-            Console.Error.WriteLine(config);
+            // probability of invalid calls, probability of fraud, and number of hours, powerbipro or not 
+            GenConfig config = null;
+            try
+            {
+                config = new GenConfig(float.Parse(args[0]), float.Parse(args[1]), Int32.Parse(args[2]), Int32.Parse(args[3]));
+                Console.Error.WriteLine(config);
+            }catch
+            {
+                Usage();
+            }
 
             CallStore mobileNos = new CallStore(100000);
             Random r = new Random();
@@ -194,7 +201,7 @@ namespace telcodatagen
         {
             // In this case, we treat the #FilesPerDump as the number of switch, which is not 100% true
 
-            Console.WriteLine("Usage: telcodatagen [#NumCDRsPerHour] [SIM Card Fraud Probability] [#DurationHours]");
+            Console.WriteLine("Usage: telcodatagen [#Probability of invalid calls,ex 0.02] [Probabiility of fraud calls, ex 0.05] [#Duration to run in hours, ex 1] [#More data, ex 1 or 0]");
             System.Environment.Exit(-1);
         }
 
