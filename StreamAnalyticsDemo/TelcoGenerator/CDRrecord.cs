@@ -13,6 +13,7 @@ using System.Collections;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace telcodatagen
 {
@@ -84,11 +85,9 @@ namespace telcodatagen
         static string[] MSRNList = { "886932428687", "886932429021", "886932428306", "1415982715962", "886932429979", "1416916990491", "886937415371", "886932428876", "886932428688", "1412983121877", "886932429242", "1416955584542", "886932428258", "1412930064972", "886932429155", "886932423548", "1415980332015", "14290800303585", "14290800033338", "886932429626", "886932428112", "1417955696232", "1418986850453", "886932428927", "886932429827", "886932429507", "1416960750071", "886932428242", "886932428134", "886932429825" ,""};
         
         static Random coin = new Random();
-        Hashtable data;
 
         public CDRrecord()
         {
-            data = new Hashtable();
             _init();
         }
 
@@ -96,52 +95,36 @@ namespace telcodatagen
         {
             int idx = 0;
             // Initialize default values
-            data.Add("SystemIdentity", "d0");
-            data.Add("RecordType", "MO");
             this.SystemIdentity = "d0";
             this.RecordType = "MO";
 
-
             idx = coin.Next(0, TimeTypeList.Length);
-            data.Add("TimeType", idx);
             this.TimeType = idx;
 
             idx = coin.Next(0, ServiceTypeList.Length);
-            data.Add("ServiceType", ServiceTypeList[idx]);
             this.ServiceType = ServiceTypeList[idx];
 
             idx = coin.Next(0, EndTypeList.Length);
-            data.Add("EndType", EndTypeList[idx]);
-            
+            this.EndType = EndTypeList[idx];
 
             idx = coin.Next(0, OutgoingTrunkList.Length);
-            data.Add("OutgoingTrunk", OutgoingTrunkList[idx]);
             this.OutgoingTrunk = OutgoingTrunkList[idx];
 
-            data.Add("Transfer", coin.Next(0, 2));
             this.Transfer = coin.Next(0, 2);
 
             idx = coin.Next(0, IMSIList.Length);
-            data.Add("CallingIMSI", IMSIList[idx]);
             this.CallingIMSI = IMSIList[idx];
 
             idx = coin.Next(0, IMSIList.Length);
-            data.Add("CalledIMSI", IMSIList[idx]);
             this.CalledIMSI = IMSIList[idx];
 
             idx = coin.Next(0, MSRNList.Length);
-            data.Add("MSRN", MSRNList[idx]);
             this.MSRN = MSRNList[idx];
         }
 
         // set the data for the CDR record
         public void setData(string key, string value)
         {
-            if (data.ContainsKey(key))
-                data[key] = value;
-            else
-                data.Add(key, value);
-
             switch (key)
             {
                 case "RecordType": 
@@ -206,22 +189,17 @@ namespace telcodatagen
             }
         }
 
-        override public String ToString()
+        public String ToCSV()
         {
-            StringBuilder sb = new StringBuilder();
+            return String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}",
+                this.RecordType, this.SystemIdentity, this.SwitchNum, this.CallingNum, this.CallingIMSI,
+                this.CalledNum, this.CalledIMSI, this.TimeType, this.CallPeriod, this.UnitPrice, this.ServiceType,
+                this.Transfer, this.EndType, this.IncomingTrunk, this.OutgoingTrunk, this.MSRN, this.callrecTime);
+        }
 
-            for (int i = 0; i < columns.Length; i++)
-            {
-                if (!data.ContainsKey(columns[i]) || data[columns[i]] == null)
-                    sb.Append("");
-                else
-                    sb.Append(data[columns[i]]);
-
-                if (i < columns.Length - 1)
-                    sb.Append(",");
-            }
-
-            return sb.ToString();            
+        public String ToJSON()
+        {
+            return JsonConvert.SerializeObject(this);
         }
     }
 }

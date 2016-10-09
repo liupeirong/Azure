@@ -65,7 +65,7 @@ namespace telcodatagen
             GenConfig config = null;
             try
             {
-                config = new GenConfig(float.Parse(args[0]), float.Parse(args[1]), Int32.Parse(args[2]), Int32.Parse(args[3]));
+                config = new GenConfig(args);
                 Console.Error.WriteLine(config);
             }catch
             {
@@ -162,7 +162,7 @@ namespace telcodatagen
                         #endregion
                     }
 
-                    outputCDRRecs(rec);
+                    outputCDRRecs(rec, config);
                     //output those consecutive fraud calls that happened in the past not future
                     while (callBackQ.Count > 0) 
                     {
@@ -172,7 +172,7 @@ namespace telcodatagen
                         if (currentTime.Subtract(oldest) >= TimeSpan.Zero)
                         {
                             drec = (CDRrecord)callBackQ.Dequeue();
-                            outputCDRRecs(drec);
+                            outputCDRRecs(drec, config);
                         }
                         else break;
                     }
@@ -201,26 +201,27 @@ namespace telcodatagen
         {
             // In this case, we treat the #FilesPerDump as the number of switch, which is not 100% true
 
-            Console.WriteLine("Usage: telcodatagen [#Probability of invalid calls,ex 0.02] [Probabiility of fraud calls, ex 0.05] [#Duration to run in hours, ex 1] [#More data, ex 1 or 0]");
+            Console.WriteLine("Usage: telcodatagen [#Probability of invalid calls,ex 0.02] [Probabiility of fraud calls, ex 0.05] [#Duration to run in hours, ex 1] [#More data, ex 0 or 1], [#outputJson, 1 or 0], [#printOnly, 0 or 1]");
             System.Environment.Exit(-1);
         }
 
 
         // Handle output of cdr recs
-        static void outputCDRRecs(CDRrecord r)
+        static void outputCDRRecs(CDRrecord r, GenConfig config)
         {
             try
             {
                 List<Task> tasks = new List<Task>();
-                var serializedString = JsonConvert.SerializeObject(r);
+                var serializedString = config.isOutputJson ? r.ToJSON() : r.ToCSV();
                 EventData data = new EventData(Encoding.UTF8.GetBytes(serializedString))
                 {
                     PartitionKey = r.CallingIMSI
                 };
 
                 // Send the metric to Event Hub
-                tasks.Add(client.SendAsync(data));
-                Console.WriteLine("CDRrecord:" + r);
+                if (!config.isPrintOnly)
+                    tasks.Add(client.SendAsync(data));
+                Console.WriteLine("CDRrecord:" + serializedString);
 
                 Task.WaitAll(tasks.ToArray());
             }
