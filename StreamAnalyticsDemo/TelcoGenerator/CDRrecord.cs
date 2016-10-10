@@ -184,6 +184,10 @@ namespace telcodatagen
 
                         this.callrecTime = new DateTime(year, month, day, hour, min, secs).ToUniversalTime().ToString(@"yyyy-MM-ddThh:mm:ssZ");
                     }
+                    else
+                    {
+                        this.callrecTime = new DateTime(1970, 1, 1).ToString(@"yyyy-MM-ddThh:mm:ssZ");
+                    }
                     
                     break;
             }
@@ -191,7 +195,7 @@ namespace telcodatagen
 
         public String ToCSV()
         {
-            return String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}",
+            return String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}\n",
                 this.RecordType, this.SystemIdentity, this.SwitchNum, this.CallingNum, this.CallingIMSI,
                 this.CalledNum, this.CalledIMSI, this.TimeType, this.CallPeriod, this.UnitPrice, this.ServiceType,
                 this.Transfer, this.EndType, this.IncomingTrunk, this.OutgoingTrunk, this.MSRN, this.callrecTime);
