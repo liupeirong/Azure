@@ -24,8 +24,8 @@ val callsDF = callsRDD.map(_.split(",")).
 
 //callsDF.count();
 //Register the data fram as a table to run queries against
-callsDF.write.mode(SaveMode.Overwrite).saveAsTable("telco")
+//callsDF.write.mode(SaveMode.Overwrite).saveAsTable("telco")
 
-//callsDF.registerTempTable("calls");
-//val results = sqlContext.sql("select * from calls");
-//results.show()
+callsDF.registerTempTable("calls");
+val results = sqlContext.sql("SELECT CS1.CallingIMSI, CS1.calltime as calltime1, CS2.CallTime as calltime2,CS1.CallingNum as CallingNum1, CS2.CallingNum as CallingNum2, CS1.SwitchNum as Switch1, CS2.SwitchNum as Switch2 FROM calls CS1 inner JOIN calls CS2 on CS1.CallingIMSI = CS2.CallingIMSI and (CS1.calltime - CS2.calltime) > 0 and (CS1.calltime - CS2.calltime) < 5000 where CS1.SwitchNum != CS2.SwitchNum order by CS1.CallingIMSI, CS1.calltime");
+results.show()
