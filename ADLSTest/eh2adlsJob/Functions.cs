@@ -17,6 +17,25 @@ namespace eh2adlsJob
         public static void ProcessMessage(TextWriter log)
         {
             log.WriteLine("Enter ProcessMessage.");
+            string source = ConfigurationManager.AppSettings["source"];
+            switch (source)
+            {
+                case "eventhub":
+                    log.WriteLine("process EventHub.");
+                    ProcessEventHub(log);
+                    break;
+                case "servicebusqueue":
+                    log.WriteLine("process ServiceBus Queue.");
+                    ProcessServiceBusQueue(log);
+                    break;
+                default: 
+                    log.WriteLine("No sink specified.");
+                    break;
+            }
+        }
+
+        private static void ProcessEventHub(TextWriter log)
+        { 
             string eventHubConnectionString = ConfigurationManager.AppSettings["eventHubConnectionString"];
             string eventHubName = ConfigurationManager.AppSettings["eventHubName"];
             string consumerGroup = ConfigurationManager.AppSettings["consumerGroup"];
@@ -37,16 +56,21 @@ namespace eh2adlsJob
             var options = newEventsOnly ?
                 new EventProcessorOptions { InitialOffsetProvider = (partitionId) => DateTime.UtcNow } :
                 new EventProcessorOptions();
-            options.ExceptionReceived += (sender, e) => ProcessException(sender, e, log, oSignalProcessEnd);
+            options.ExceptionReceived += (sender, e) => ProcessEventHubException(sender, e, log, oSignalProcessEnd);
             eventProcessorHost.RegisterEventProcessorFactoryAsync(new EventProcessorFactory(log), options).Wait();
             oSignalProcessEnd.WaitOne();
             eventProcessorHost.UnregisterEventProcessorAsync().Wait();
         }
 
-        private static void ProcessException(object sender, ExceptionReceivedEventArgs e, TextWriter log, ManualResetEvent oSignalProcessEnd)
+        private static void ProcessEventHubException(object sender, ExceptionReceivedEventArgs e, TextWriter log, ManualResetEvent oSignalProcessEnd)
         {
             log.WriteLine(e.Exception);
             oSignalProcessEnd.Set();
+        }
+
+        private static void ProcessServiceBusQueue(TextWriter log)
+        {
+            log.WriteLine("process servicebus");
         }
     }
 }

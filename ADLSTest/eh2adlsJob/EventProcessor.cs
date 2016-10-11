@@ -11,6 +11,9 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest.Azure.Authentication;
 using Microsoft.Azure.Management.DataLake.Store;
 using System.Configuration;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Auth;
 
 namespace eh2adlsJob
 {
@@ -19,11 +22,16 @@ namespace eh2adlsJob
         Stopwatch checkpointStopWatch;
         TextWriter log;
         string partitionID;
+        string remoteFileName;
 
+        // ADLS members
         DataLakeStoreAccountManagementClient adlsClient;
         DataLakeStoreFileSystemManagementClient adlsFileSystemClient;
         string adlsAccountName;
         string remoteFilePath;
+
+        // Azure Storage members
+        CloudAppendBlob appBlob;
 
         public EventProcessor(PartitionContext context, TextWriter logger, int numCreated)
         {
@@ -36,7 +44,8 @@ namespace eh2adlsJob
             this.adlsAccountName = ConfigurationManager.AppSettings["adlsAccountName"];
             string subId = ConfigurationManager.AppSettings["subId"];
             string remoteFolderPath = "/Hackfest/";
-            remoteFilePath = remoteFolderPath + "test" + partitionID + ".txt";
+            remoteFileName = "test" + partitionID + ".txt";
+            remoteFilePath = remoteFolderPath + remoteFileName;
 
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
             var domain = ConfigurationManager.AppSettings["domain"];
@@ -60,6 +69,47 @@ namespace eh2adlsJob
             adlsFileSystemClient.FileSystem.Create(adlsAccountName, remoteFilePath, stream, true);
         }
 
+        private void SaveToADLS(IEnumerable<EventData> messages)
+        {
+            string content = "";
+            foreach (EventData eventData in messages)
+            {
+                content += Encoding.UTF8.GetString(eventData.GetBytes());
+            }
+
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+            adlsFileSystemClient.FileSystem.Append(adlsAccountName, remoteFilePath, stream);
+        }
+
+        private void InitializeAzureStorage()
+        {
+            string containerName = "hackfest";
+            remoteFileName = "test" + partitionID + ".txt";
+
+            string accName = ConfigurationManager.AppSettings["blobStorageAccountName"];
+            string accKey = ConfigurationManager.AppSettings["blobStorageAccountKey"];
+            StorageCredentials creds = new StorageCredentials(accName, accKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(creds, true);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+            container.CreateIfNotExists();
+            appBlob = container.GetAppendBlobReference(remoteFileName);
+            appBlob.CreateOrReplace();
+        }
+
+        private void SaveToAzureStorage(IEnumerable<EventData> messages)
+        {
+            string content = "";
+            foreach (EventData eventData in messages)
+            {
+                content += Encoding.UTF8.GetString(eventData.GetBytes());
+            }
+            
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+            appBlob.AppendFromStream(stream);
+        }
+
         async Task IEventProcessor.CloseAsync(PartitionContext context, CloseReason reason)
         {
             log.WriteLine("Processor Shutting Down. Partition '{0}', Reason: '{1}'.", context.Lease.PartitionId, reason);
@@ -73,7 +123,8 @@ namespace eh2adlsJob
         {
             log.WriteLine("SimpleEventProcessor initialized.  Partition: '{0}', Offset: '{1}'", context.Lease.PartitionId, context.Lease.Offset);
 
-            InitializeADLS();
+            //InitializeADLS();
+            InitializeAzureStorage();
             
             this.checkpointStopWatch = new Stopwatch();
             this.checkpointStopWatch.Start();
@@ -82,14 +133,8 @@ namespace eh2adlsJob
 
         async Task IEventProcessor.ProcessEventsAsync(PartitionContext context, IEnumerable<EventData> messages)
         {
-            string content = "";
-            foreach (EventData eventData in messages)
-            {
-                content += Encoding.UTF8.GetString(eventData.GetBytes());
-            }
-
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-            adlsFileSystemClient.FileSystem.Append(adlsAccountName, remoteFilePath, stream);
+            //SaveToADLS(messages);
+            SaveToAzureStorage(messages);
 
             //Call checkpoint every 5 minutes, so that worker can resume processing from 5 minutes back if it restarts.
             if (this.checkpointStopWatch.Elapsed > TimeSpan.FromMinutes(5))

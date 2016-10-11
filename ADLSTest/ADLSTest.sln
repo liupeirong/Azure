@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADLSTest", "ADLSTest\ADLSTest.csproj", "{B4D20F0B-2CF4-46A7-9330-43D8546485D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eh2adlsJob", "eh2adlsJob\eh2adlsJob.csproj", "{2F310B27-9524-4A73-BE2B-8FFF2FBC098D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4D20F0B-2CF4-46A7-9330-43D8546485D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4D20F0B-2CF4-46A7-9330-43D8546485D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4D20F0B-2CF4-46A7-9330-43D8546485D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4D20F0B-2CF4-46A7-9330-43D8546485D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F310B27-9524-4A73-BE2B-8FFF2FBC098D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F310B27-9524-4A73-BE2B-8FFF2FBC098D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F310B27-9524-4A73-BE2B-8FFF2FBC098D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F310B27-9524-4A73-BE2B-8FFF2FBC098D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
