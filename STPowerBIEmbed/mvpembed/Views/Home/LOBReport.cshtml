@@ -10,22 +10,24 @@
     <script src="/Scripts/powerbi.js"></script>
     <script type="text/javascript">
         window.onload = function () {
+            document.getElementById("Reports").addEventListener("change", displayReport);
+            displayReport();
+        }
+
+        function displayReport()
+        {
+            var selected = document.getElementById('Reports').value;
+            if (selected == null) return;
+            var index = selected.lastIndexOf("reportId=");
+            index += 9;
             var embedConfiguration = {
                 type: 'report',
                 accessToken: '@ViewBag.accessToken',
-                id: '6c36a150-232c-4821-a021-460e8b9af689',
-                embedUrl: 'https://msit.powerbi.com/reportEmbed'
+                id: selected.substring(index),
+                embedUrl: selected
             };
             var reportContainer = document.getElementById('reportContainer');
             var report = powerbi.embed(reportContainer, embedConfiguration);
-
-            ////if using iframe without powerbi.js
-            //var iframeR = document.getElementById('reportContainer');
-            //iframeR.src = "https://msit.powerbi.com/reportEmbed?reportId=6c36a150-232c-4821-a021-460e8b9af689";
-            //iframeR.onload = postActionLoadReport;
-            //var iframeT = document.getElementById('tileContainer');
-            //iframeT.src = "https://msit.powerbi.com/embed?dashboardId=aaabaec8-c580-4233-b91c-eaba8573ed21&tileId=ca1005d9-93ec-43be-94ff-fec0f9daab08";
-            //iframeT.onload = postActionLoadTile;
         }
 
         @*function postActionLoadReport() {
@@ -58,6 +60,10 @@
 }
 }
 <h2>LOBReport</h2>
+@if (ViewBag.Reports != null)
+{
+    @Html.DropDownList("Reports", (SelectList)ViewBag.Reports)
+}
 <div id="reportContainer" style="height:700px;width:100%">
     @if (ViewBag.accessToken == null)
     {
@@ -65,9 +71,9 @@
         <form action="/Account/SignOut"><input type="submit" value="Sign Out"></form>
     }
 </div>
-@*<div>
-    <iframe id="reportContainer" height="700" width="100%"></iframe>
-    <iframe id="tileContainer" height="500" width="100%"></iframe>
-</div>*@
+<div>
+    <!--iframe id="reportContainer" height="700" width="100%"></-->
+    <!--iframe id="tileContainer" height="500" width="100%"></-->
+</div>
 
 
