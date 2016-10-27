@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Owin;
 using Owin;
 
-namespace mvpembed
+namespace pbiintegrate
 {
     public partial class Startup
     {

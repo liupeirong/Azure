@@ -11,7 +11,7 @@ using Microsoft.Owin.Security.OpenIdConnect;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System.Threading.Tasks;
 
-namespace mvpembed
+namespace pbiintegrate
 {
     public partial class Startup
     {

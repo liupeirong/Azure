@@ -15,7 +15,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>mvpembed</RootNamespace>
-    <AssemblyName>mvpembed</AssemblyName>
+    <AssemblyName>pbiintegrate</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort>44355</IISExpressSSLPort>

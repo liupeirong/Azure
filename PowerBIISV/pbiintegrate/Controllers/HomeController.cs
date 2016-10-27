@@ -15,7 +15,7 @@ using System.Security.Cryptography;
 using System.Web.Script.Serialization;
 using Newtonsoft.Json;
 
-namespace mvpembed.Controllers
+namespace pbiintegrate.Controllers
 {
     public class HomeController : Controller
     {
