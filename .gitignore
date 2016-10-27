@@ -66,3 +66,8 @@
 /ClouderaCustom/privateparam.json
 /AADMultiTenantWebApp/bin/roslyn
 /AADMultiTenantWebApp/bin
+*.config
+/PowerBIISV/packages
+/PowerBIISV/mvpembed/bin
+/PowerBIISV/mvpembed/obj/Debug
+/PowerBIISV/mvpembed/obj/Release
