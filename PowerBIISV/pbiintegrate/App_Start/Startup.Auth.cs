@@ -55,6 +55,7 @@ namespace pbiintegrate
                             // This ensures that the address used for sign in and sign out is picked up dynamically from the request
                             // this allows you to deploy your app (to Azure Web Sites, for example)without having to change settings
                             // Remember that the base URL of the address used here must be provisioned in Azure AD beforehand.
+                            TokenCache.DefaultShared.Clear();
                             string appBaseUrl = context.Request.Scheme + "://" + context.Request.Host + context.Request.PathBase;
                             context.ProtocolMessage.RedirectUri = appBaseUrl + "/";
                             context.ProtocolMessage.PostLogoutRedirectUri = appBaseUrl + "/Account/SignOutCallback";
@@ -63,6 +64,7 @@ namespace pbiintegrate
                         AuthenticationFailed = (context) =>
                         {
                             // Pass in the context back to the app
+                            TokenCache.DefaultShared.Clear();
                             context.OwinContext.Response.Redirect("/Home/Error");
                             context.HandleResponse(); // Suppress the exception
                             return Task.FromResult(0);

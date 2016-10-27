@@ -73,3 +73,11 @@
 /PowerBIISV/mvpembed/obj/Release
 /PowerBIISV/pbiintegrate/bin
 /PowerBIISV/pbiintegrate/obj
+/PowerBIISV/AcmeOData/bin
+/PowerBIISV/AcmeOData/obj
+/PowerBIISV/ContosoOData/bin
+/PowerBIISV/ContosoOData/obj
+/PowerBIISV/pbiembed/bin
+/PowerBIISV/pbiembed/obj
+*.mdf
+*.ldf
