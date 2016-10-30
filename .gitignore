@@ -77,3 +77,13 @@
 /StreamAnalyticsDemo/TelcoGenerator/bin
 /StreamAnalyticsDemo/TelcoGenerator/obj
 /StreamAnalyticsDemo/TelcoGenerator/packages
+/PowerBIISV/.vs/config/applicationhost.config
+/PowerBIISV/AcmeOData/bin
+/PowerBIISV/AcmeOData/obj/Debug
+/PowerBIISV/ContosoOData/bin
+/PowerBIISV/ContosoOData/obj/Debug
+/PowerBIISV/packages
+/PowerBIISV/pbiembed/bin
+/PowerBIISV/pbiembed/obj/Debug
+/PowerBIISV/pbiintegrate/bin
+/PowerBIISV/pbiintegrate/obj/Debug
