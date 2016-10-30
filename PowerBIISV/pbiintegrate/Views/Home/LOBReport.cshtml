@@ -1,0 +1,79 @@
+﻿
+@{
+    ViewBag.Title = "LOBReport";
+}
+
+@if (ViewBag.accessToken != null)
+{
+@section EmbedBIScripts{
+
+    <script src="/Scripts/powerbi.js"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+            document.getElementById("Reports").addEventListener("change", displayReport);
+            displayReport();
+        }
+
+        function displayReport()
+        {
+            var selected = document.getElementById('Reports').value;
+            if (selected == null) return;
+            var index = selected.lastIndexOf("reportId=");
+            index += 9;
+            var embedConfiguration = {
+                type: 'report',
+                accessToken: '@ViewBag.accessToken',
+                id: selected.substring(index),
+                embedUrl: selected
+            };
+            var reportContainer = document.getElementById('reportContainer');
+            var report = powerbi.embed(reportContainer, embedConfiguration);
+        }
+
+        @*function postActionLoadReport() {
+            // Construct the push message structure
+            // This is where you assign the Access Token to get access to the tile visual
+            var messageStructure = {
+                action: "loadReport",
+                accessToken: '@ViewBag.accessToken'
+            };
+            message = JSON.stringify(messageStructure);
+            // Push the message
+            document.getElementById('reportContainer').contentWindow.postMessage(message, "*");;
+        }
+        function postActionLoadTile() {
+            // Construct the push message structure
+            // This is where you assign the Access Token to get access to the tile visual
+            // !! width and height are important to tiles, otherwise they don't know how to render !!
+            var messageStructure = {
+                action: "loadTile",
+                accessToken: '@ViewBag.accessToken',
+                height: 500,
+                width: 500
+            };
+            message = JSON.stringify(messageStructure);
+            // Push the message
+            document.getElementById('tileContainer').contentWindow.postMessage(message, "*");;
+        }*@
+    </script>
+
+}
+}
+<h2>LOBReport</h2>
+@if (ViewBag.Reports != null)
+{
+    @Html.DropDownList("Reports", (SelectList)ViewBag.Reports)
+}
+<div id="reportContainer" style="height:700px;width:100%">
+    @if (ViewBag.accessToken == null)
+    {
+        <p>You are signed in without the authorization code for this app, please sign out and sign in again.</p>
+        <form action="/Account/SignOut"><input type="submit" value="Sign Out"></form>
+    }
+</div>
+<div>
+    <!--iframe id="reportContainer" height="700" width="100%"></-->
+    <!--iframe id="tileContainer" height="500" width="100%"></-->
+</div>
+
+
