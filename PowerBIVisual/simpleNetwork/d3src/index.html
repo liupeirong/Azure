@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>SK graph demo</title>
+    <link rel="stylesheet" href="app.css" type="text/css" />
+    <script src="http://d3js.org/d3.v3.js"></script>
+    <script src="app.js"></script>
+    <style>
+        path.link {
+            fill: none;
+            stroke: #bbb;
+            cursor: pointer;
+            /*stroke-width: 1.5px;*/
+        }
+
+        circle {
+            fill: #ccc;
+            stroke: #fff;
+            stroke-width: 1.5px;
+            cursor: pointer;
+        }
+
+        text {
+            fill: #00a;
+            font: 12px sans-serif;
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #popup {
+            position: absolute;
+            top: 60px;
+            left: 30px;
+            width: 50%;
+            height: 50%;
+            padding: 10px;
+            background-color: white;
+            -webkit-border-radius: 10px;
+            -moz-border-radius: 10px;
+            border-radius: 10px;
+            -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            z-index: 99;
+            overflow: auto;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="popup" class="hidden">
+        <a href="#" style="float:right" onclick="d3.select('#popup').classed('hidden', true);">[close]</a>
+        <div id="stats">
+            <p id="popupLinks"></p>
+            <p> Common files: <span id="fileCount"></span></p>
+            <div id="popupTable"></div>
+        </div>
+    </div>
+
+
+</body>
+</html>
