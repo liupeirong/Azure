@@ -87,3 +87,5 @@
 /PowerBIISV/pbiembed/obj/Debug
 /PowerBIISV/pbiintegrate/bin
 /PowerBIISV/pbiintegrate/obj/Debug
+*.mdf
+*.ldf
