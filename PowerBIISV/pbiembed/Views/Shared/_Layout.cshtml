@@ -17,12 +17,12 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("PBIE OData", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink("PBI Embedded", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Products", "Index", "Products")</li>
-                    <li>@Html.ActionLink("Reports", "Report", "Dashboard")</li>
+                    <!--li>@Html.ActionLink("Products", "Index", "Products")</-->
+                    <li>@Html.ActionLink("Reports", "Reports", "Dashboard")</li>
                     <li>@Html.ActionLink("Sign Up", "SignUp", "Onboarding")</li>
                 </ul>
                 @Html.Partial("_LoginPartial")

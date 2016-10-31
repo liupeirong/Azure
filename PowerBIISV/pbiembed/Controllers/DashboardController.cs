@@ -56,16 +56,13 @@ namespace ISVWebApp.Controllers
                 return View(viewModel);
             }
         }
-
-        public async Task<ActionResult> Report(string reportId = "")
+        [HttpPost]
+        public async Task<ActionResult> Report()
         {
-            //string tenantID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
-            //string reportName = Startup.tenantODataMap[tenantID][1];
+            string reportId = Request.Form["SelectedReport"].ToString();
             using (var client = this.CreatePowerBIClient())
             {
                 var reportsResponse = await client.Reports.GetReportsAsync(this.workspaceCollection, this.workspaceId);
-                //var report = reportsResponse.Value.FirstOrDefault(r => (r.Id == reportId || r.Name == reportName));
-                //var embedToken = PowerBIToken.CreateReportEmbedToken(this.workspaceCollection, this.workspaceId, report.Id);
                 var report = reportsResponse.Value.FirstOrDefault(r => r.Id == reportId);
                 var embedToken = PowerBIToken.CreateReportEmbedToken(this.workspaceCollection, this.workspaceId, reportId);
 

@@ -89,3 +89,7 @@
 /PowerBIISV/pbiintegrate/obj/Debug
 *.mdf
 *.ldf
+/PowerBIISV/AcmeOData/obj/Release
+/PowerBIISV/ContosoOData/obj/Release
+/PowerBIISV/pbiembed/obj/Release
+/PowerBIISV/pbiintegrate/obj/Release
