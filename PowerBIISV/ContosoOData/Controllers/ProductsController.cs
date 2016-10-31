@@ -17,6 +17,7 @@ namespace ContosoOData.Controllers
             products.Add(new Product {Id = 100, Name = "Hadoop", Price = 10, Category = "BigData"});
             products.Add(new Product {Id = 200, Name = "Spark", Price = 20, Category = "BigData" });
             products.Add(new Product { Id = 300, Name = "DataLake", Price = 20, Category = "BigData" });
+            products.Add(new Product { Id = 400, Name = "Hive", Price = 40, Category = "BigData" });
             return products.AsQueryable();
         }
     }
