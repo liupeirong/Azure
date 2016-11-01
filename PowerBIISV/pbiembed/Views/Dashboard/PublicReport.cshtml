@@ -1,12 +1,13 @@
 ﻿
 @{
-    ViewBag.Title = "ISVReport";
+    ViewBag.Title = "PublicReport";
 }
 
-@section EmbedBIScripts{
 
-<script src="/Scripts/powerbi.js"></script>
-<script type="text/javascript">
+@section Scripts{
+
+    <script src="/Scripts/powerbi.js"></script>
+    <script type="text/javascript">
     window.onload = function () {
         var embedConfiguration = {
             type: 'report',
@@ -34,9 +35,9 @@
         // Push the message
         document.getElementById('reportContainer').contentWindow.postMessage(message, "*");;
     }*@
-</script>
-    
+    </script>
+
 }
-<h2>ISVReport</h2>
+<h2>Public Report</h2>
 <div id="reportContainer" style="height:700px;width:100%"></div>
 @*<div><iframe id="reportContainer" height="700" width="100%"></iframe></div>*@

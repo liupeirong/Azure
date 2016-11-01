@@ -18,6 +18,7 @@ namespace ISVWebApp
     {
         private static string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
         public static string appResourceId = ConfigurationManager.AppSettings["ida:AppResourceId"];
+        public static string powerbiResourceId = ConfigurationManager.AppSettings["powerbi:ResourceId"];
         public static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
         public static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
         public static string authority = aadInstance + "/common";

@@ -17,6 +17,7 @@ namespace AcmeOData.Controllers
             products.Add(new Product { Id = 1, Name = "banana", Price = 10, Category = "Fruits" });
             products.Add(new Product { Id = 2, Name = "blueberry", Price = 20, Category = "Fruits" });
             products.Add(new Product { Id = 3, Name = "strawberry", Price = 30, Category = "Fruits" });
+            products.Add(new Product { Id = 3, Name = "pineapple", Price = 15, Category = "Fruits" });
             return products.AsQueryable();
         }
     }
