@@ -255,6 +255,7 @@
     <Content Include="Views\Dashboard\Report.cshtml" />
     <Content Include="Views\Dashboard\Reports.cshtml" />
     <Content Include="Scripts\powerbi.js.map" />
+    <Content Include="Views\Dashboard\PublicReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
