@@ -73,7 +73,7 @@ namespace pbiintegrate.Controllers
                 string responseContent = string.Empty;
                 string dashboardsUri = "https://api.powerbi.com/beta/myorg/dashboards";
 
-                System.Net.WebRequest request = System.Net.WebRequest.Create(dashboardsUri) as System.Net.HttpWebRequest;
+                WebRequest request = WebRequest.Create(dashboardsUri) as HttpWebRequest;
                 request.Method = "GET";
                 request.ContentLength = 0;
                 request.Headers.Add("Authorization", String.Format("Bearer {0}", ViewBag.AccessToken));

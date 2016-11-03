@@ -50,7 +50,7 @@ namespace ISVWebApp.Controllers
                 { 
                     string tenantReportName = Startup.tenantODataMap[tenantID][1];
                     var report = reportsResponse.Value.FirstOrDefault(r => r.Name == tenantReportName);
-                    viewModel.Reports = new List<Microsoft.PowerBI.Api.V1.Models.Report>();
+                    viewModel.Reports = new List<Report>();
                     viewModel.Reports.Add(report);
                 }
 
