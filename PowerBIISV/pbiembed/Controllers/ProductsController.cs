@@ -27,7 +27,9 @@ namespace ISVWebApp.Controllers
             string token = await getTokenForOData(tenantID, signedInUserID, userObjectID);
 
             HttpClient client = new HttpClient();
-            var tenantInfo = Startup.tenantODataMap[tenantID];
+            var tenantInfo = (Char.IsLetter(tenantID[0])) ?
+                              Startup.tenantODataMap["acmeuser"] :
+                              Startup.tenantODataMap["contosouser"];
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, tenantInfo[0]);
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", tenantInfo[2]);
             HttpResponseMessage response = await client.SendAsync(request);

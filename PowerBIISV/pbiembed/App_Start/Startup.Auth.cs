@@ -26,9 +26,9 @@ namespace ISVWebApp
         // map of tenantid:odata URL, power BI report name, odata username, password
         public static Dictionary<string, string[]> tenantODataMap = new Dictionary<string, string[]>()
         {
-            { "f3309508-e364-4dad-9185-4aea8465c771", new string[]
+            { "acmeuser", new string[]
                 { "https://acmeodata.azurewebsites.net/Products", "acme", "YWNtZW9kYXRhOlBhc3N3b3JkMSE=" } },
-            { "3353fb13-059a-4877-b012-26c8d81626d9", new string[]
+            { "contosouser", new string[]
                 { "https://contosoodata.azurewebsites.net/Products", "contoso", "Y29udG9zb29kYXRhOlBhc3N3b3JkMSE=" } }
         };
 

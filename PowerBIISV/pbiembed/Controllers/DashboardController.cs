@@ -47,8 +47,12 @@ namespace ISVWebApp.Controllers
                     viewModel.Reports = reportsResponse.Value.ToList();
                 }
                 else
-                { 
-                    string tenantReportName = Startup.tenantODataMap[tenantID][1];
+                {
+                    //if tenant id starts with a letter, show acme, otherwise, show contoso 
+
+                    string tenantReportName = (Char.IsLetter(tenantID[0])) ? 
+                                              Startup.tenantODataMap["acmeuser"][1]:
+                                              Startup.tenantODataMap["contosouser"][1];
                     var report = reportsResponse.Value.FirstOrDefault(r => r.Name == tenantReportName);
                     viewModel.Reports = new List<Report>();
                     viewModel.Reports.Add(report);
