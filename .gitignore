@@ -93,3 +93,4 @@
 /PowerBIISV/ContosoOData/obj/Release
 /PowerBIISV/pbiembed/obj/Release
 /PowerBIISV/pbiintegrate/obj/Release
+*.config
