@@ -5,5 +5,5 @@
 * Run warmupDisks.sh. This is necessary if your nodes are running standard storage in Azure. It's not necessary for premium storage. This script will run several loops of dd read and dd write, and collect the output from all nodes to the driver node's ~/ddresults.txt, a csv file that you can load to Excel and view charts
 * Adjust the parameters at the top of runTeraGen.sh, runTeraSort.sh, and runTeraValidate.sh as needed
 * Run runTeraGen.sh, runTeraSort.sh, and runTeraValidate.sh one by one, each command takes replication factor as a parameter. Verify everything works
-* Run runTeraAll.sh which repeatedly run teragen, terasort, and teravalidate with different replication factors in parallel
+* Run "nohup ./runTeraAll.sh &" which repeatedly run teragen, terasort, and teravalidate with different replication factors in parallel
 * Optionally create an Impala table from the teragen/terasort output using impalaTera.sql, and run queries against Impala
