@@ -12,7 +12,7 @@
 # limitations under the License.
 
 # input 1: username for admin user
-# input 2: node type (master, worker)
+# input 2: node type (master, data)
 
 ADMINUSER=$1
 NODETYPE=$2

@@ -16,6 +16,13 @@
       },
       "maxLength": 61
     },
+    "nodeType": {
+      "type": "string",
+      "metadata": {
+        "description": "master or data"
+      },
+      "maxLength": 61
+    },
     "instanceCount": {
       "type": "int",
       "metadata": {
@@ -40,6 +47,20 @@
       "metadata": {
         "description": "Admin ssh public key on all VMs."
       }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "defaultValue": "pliuvmssvnet",
+      "metadata": {
+        "description": "existing vnet name"
+      }
+    },
+    "virtualNetworkResourceGroup": {
+      "type": "string",
+      "defaultValue": "pliuvmssbase",
+      "metadata": {
+        "description": "existing vnet resouregroup"
+      }
     }
   },
   "variables": {
@@ -48,9 +69,8 @@
     "vhdContainerName": "[concat(variables('namingInfix'), 'vhd')]",
     "addressPrefix": "10.0.0.0/16",
     "subnetPrefix": "10.0.0.0/24",
-    "virtualNetworkName": "[concat(variables('namingInfix'), 'vnet')]",
     "publicIPAddressName": "[concat(variables('namingInfix'), 'pip')]",
-    "subnetName": "[concat(variables('namingInfix'), 'subnet')]",
+    "subnetName": "default",
     "loadBalancerName": "[concat(variables('namingInfix'), 'lb')]",
     "publicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
     "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
@@ -77,27 +97,6 @@
     "networkApiVersion": "2016-03-30"
   },
   "resources": [
-    {
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('virtualNetworkName')]",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "[variables('networkApiVersion')]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('addressPrefix')]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('subnetName')]",
-            "properties": {
-              "addressPrefix": "[variables('subnetPrefix')]"
-            }
-          }
-        ]
-      }
-    },
     {
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPAddressName')]",
@@ -156,15 +155,14 @@
       "location": "[resourceGroup().location]",
       "apiVersion": "[variables('computeApiVersion')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
       ],
       "sku": {
         "name": "[parameters('vmSku')]",
         "tier": "Standard",
         "capacity": "[parameters('instanceCount')]"
       },
-	    "plan": "[variables('mpPlan')]",
+      "plan": "[variables('mpPlan')]",
       "properties": {
         "overprovision": "true",
         "upgradePolicy": {
@@ -237,7 +235,7 @@
                       "name": "[variables('ipConfigName')]",
                       "properties": {
                         "subnet": {
-                          "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('subnetName'))]"
+                          "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', parameters('virtualNetworkResourceGroup'), '/providers/Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'), '/subnets/', variables('subnetName'))]"
                         },
                         "loadBalancerBackendAddressPools": [
                           {
@@ -252,6 +250,27 @@
                       }
                     }
                   ]
+                }
+              }
+            ]
+          },
+          "extensionProfile": {
+            "extensions": [
+              {
+                "name": "preparediskextension",
+                "properties": {
+                  "publisher": "Microsoft.Azure.Extensions",
+                  "type": "CustomScript",
+                  "typeHandlerVersion": "2.0",
+                  "autoUpgradeMinorVersion": true,
+                  "settings": {
+                    "fileUris": [
+                      "https://raw.githubusercontent.com/liupeirong/Azure/master/VMSSMD/bootstrap.sh",
+                      "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/cloudera-on-centos/scripts/prepare-datanode-disks.sh",
+                      "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/cloudera-on-centos/scripts/prepare-masternode-disks.sh"
+                    ],
+                    "commandToExecute": "[concat('sh bootstrap.sh ', parameters('adminUsername'), ' ', parameters('nodeType'))]"
+                  }
                 }
               }
             ]
