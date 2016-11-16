@@ -18,10 +18,10 @@
       "value": "pliu"
     },
     "adminPassword": {
-      "value": "MicrosoftDx1"
+      "value": ""
     },
     "sshPublicKey": {
-      "value": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAyfDwVOQDfFNaHbLilevCnUD2lvm3f97Bta4nKkJNf0+7eFm6y887QpiensqqHVIeaWrPr760C89U1Va7tpF7HWcFpKws2nKYW20VIUiujhFrV1Xu/+NeZLzdUKCw494sLjyblS9AcIjhW6gZxOuCHYxfPMfxwK98omDBsd8jfjHhBCmQLlsbl+LZP3enJrgqoOPXfCyGRdMAsrHRN6HQgcKJaMQgnF0DQCUip6XFosAw+3mvQZ4wLCUu7fLR2Y+wq+RUJpI8rl4zbf/chT1hai3ozRdQ0bYZeiEbCH5FNBMH8nER8K3uQPvbCqUYNM8hId97lyEY7qP5wfHI7Ej93Q=="
+      "value": ""
     }
   }
 }
