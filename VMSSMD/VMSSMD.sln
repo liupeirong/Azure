@@ -7,6 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		azuredeploy.json = azuredeploy.json
 		bootstrap.sh = bootstrap.sh
+		dist_host_file.sh = dist_host_file.sh
+		hostentryifping.sh = hostentryifping.sh
+		install-postgresql.sh = install-postgresql.sh
 	EndProjectSection
 EndProject
 Global
