@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4B07D121-8588-4579-BFFF-CBC942B78FB8}"
 	ProjectSection(SolutionItems) = preProject
 		azuredeploy.json = azuredeploy.json
+		bootstrap.sh = bootstrap.sh
+		dist_host_file.sh = dist_host_file.sh
+		hostentryifping.sh = hostentryifping.sh
+		install-postgresql.sh = install-postgresql.sh
 	EndProjectSection
 EndProject
 Global

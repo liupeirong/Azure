@@ -1,0 +1,27 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.1",
+  "parameters": {
+    "vmSku": {
+      "value": "Standard_D14"
+    },
+    "vmssName": {
+      "value": "pliu9dwss"
+    },
+    "nodeType": {
+      "value": "data"
+    },
+    "instanceCount": {
+      "value": 80
+    },
+    "adminUsername": {
+      "value": "pliu"
+    },
+    "adminPassword": {
+      "value": ""
+    },
+    "sshPublicKey": {
+      "value": ""
+    }
+  }
+}
