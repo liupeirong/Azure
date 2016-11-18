@@ -10,14 +10,19 @@
         <select name="reporturl">
             <option value="${reports[0].embedUrl}">${reports[0].name}</option>
             <option value="${reports[1].embedUrl}">${reports[1].name}</option>
+            <option value="${reports[2].embedUrl}">${reports[2].name}</option>
+            <option value="${reports[3].embedUrl}">${reports[3].name}</option>
+            <option value="${reports[4].embedUrl}">${reports[4].name}</option>
+            <option value="${reports[5].embedUrl}">${reports[5].name}</option>
+            <option value="${reports[6].embedUrl}">${reports[6].name}</option>
         </select>
 	    <input type="submit" value="Submit">
     </form>
 
     <br>
 
-	<form action="/">
-		<input type="submit" value="Home Page">
+	<form action="<%=request.getContextPath()%>/logout" method = "post">
+		<input type="submit" value="Logout">
 	</form>
 
 </body>

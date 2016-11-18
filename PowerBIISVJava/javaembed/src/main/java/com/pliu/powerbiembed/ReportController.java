@@ -50,13 +50,26 @@ public class ReportController {
             return "/error";
         } else {
             try {
+                String userid = result.getUserInfo().getDisplayableId();
+                String username = "anyone";
+                String roles = "Admin";
+                if (userid.equalsIgnoreCase("me@liupeironggmail.onmicrosoft.com")) {
+                    roles = "NWManager";
+                } else if (userid.endsWith("pliucontoso.onmicrosoft.com")) {
+                    username = "adventure-works\\\\pamela0";
+                    roles = "Sales";
+                } else if (userid.endsWith("pliuacme.onmicrosoft.com")) {
+                    username = "adventure-works\\\\david8";
+                    roles = "Sales";
+                }
                 ServletContext cxt = session.getServletContext();
                 String workspaceCollection = cxt.getInitParameter("workspaceCollection");
                 String workspaceId = cxt.getInitParameter("workspaceId");
                 String accessKey = cxt.getInitParameter("accessKey");
                 String resourceId = cxt.getInitParameter("resourceId");
                 String reporturl = httpRequest.getParameter("reporturl");
-                String accessToken = ComputeJWTToken(workspaceCollection, workspaceId, resourceId, accessKey, reporturl);
+                String accessToken = ComputeJWTToken(workspaceCollection, workspaceId, resourceId, accessKey,
+                        reporturl, username, roles);
                 model.addAttribute("accessToken", accessToken);
                 model.addAttribute("embedUrl", reporturl);
             } catch (Exception e) {
@@ -68,7 +81,8 @@ public class ReportController {
     }
 
     private String ComputeJWTToken(String workspaceCollection, String workspaceId, String resourceId,
-                                   String accessKey, String embedUrl) throws Exception {
+                                   String accessKey, String embedUrl,
+                                   String username, String roles) throws Exception {
         List<NameValuePair> params = URLEncodedUtils.parse(new URI(embedUrl), "UTF-8");
         String reportId = "";
         for (NameValuePair param : params) {
@@ -78,10 +92,13 @@ public class ReportController {
             }
         }
 
-        int unixTimestamp = 1479407902 + 2 * 24 * 60 * 60; //expire in 2 days
+        int unixTimestamp = (int)(System.currentTimeMillis() / 1000L) + 2 * 24 * 60 * 60; //expire in 2 days
         String pbieKey1 = "{\"typ\":\"JWT\",\"alg\":\"HS256\"}";
-        String pbieKey2 = String.format("{\"wid\":\"%s\",\"rid\":\"%s\",\"wcn\":\"%s\",\"iss\":\"PowerBISDK\",\"ver\":\"0.2.0\",\"aud\":\"%s\",\"exp\":%d}",
-                workspaceId, reportId, workspaceCollection, resourceId, unixTimestamp);
+        String pbieKey2 = String.format(
+                "{\"wid\":\"%s\",\"rid\":\"%s\",\"wcn\":\"%s\",\"iss\":\"PowerBISDK\",\"ver\":\"0.2.0\"," +
+                "\"aud\":\"%s\",\"exp\":%d,\"username\":\"%s\",\"roles\":\"%s\"}",
+                workspaceId, reportId, workspaceCollection,
+                resourceId, unixTimestamp, username, roles);
         String pbieKey1n2ToBase64 = Base64UrlEncode(pbieKey1) + "." + Base64UrlEncode(pbieKey2);
         String pbieKey3 = HMAC256EncryptBase64UrlEncode(pbieKey1n2ToBase64, accessKey);
 
