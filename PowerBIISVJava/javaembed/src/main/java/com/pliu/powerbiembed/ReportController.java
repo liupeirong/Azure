@@ -51,15 +51,15 @@ public class ReportController {
         } else {
             try {
                 String userid = result.getUserInfo().getDisplayableId();
-                String username = "anyone";
-                String roles = "Admin";
-                if (userid.equalsIgnoreCase("me@liupeironggmail.onmicrosoft.com")) {
+                // a simple demo of row level security
+                String username = "anyone"; //username can't be empty if RLS is enabled on data source
+                String roles = "foo"; //empty role means you are authorized to see all data, more secure to default to block all
+                if (userid.startsWith("me")) {
+                    roles = ""; //see everything
+                } else if (userid.charAt(0) == 'p') {
                     roles = "NWManager";
-                } else if (userid.endsWith("pliucontoso.onmicrosoft.com")) {
+                } else if (userid.charAt(0) == 'a') {
                     username = "adventure-works\\\\pamela0";
-                    roles = "Sales";
-                } else if (userid.endsWith("pliuacme.onmicrosoft.com")) {
-                    username = "adventure-works\\\\david8";
                     roles = "Sales";
                 }
                 ServletContext cxt = session.getServletContext();
