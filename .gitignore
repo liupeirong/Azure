@@ -94,3 +94,5 @@
 /PowerBIISV/pbiembed/obj/Release
 /PowerBIISV/pbiintegrate/obj/Release
 *.config
+*.cache-main
+/SQLChangeTrack2EventHub/dependency-reduced-pom.xml
