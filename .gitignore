@@ -96,3 +96,7 @@
 *.config
 *.cache-main
 /SQLChangeTrack2EventHub/dependency-reduced-pom.xml
+/SQL2CloudPipeline/Eventhub2Sql/.settings
+/SQL2CloudPipeline/Eventhub2Sql/.project
+/SQL2CloudPipeline/Eventhub2Sql/.gitignore
+/SQL2CloudPipeline/Eventhub2Sql/.classpath
