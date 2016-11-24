@@ -44,27 +44,37 @@ import org.apache.spark._
 import org.apache.spark.streaming.eventhubs.EventHubsUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import java.time._
+import java.util.Properties;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 object EventHub2Sql {
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("SQL2EventHub")
+    val conf = new SparkConf().setAppName("EventHub2SQL")
     val sc = new SparkContext(conf);
     //if spark-shell use
     //val conf = sc.getConf
-    val streamWindowSeconds: Int = if (conf.contains("spark.myapp.streamwindowseconds"))
-      conf.get("spark.myapp.streamwindowseconds").toInt else 60
-    val runForMinutes: Int = if (conf.contains("spark.myapp.runforminutes"))
-      conf.get("spark.myapp.runforminutes").toInt else 2
-
-    val checkpointDir: String = "/user/pliu/sparkcheckpoint"
+    
+    //read app configuration
+    val appConf = conf.get("spark.myapp.conf")
+    val pt: Path = new Path(appConf)
+    val fs: FileSystem = FileSystem.get(sc.hadoopConfiguration)
+    val appConfStream = fs.open(pt)
+    val appProps = new Properties()
+    appProps.load(appConfStream)
+    
+    val checkpointDir = appProps.getProperty("checkpointDir")
+    val streamWindowSeconds: Int = if (appProps.containsKey("streamwindowseconds")) appProps.getProperty("streamwindowseconds").toInt else 60
+    val runForMinutes: Int = if (appProps.containsKey("runforminutes")) appProps.getProperty("runforminutes").toInt else 60
+    println("runForMinutes " + runForMinutes.toString)
     
     val eventhubParameters = Map[String, String](
-      "eventhubs.policyname" -> conf.get("spark.executorEnv.policyName"),
-      "eventhubs.policykey" -> conf.get("spark.executorEnv.policyKey"),
-      "eventhubs.namespace" -> conf.get("spark.executorEnv.eventHubsNS"),
-      "eventhubs.name" -> conf.get("spark.executorEnv.eventHubsName"),
-      "eventhubs.partition.count" -> conf.get("spark.myapp.partitionCount"), //executor core count must be twice that of partition count
-      "eventhubs.consumergroup" -> conf.get("spark.myapp.consumerGroup"),
+      "eventhubs.policyname" -> appProps.getProperty("policyName"),
+      "eventhubs.policykey" -> appProps.getProperty("policyKey"),
+      "eventhubs.namespace" -> appProps.getProperty("eventHubsNS"),
+      "eventhubs.name" -> appProps.getProperty("eventHubsName"),
+      "eventhubs.partition.count" -> appProps.getProperty("partitionCount"), //executor core count must be twice that of partition count
+      "eventhubs.consumergroup" -> appProps.getProperty("consumerGroup"),
       "eventhubs.checkpoint.dir" -> checkpointDir, 
       "eventhubs.checkpoint.interval" -> streamWindowSeconds.toString)
     
@@ -79,7 +89,8 @@ object EventHub2Sql {
         val sqlCxnString = sys.env("sqlcxnstring")   
         val sqlUser = sys.env("sqluser")   
         val sqlPassword = sys.env("sqlpassword") 
-        val targetTable: String = "diskncci"
+        val targetTable = sys.env("targetTable") 
+        val targetDatalake = sys.env("targetDatalake")
   
         val spark = SparkSession.builder.config(rdd.sparkContext.getConf).getOrCreate()
         import spark.implicits._
@@ -89,12 +100,19 @@ object EventHub2Sql {
         val utcDateTime = Instant.now.toString
   
         val myDF = spark.read.json(rdd).toDF.withColumn("consumedat", lit(utcDateTime))
+        
+        try {
+          myDF.write.mode(SaveMode.Append).jdbc(sqlCxnString, targetTable, jdbcProp)
+          myDF.write.mode(SaveMode.Append).csv(targetDatalake)
+        } catch {
+          case e: Throwable => println(e.getMessage() + " -- ignore")
+        }
         myDF.show()
-        myDF.write.mode(SaveMode.Append).jdbc(sqlCxnString, targetTable, jdbcProp);
       }
     }
     
     ssc.start()
     ssc.awaitTerminationOrTimeout(runForMinutes * 60 * 1000)
+    ssc.stop()
   }
 }

@@ -44,31 +44,33 @@ import org.apache.spark.sql.functions._
 import com.microsoft.azure.eventhubs.{EventData, EventHubClient}
 import com.microsoft.azure.servicebus.ConnectionStringBuilder
 import java.time._
+import java.util.Properties;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 object Sql2EventHub {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder().appName("SQL2EventHub").getOrCreate()
     import spark.implicits._
-    val sqlCxnString = spark.conf.get("spark.myapp.sqlcxnstring")  
-    val sqlUser = spark.conf.get("spark.myapp.sqluser")  
-    val sqlPassword = spark.conf.get("spark.myapp.sqlpassword")
-    val tag = spark.conf.get("spark.myapp.tag")
-    var loop = false
-    try {
-        loop = spark.conf.get("spark.myapp.loop") == "1"
-    } catch {
-        case _: NoSuchElementException => println("run once")
-    }
-    var readall = false
-    try {
-        readall = spark.conf.get("spark.myapp.readall") == "1"
-    } catch {
-        case _: NoSuchElementException => println("read sql from beginning")
-    }
-
-    val targetTable: String = "memcci"
-    val targetTableKey: String = "accountkey"
-    val lastReadFile: String = "/user/pliu/lastread.parquet"
+    
+    //read app configuration
+    val appConf = spark.conf.get("spark.myapp.conf")
+    val pt: Path = new Path(appConf)
+    val fs: FileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
+    val appConfStream = fs.open(pt)
+    val appProps = new Properties()
+    appProps.load(appConfStream)
+     
+    val sqlCxnString = appProps.getProperty("sqlcxnstring")  
+    val sqlUser = appProps.getProperty("sqluser")  
+    val sqlPassword = appProps.getProperty("sqlpassword")
+    val tag = appProps.getProperty("tag")
+    val targetTable = appProps.getProperty("targetTable")
+    val targetTableKey = appProps.getProperty("targetTableKey")
+    val lastReadFile = appProps.getProperty("lastReadFile")
+    
+    val loop = if (appProps.containsKey("loop")) appProps.getProperty("loop") == "1" else false
+    val readall = if (appProps.containsKey("readall")) appProps.getProperty("readall") == "1" else false
     
     //read the last id stored in hdfs, if none, select everything, otherwise, select newer ones
     var lastread: Int = -1
@@ -111,10 +113,10 @@ object Sql2EventHub {
           toJSON
         
         eventPayload.foreachPartition{p => 
-          var eventHubsNamespace: String = sys.env("eventHubsNS")
-          var eventHubsName: String = sys.env("eventHubsName")
-          var policyName: String = sys.env("policyName")
-          var policyKey: String = sys.env("policyKey")
+          val eventHubsNamespace: String = sys.env("eventHubsNS")
+          val eventHubsName: String = sys.env("eventHubsName")
+          val policyName: String = sys.env("policyName")
+          val policyKey: String = sys.env("policyKey")
           val connectionString: String = new ConnectionStringBuilder(
             eventHubsNamespace, eventHubsName, policyName, policyKey).toString
           var eventHubsClient: EventHubClient = EventHubClient.createFromConnectionString(connectionString).get
@@ -130,7 +132,7 @@ object Sql2EventHub {
         case emptydf: NoSuchElementException => println("nothing to read")
       }
             
-      if (loop) Thread.sleep(1000) else done = !loop
+      if (loop) Thread.sleep(10000) else done = !loop
     }
   }
 }

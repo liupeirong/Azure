@@ -100,3 +100,8 @@
 /SQL2CloudPipeline/Eventhub2Sql/.project
 /SQL2CloudPipeline/Eventhub2Sql/.gitignore
 /SQL2CloudPipeline/Eventhub2Sql/.classpath
+/SQL2CloudPipeline/Eventhub2Sql/dependency-reduced-pom.xml
+/SQL2CloudPipeline/Sql2Eventhub/.settings
+/SQL2CloudPipeline/Sql2Eventhub/.classpath
+/SQL2CloudPipeline/Sql2Eventhub/.project
+/SQL2CloudPipeline/Sql2Eventhub/dependency-reduced-pom.xml
