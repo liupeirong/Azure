@@ -68,8 +68,8 @@ object Sql2EventHub {
     val targetTable = appProps.getProperty("targetTable")
     val targetTableKey = appProps.getProperty("targetTableKey")
     val lastReadFile = appProps.getProperty("lastReadFile")
+    val runforminutes = appProps.getProperty("runforminutes").toInt
     
-    val loop = if (appProps.containsKey("loop")) appProps.getProperty("loop") == "1" else false
     val readall = if (appProps.containsKey("readall")) appProps.getProperty("readall") == "1" else false
     
     //read the last id stored in hdfs, if none, select everything, otherwise, select newer ones
@@ -90,8 +90,8 @@ object Sql2EventHub {
       option("user", sqlUser).
       option("password", sqlPassword)
     
-    var done = false;
-    while (!done) 
+    var millisecToRun: Int = runforminutes * 60 * 1000;
+    while (millisecToRun > 0) 
     {
       val myDF = jdbcDFReader.
         option("dbtable", "(select * from " + targetTable + " where " + targetTableKey + " > " + lastread + ") as intable").
@@ -132,7 +132,8 @@ object Sql2EventHub {
         case emptydf: NoSuchElementException => println("nothing to read")
       }
             
-      if (loop) Thread.sleep(10000) else done = !loop
+      Thread.sleep(10000)
+      millisecToRun -= 10000
     }
   }
 }

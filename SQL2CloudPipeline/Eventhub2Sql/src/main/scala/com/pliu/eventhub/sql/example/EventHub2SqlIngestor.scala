@@ -63,7 +63,8 @@ object EventHub2Sql {
     val appProps = new Properties()
     appProps.load(appConfStream)
     
-    val checkpointDir = appProps.getProperty("checkpointDir")
+    val sparkCheckpointDir = appProps.getProperty("checkpointDir") + "spark"
+    val eventhubCheckpointDir = appProps.getProperty("checkpointDir") + "eventhub"
     val streamWindowSeconds: Int = if (appProps.containsKey("streamwindowseconds")) appProps.getProperty("streamwindowseconds").toInt else 60
     val runForMinutes: Int = if (appProps.containsKey("runforminutes")) appProps.getProperty("runforminutes").toInt else 60
     println("runForMinutes " + runForMinutes.toString)
@@ -75,11 +76,11 @@ object EventHub2Sql {
       "eventhubs.name" -> appProps.getProperty("eventHubsName"),
       "eventhubs.partition.count" -> appProps.getProperty("partitionCount"), //executor core count must be twice that of partition count
       "eventhubs.consumergroup" -> appProps.getProperty("consumerGroup"),
-      "eventhubs.checkpoint.dir" -> checkpointDir, 
+      "eventhubs.checkpoint.dir" -> eventhubCheckpointDir, 
       "eventhubs.checkpoint.interval" -> streamWindowSeconds.toString)
     
-    val ssc = new StreamingContext(sc, Seconds(streamWindowSeconds)) 
-    ssc.checkpoint(checkpointDir)
+    val ssc = new StreamingContext(sc, Seconds(streamWindowSeconds))     
+    ssc.checkpoint(sparkCheckpointDir)
     
     val stream = EventHubsUtils.createUnionStream(ssc, eventhubParameters)
     val lines = stream.map(msg => new String(msg))

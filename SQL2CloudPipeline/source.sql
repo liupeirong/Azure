@@ -4,12 +4,37 @@
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'srcoltp'))
 BEGIN
-    drop table srcoltp
+    drop table dbo.srcoltp
 END
 
-create table srcoltp (accountkey int not null, accountdescription nvarchar(50), unitsold int, createdat datetime,
+create table dbo.srcoltp (accountkey int not null, accountdescription nvarchar(50), unitsold int, createdat datetime,
 	constraint [pk_srcoltp] primary key nonclustered (accountkey)
 	) with (memory_optimized = on, durability = schema_and_data)
+
+IF EXISTS (SELECT * FROM SYS.OBJECTS WHERE OBJECT_ID=OBJECT_ID('dbo.AccountInsertSP'))  
+  DROP PROCEDURE dbo.AccountInsertSP  
+go 
+
+create procedure dbo.AccountInsertSP (@startKey int, @endKey int, @incRec int)
+with native_compilation, schemabinding
+as
+begin atomic with (transaction isolation level = snapshot, language = N'English')
+	declare @outerloop int = @startKey
+	declare @i int = 0
+	declare @curtime datetime = getutcdate()
+	while (@outerloop < @endKey)
+	begin
+		while (@i < @incRec)
+		begin
+			insert dbo.srcoltp values (@i + @outerloop, 'test' + cast(@outerloop as varchar), @i, @curtime)
+			set @i += 1;
+		end
+
+		set @outerloop += @incRec
+		set @i = 0
+		set @curtime = getutcdate()
+	end
+end
 
 set nocount on
 go
@@ -18,41 +43,13 @@ go
 set statistics IO off
 go
 
-declare @outerloop int = 0
-declare @i int = 0
-declare @curtime datetime = getutcdate()
-while (@outerloop < 10)
-begin
-	begin tran
-	while (@i < 2)
-	begin
-		insert srcoltp values (@i + @outerloop, 'test' + cast(@outerloop as varchar), @i, @curtime)
-		set @i += 1;
-	end
-	commit
+delete from dbo.srcoltp
+go
 
-	set @outerloop += 2
-	set @i = 0
-	set @curtime = getutcdate()
-end
+exec dbo.AccountInsertSP @startKey = 70000, @endKey = 80000, @incRec = 200
+go
 
-declare @outerloop int = 11000001
-declare @i int = 0
-declare @curtime datetime = getutcdate()
-while (@outerloop < 12000000)
-begin
-	begin tran
-	while (@i < 2000)
-	begin
-		insert srcoltp values (@i + @outerloop, 'test' + cast(@outerloop as varchar), @i, @curtime))
-		set @i += 1;
-	end
-	commit
-
-	set @outerloop += 2000
-	set @i = 0
-    set @curtime = getutcdate()
-end
+select count(*) from srcoltp
 
 --alter table srcoltp add index srcoltp_cci clustered columnstore
 
@@ -62,7 +59,8 @@ where object_id = object_id('srcoltp')
 
 set statistics time on
 go
-select avg(convert(bigint, unitsold)) from srcoltp
-select avg(convert(bigint, unitsold)) from srcoltp with (index = [pk_srcoltp])
+select avg(convert(bigint, unitsold)) from dbo.srcoltp
+select avg(convert(bigint, unitsold)) from dbo.srcoltp with (index = [pk_srcoltp])
 
-select * from srcoltp
+select * from sys.dm_db_xtp_table_memory_stats where object_id = object_id('dbo.srcoltp')  
+select * from sys.dm_db_xtp_table_memory_stats where object_id = object_id('dbo.destolap')  
