@@ -51,6 +51,11 @@ import org.apache.hadoop.fs.Path;
 object EventHub2Sql {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("EventHub2SQL")
+    conf.
+      set("spark.streaming.stopGracefullyOnShutdown","true").
+      set("spark.streaming.backpressure.enabled","true").
+      set("spark.streaming.blockInterval","1000ms").
+      set("spark.streaming.receiver.writeAheadLog.enable","true")
     val sc = new SparkContext(conf);
     //if spark-shell use
     //val conf = sc.getConf
@@ -85,7 +90,8 @@ object EventHub2Sql {
     val stream = EventHubsUtils.createUnionStream(ssc, eventhubParameters)
     val lines = stream.map(msg => new String(msg))
     
-    lines.foreachRDD {rdd => if (!rdd.isEmpty())
+    lines.foreachRDD {rdd => 
+      if (!rdd.isEmpty())
       {
         val sqlCxnString = sys.env("sqlcxnstring")   
         val sqlUser = sys.env("sqluser")   
@@ -104,16 +110,17 @@ object EventHub2Sql {
         
         try {
           myDF.write.mode(SaveMode.Append).jdbc(sqlCxnString, targetTable, jdbcProp)
-          myDF.write.mode(SaveMode.Append).csv(targetDatalake)
+          //myDF.write.mode(SaveMode.Append).csv(targetDatalake)
         } catch {
           case e: Throwable => println(e.getMessage() + " -- ignore")
         }
-        myDF.show()
+      }
+      else {
+        println ("nothing to save")
       }
     }
     
     ssc.start()
     ssc.awaitTerminationOrTimeout(runForMinutes * 60 * 1000)
-    ssc.stop()
   }
 }
