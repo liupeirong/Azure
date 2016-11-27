@@ -91,6 +91,7 @@ object Sql2EventHub {
       option("password", sqlPassword)
     
     var millisecToRun: Int = runforminutes * 60 * 1000;
+    val partition: Int = spark.conf.get("spark.executor.cores").toInt * spark.conf.get("spark.executor.instances").toInt
     while (millisecToRun > 0) 
     {
       val myDF = jdbcDFReader.
@@ -110,7 +111,7 @@ object Sql2EventHub {
           withColumn("createdat", myDF("createdat").cast(StringType)).
           withColumn("tag", lit(tag)).
           withColumn("publishedat", lit(utcDateTime)).
-          toJSON
+          toJSON.repartition(partition)
         
         eventPayload.foreachPartition{p => 
           val eventHubsNamespace: String = sys.env("eventHubsNS")

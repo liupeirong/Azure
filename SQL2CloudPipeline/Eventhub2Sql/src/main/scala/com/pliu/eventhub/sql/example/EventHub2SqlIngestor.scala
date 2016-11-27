@@ -53,8 +53,8 @@ object EventHub2Sql {
     val conf = new SparkConf().setAppName("EventHub2SQL")
     conf.
       set("spark.streaming.stopGracefullyOnShutdown","true").
-      set("spark.streaming.backpressure.enabled","true").
-      set("spark.streaming.blockInterval","1000ms").
+      //set("spark.streaming.backpressure.enabled","true").
+      //set("spark.streaming.blockInterval","1000ms").
       set("spark.streaming.receiver.writeAheadLog.enable","true")
     val sc = new SparkContext(conf);
     //if spark-shell use
@@ -87,7 +87,7 @@ object EventHub2Sql {
     val ssc = new StreamingContext(sc, Seconds(streamWindowSeconds))     
     ssc.checkpoint(sparkCheckpointDir)
     
-    val stream = EventHubsUtils.createUnionStream(ssc, eventhubParameters)
+    val stream = EventHubsUtils.createUnionStream(ssc, eventhubParameters) //DStrem[Array[Byte]]
     val lines = stream.map(msg => new String(msg))
     
     lines.foreachRDD {rdd => 
@@ -99,13 +99,13 @@ object EventHub2Sql {
         val targetTable = sys.env("targetTable") 
         val targetDatalake = sys.env("targetDatalake")
   
-        val spark = SparkSession.builder.config(rdd.sparkContext.getConf).getOrCreate()
-        import spark.implicits._
         val jdbcProp = new java.util.Properties 
         jdbcProp.setProperty("user", sqlUser)
         jdbcProp.setProperty("password", sqlPassword)
         val utcDateTime = Instant.now.toString
   
+        val spark = SparkSession.builder.config(rdd.sparkContext.getConf).getOrCreate()
+        import spark.implicits._
         val myDF = spark.read.json(rdd).toDF.withColumn("consumedat", lit(utcDateTime))
         
         try {
@@ -115,7 +115,8 @@ object EventHub2Sql {
           case e: Throwable => println(e.getMessage() + " -- ignore")
         }
       }
-      else {
+      else
+      {
         println ("nothing to save")
       }
     }
