@@ -8,9 +8,9 @@ mvn package
 //SQL => Eventhub: 
 /////////////////////////////////
 
-spark-shell --master yarn --deploy-mode client --executor-cores 2 -usejavacp --jars /opt/libs/azure-eventhubs-0.9.0.jar,/opt/libs/proton-j-0.15.0.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf --conf spark.executorEnv.eventHubsNS=youreventhubns --conf spark.executorEnv.eventHubsName=youreventhubname --conf spark.executorEnv.policyName=youreventhubpolicy --conf spark.executorEnv.policyKey="youreventhubkey"
+spark-shell --master yarn --deploy-mode client --executor-cores 2 -usejavacp --jars /opt/libs/azure-eventhubs-0.9.0.jar,/opt/libs/proton-j-0.15.0.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf
 
-spark-submit --master yarn --deploy-mode client --executor-cores 2 --jars /opt/libs/azure-eventhubs-0.9.0.jar,/opt/libs/proton-j-0.15.0.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf --conf spark.executorEnv.eventHubsNS=youreventhubns --conf spark.executorEnv.eventHubsName=youreventhubname --conf spark.executorEnv.policyName=youreventhubpolicy --conf spark.executorEnv.policyKey="youreventhubkey" --class com.pliu.sql.eventhub.example.Sql2EventHub /tmp/original-com-pliu-sql-eventhub-example-0.01.jar
+spark-submit --master yarn --deploy-mode client --executor-cores 14 --num-executors 2 --jars /opt/libs/azure-eventhubs-0.9.0.jar,/opt/libs/proton-j-0.15.0.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf --class com.pliu.sql.eventhub.example.Sql2EventHub /tmp/original-com-pliu-sql-eventhub-example-0.01.jar
 
 /////////////////////////////////
 //Eventhub => SQL:
@@ -27,18 +27,17 @@ spark-submit --master yarn --deploy-mode client --executor-cores 4 --jars /opt/l
 checkpointDir       /user/you/checkpoint
 consumerGroup       yourEventHubConsumerGroup
 eventHubsName       yourEventHubName
-eventHubsNS         yourEventHubNamespace
+eventHubsNamespace  yourEventHubNamespace
 lastReadFile        /user/you/lastread.parquet
-loop                0
 partitionCount      2
 policyName          yourEventHubPolicy
 policyKey           yourEventHubKey
-runforminutes       60
-readall             1
-sqlcxnstring        jdbc:sqlserver://yoursqlserver.database.windows.net:1433;database=yourdb;
-sqlpassword         yourpassword
-sqluser             youruser@yourserver
-streamwindowseconds 60
-tag                 dev
+runForMinutes       60
+readall             0
+sqlCxnString        jdbc:sqlserver://yoursqlserver.database.windows.net:1433;database=yourdb;
+sqlPassword         yourpassword
+sqlUser             youruser@yourserver
+streamWindowSeconds 2
+tag                 yourtag
 targetTable         sourceSqlTableName
 targetTableKey      sourceSqlTableKeyToTrackWhereWeRead
