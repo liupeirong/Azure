@@ -70,14 +70,14 @@ object EventHub2Sql {
     
     val sparkCheckpointDir = appProps.getProperty("checkpointDir") + "spark"
     val eventhubCheckpointDir = appProps.getProperty("checkpointDir") + "eventhub"
-    val streamWindowSeconds: Int = if (appProps.containsKey("streamwindowseconds")) appProps.getProperty("streamwindowseconds").toInt else 60
-    val runForMinutes: Int = if (appProps.containsKey("runforminutes")) appProps.getProperty("runforminutes").toInt else 60
+    val streamWindowSeconds: Int = if (appProps.containsKey("streamWindowSeconds")) appProps.getProperty("streamWindowSeconds").toInt else 60
+    val runForMinutes: Int = if (appProps.containsKey("runForMinutes")) appProps.getProperty("runForMinutes").toInt else 60
     println("runForMinutes " + runForMinutes.toString)
     
     val eventhubParameters = Map[String, String](
       "eventhubs.policyname" -> appProps.getProperty("policyName"),
       "eventhubs.policykey" -> appProps.getProperty("policyKey"),
-      "eventhubs.namespace" -> appProps.getProperty("eventHubsNS"),
+      "eventhubs.namespace" -> appProps.getProperty("eventHubsNamespace"),
       "eventhubs.name" -> appProps.getProperty("eventHubsName"),
       "eventhubs.partition.count" -> appProps.getProperty("partitionCount"), //executor core count must be twice that of partition count
       "eventhubs.consumergroup" -> appProps.getProperty("consumerGroup"),
@@ -93,9 +93,9 @@ object EventHub2Sql {
     lines.foreachRDD {rdd => 
       if (!rdd.isEmpty())
       {
-        val sqlCxnString = sys.env("sqlcxnstring")   
-        val sqlUser = sys.env("sqluser")   
-        val sqlPassword = sys.env("sqlpassword") 
+        val sqlCxnString = sys.env("sqlCxnString")   
+        val sqlUser = sys.env("sqlUser")   
+        val sqlPassword = sys.env("sqlPassword") 
         val targetTable = sys.env("targetTable") 
         val targetDatalake = sys.env("targetDatalake")
   

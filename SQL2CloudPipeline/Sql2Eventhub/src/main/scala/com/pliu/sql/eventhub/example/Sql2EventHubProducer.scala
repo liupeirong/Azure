@@ -6,34 +6,6 @@
  *    are already on each node
  * 4. "Configure Build Path" -> "Scala Compiler" -> Use 2.11 to be compatible with Spark 2.0
  * 
- * run spark-shell: 
- * spark-shell --master yarn --deploy-mode client --executor-cores 2 -usejavacp 
- * --jars /opt/libs/azure-eventhubs-0.9.0.jar,/opt/libs/proton-j-0.15.0.jar 
- * --driver-class-path /opt/libs/sqljdbc4.jar 
- * --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar 
- * --conf spark.myapp.sqlcxnstring="jdbc:sqlserver://yourserver.database.windows.net:1433;database=yourdb;" 
- * --conf spark.myapp.sqluser=youruser@yourserver 
- * --conf spark.myapp.sqlpassword=yourpassword
- * --conf spark.myapp.tag=DS14 
- * --conf spark.executorEnv.eventHubsNS=yourhubnamespace 
- * --conf spark.executorEnv.eventHubsName=yourhubname 
- * --conf spark.executorEnv.policyName=yourpolicy 
- * --conf spark.executorEnv.policyKey="yourkey"
- * 
- * run spark-submit:
- * spark-submit --master yarn --deploy-mode client --executor-cores 2 
- * --jars /opt/libs/azure-eventhubs-0.9.0.jar,/opt/libs/proton-j-0.15.0.jar 
- * --driver-class-path /opt/libs/sqljdbc4.jar 
- * --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar 
- * --conf spark.myapp.sqlcxnstring="jdbc:sqlserver://yourserver.database.windows.net:1433;database=yourdb;" 
- * --conf spark.myapp.sqluser=youruser@yourserver 
- * --conf spark.myapp.sqlpassword=yourpassword 
- * --conf spark.myapp.tag=DS14 
- * --conf spark.executorEnv.eventHubsNS=yourhubnamespace 
- * --conf spark.executorEnv.eventHubsName=yourhubname
- * --conf spark.executorEnv.policyName=yourpolicy 
- * --conf spark.executorEnv.policyKey="yourkey" 
- * --class com.pliu.sql.eventhub.example.Sql2EventHub /tmp/original-com-pliu-sql-eventhub-example-0.01.jar
  */
 
 package com.pliu.sql.eventhub.example
@@ -47,44 +19,43 @@ import java.time._
 import java.util.Properties;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.Configuration;
 
 //
+//defining a static object will work in spark-shell but not spark-submit, because the closure will bind
+//to the static object in the executor's context, which was never initialized
 //http://stackoverflow.com/questions/34859468/scala-class-lazy-val-variables-strange-behaviour-with-spark
 //
-object GlobalConfig extends Serializable {
-  val sqlCxnString= "sqlCxnString"  
-  val sqlUser= "sqlUser"  
-  val sqlPassword= "sqlPassword"  
-  val tag= "tag"  
-  val targetTable= "targetTable"  
-  val targetTableKey= "targetTableKey"  
-  val lastReadFile= "lastReadFile"  
-  val runForMinutes= "runForMinutes"  
-  val eventHubsNamespace= "eventHubsNamespace"  
-  val eventHubsName= "eventHubsName"  
-  val policyName= "policyName"  
-  val policyKey= "policyKey"  
-  val readall= "readall"
-  val eventHubCxnString = "ehCxnString"
-  def loadConfig(appProps: Properties): Map[String, String] = {
-    val a: Map[String, String] = Map(
-      sqlCxnString -> appProps.getProperty(sqlCxnString),  
-      sqlUser -> appProps.getProperty(sqlUser),  
-      sqlPassword -> appProps.getProperty(sqlPassword),
-      tag -> appProps.getProperty(tag),
-      targetTable -> appProps.getProperty(targetTable),
-      targetTableKey -> appProps.getProperty(targetTableKey),
-      lastReadFile -> appProps.getProperty(lastReadFile),
-      runForMinutes -> appProps.getProperty(runForMinutes),
-      eventHubsNamespace -> appProps.getProperty(eventHubsNamespace),
-      eventHubsName -> appProps.getProperty(eventHubsName),
-      policyName -> appProps.getProperty(policyName),
-      policyKey -> appProps.getProperty(policyKey),
-      eventHubCxnString -> new ConnectionStringBuilder(appProps.getProperty(eventHubsNamespace),
-            appProps.getProperty(eventHubsName), appProps.getProperty(policyName), appProps.getProperty(policyKey)).toString,
-      readall -> (if (appProps.containsKey(readall)) appProps.getProperty(readall) == 1 else false).toString
-    )
-    a
+class GlobalConfigDef extends Serializable {
+  var sqlCxnString= ""  
+  var sqlUser= ""  
+  var sqlPassword= ""  
+  var tag = ""  
+  var targetTable= ""  
+  var targetTableKey= ""  
+  var lastReadFile= ""  
+  var runForMinutes: Int = 60  
+  var eventHubsNamespace= ""  
+  var eventHubsName= ""  
+  var policyName= ""  
+  var policyKey= ""  
+  var readall: Boolean = false
+  var eventHubCxnString = ""
+  def loadConfig(appProps: Properties): Unit = {
+    sqlCxnString = appProps.getProperty("sqlCxnString")  
+    sqlUser = appProps.getProperty("sqlUser")  
+    sqlPassword = appProps.getProperty("sqlPassword")
+    tag = appProps.getProperty("tag")
+    targetTable = appProps.getProperty("targetTable")
+    targetTableKey = appProps.getProperty("targetTableKey")
+    lastReadFile = appProps.getProperty("lastReadFile")
+    runForMinutes = appProps.getProperty("runForMinutes").toInt
+    eventHubsNamespace = appProps.getProperty("eventHubsNamespace")
+    eventHubsName = appProps.getProperty("eventHubsName")
+    policyName = appProps.getProperty("policyName")
+    policyKey = appProps.getProperty("policyKey")
+    eventHubCxnString = new com.microsoft.azure.servicebus.ConnectionStringBuilder(eventHubsNamespace, eventHubsName, policyName, policyKey).toString
+    readall = if (appProps.containsKey("readall")) appProps.getProperty("readall") == "1" else false
   }
 }
 
@@ -92,42 +63,34 @@ object Sql2EventHub {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder().appName("SQL2EventHub").getOrCreate()
     import spark.implicits._
-    
-    //read app configuration
     val appConf = spark.conf.get("spark.myapp.conf")
     val pt: Path = new Path(appConf)
     val fs: FileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     val appConfStream = fs.open(pt)
     val appProps = new Properties()
     appProps.load(appConfStream)
-    
-    val myconf = GlobalConfig.loadConfig(appProps)
+
+    val GlobalConfig = new GlobalConfigDef()
+    GlobalConfig.loadConfig(appProps)
     
     //read the last id stored in hdfs, if none, select everything, otherwise, select newer ones
     var lastread: Int = -1
-    if (!myconf(GlobalConfig.readall).toBoolean)
+    if (!GlobalConfig.readall)
     {
       try {
-        val lastreadDF = spark.read.load(myconf(GlobalConfig.lastReadFile))
+        val lastreadDF = spark.read.load(GlobalConfig.lastReadFile)
         lastread = lastreadDF.first().getInt(0)
       } catch {
         case _: Throwable => println("read sql from beginning")
       }
     }
-    
-    val jdbcDFReader = spark.read.
-      format("jdbc").
-      option("url", myconf(GlobalConfig.sqlCxnString)).
-      option("user", myconf(GlobalConfig.sqlUser)).
-      option("password", myconf(GlobalConfig.sqlPassword))
-    
-    var millisecToRun: Int = myconf(GlobalConfig.runForMinutes).toInt * 60 * 1000;
+
+    var millisecToRun: Int = GlobalConfig.runForMinutes * 60 * 1000;
     val partition: Int = spark.conf.get("spark.executor.cores").toInt * spark.conf.get("spark.executor.instances").toInt
     
-    //put GlobalConfig in a Closure, so that it's serialized before sending to executors
+    //put GlobalConfig in a Closure, so that it's serialized to executors
     //   http://stackoverflow.com/questions/30181582/spark-use-the-global-config-variables-in-executors
-    //on the other hand, if you define a function at the partition level, then it's already in the executor, spark doesn't know
-    //how to serialize it.  The following won't work:
+    //if you define a function at the partition level, it won't work, possibly because it binds to GlobalConfig in the executor's context
     //    val processPartitionFunc = (p: Iterator[Array[Byte]]) => {
     //      val eventHubsClient: EventHubClient = EventHubClient.createFromConnectionString(GlobalConfig.getConnectionString()).get
     //      p.foreach {s => 
@@ -137,7 +100,7 @@ object Sql2EventHub {
     //    }
     val processDSFunc = (ds: org.apache.spark.sql.Dataset[Array[Byte]]) => {
       ds.foreachPartition { p => 
-          val eventHubsClient: EventHubClient = EventHubClient.createFromConnectionString(myconf(GlobalConfig.eventHubCxnString)).get
+          val eventHubsClient: EventHubClient = EventHubClient.createFromConnectionString(GlobalConfig.eventHubCxnString).get
           p.foreach {s => 
             val e = new EventData(s)
             eventHubsClient.sendSync(e)
@@ -145,12 +108,18 @@ object Sql2EventHub {
       }
     }
     
+    val jdbcDFReader = spark.read.
+      format("jdbc").
+      option("url", GlobalConfig.sqlCxnString).
+      option("user", GlobalConfig.sqlUser).
+      option("password", GlobalConfig.sqlPassword)
+    
     while (millisecToRun > 0) 
     {
       val myDF = jdbcDFReader.
-        option("dbtable", "(select * from " + myconf(GlobalConfig.targetTable) + " where " + myconf(GlobalConfig.targetTableKey) + " > " + lastread + ") as intable").
+        option("dbtable", "(select * from " + GlobalConfig.targetTable + " where " + GlobalConfig.targetTableKey + " > " + lastread + ") as intable").
 //        spark will natively divide the column value by the partition count to set the range, so you end up all in one partition
-//        option("partitionColumn", myconf(GlobalConfig.targetTableKey)).
+//        option("partitionColumn", GlobalConfig.targetTableKey)).
 //        option("lowerBound", lastread.toString).
 //        option("upperBound", "1000000000").
 //        option("numPartitions", partition.toString).
@@ -167,7 +136,7 @@ object Sql2EventHub {
         val utcDateTime = Instant.now.toString
         val eventPayload = myDF.
           withColumn("createdat", myDF("createdat").cast(StringType)).
-          withColumn("tag", lit(myconf(GlobalConfig.tag))).
+          withColumn("tag", lit(GlobalConfig.tag)).
           withColumn("publishedat", lit(utcDateTime)).
           toJSON.
           map(m => m.getBytes()).
@@ -175,8 +144,8 @@ object Sql2EventHub {
 
         processDSFunc(eventPayload)
         
-        lastread = myDF.agg(max(myconf(GlobalConfig.targetTableKey))).first().getInt(0)
-        spark.sql("select " + lastread).write.mode(SaveMode.Overwrite).parquet(myconf(GlobalConfig.lastReadFile))
+        lastread = myDF.agg(max(GlobalConfig.targetTableKey)).first().getInt(0)
+        spark.sql("select " + lastread).write.mode(SaveMode.Overwrite).parquet(GlobalConfig.lastReadFile)
       } catch {
         case emptydf: NoSuchElementException => println("nothing to read")
       }
