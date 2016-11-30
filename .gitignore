@@ -105,3 +105,5 @@
 /SQL2CloudPipeline/Sql2Eventhub/.classpath
 /SQL2CloudPipeline/Sql2Eventhub/.project
 /SQL2CloudPipeline/Sql2Eventhub/dependency-reduced-pom.xml
+/SQL2CloudPipeline/Eventhub2Sql/.tmpBin
+/SQL2CloudPipeline/Eventhub2Sql/target

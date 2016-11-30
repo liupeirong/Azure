@@ -15,11 +15,10 @@ spark-submit --master yarn --deploy-mode client --executor-cores 14 --num-execut
 /////////////////////////////////
 //Eventhub => SQL:
 /////////////////////////////////
-export sqlCxnString="jdbc:sqlserver://yoursqlserver.database.windows.net:1433;database=yoursqldb;" &&  export sqlUser=youruser@yourserver && export sqlPassword=yourpassword && export targetTable=destolap && export targetDatalake="wasb:///mylake"
 
-spark-shell --master yarn --deploy-mode client --executor-cores 4 -usejavacp --jars /opt/libs/spark-streaming-eventhubs_2.11-2.0.1.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf --conf spark.yarn.appMasterEnv.sqlCxnString="jdbc:sqlserver://yoursqlserver.database.windows.net:1433;database=yoursqldb;" --conf spark.yarn.appMasterEnv.sqlUser=youruser@yourserver --conf spark.yarn.appMasterEnv.sqlPassword=yourpassword --conf spark.yarn.appMasterEnv.targetTable=destolap --conf spark.yarn.appMasterEnv.targetDatalake="wasb:///mylake"  
+spark-shell --master yarn --deploy-mode client --executor-cores 4 -usejavacp --jars /opt/libs/spark-streaming-eventhubs_2.11-2.0.1.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf 
 
-spark-submit --master yarn --deploy-mode client --executor-cores 4 --jars /opt/libs/spark-streaming-eventhubs_2.11-2.0.1.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf --conf spark.yarn.appMasterEnv.sqlCxnString="jdbc:sqlserver://yoursqlserver.database.windows.net:1433;database=yoursqldb;" --conf spark.yarn.appMasterEnv.sqlUser=youruser@yourserver --conf spark.yarn.appMasterEnv.sqlPassword=yourpassword --conf spark.yarn.appMasterEnv.targetTable=destolap --conf spark.yarn.appMasterEnv.targetDatalake="wasb:///mylake" --class com.pliu.eventhub.sql.example.EventHub2Sql /tmp/original-com-pliu-eventhub-sql-example-0.01.jar 
+spark-submit --master yarn --deploy-mode client --executor-cores 3 --num-executors 2 --jars /opt/libs/spark-streaming-eventhubs_2.11-2.0.1.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.streaming.blockInterval="1000ms" --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf --class com.pliu.eventhub.sql.example.EventHub2Sql /tmp/original-com-pliu-eventhub-sql-example-0.01.jar
 
 /////////////////////////////////
 //myproperties.conf 
@@ -35,9 +34,14 @@ policyKey           yourEventHubKey
 runForMinutes       60
 readall             0
 sqlCxnString        jdbc:sqlserver://yoursqlserver.database.windows.net:1433;database=yourdb;
-sqlPassword         yourpassword
 sqlUser             youruser@yourserver
+sqlPassword         yourpassword
 streamWindowSeconds 2
 tag                 yourtag
 targetTable         sourceSqlTableName
 targetTableKey      sourceSqlTableKeyToTrackWhereWeRead
+destSqlCxnString    jdbc:sqlserver://yourdestinationsqlserver.database.windows.net:1433;database=yourdb;
+destSqlUser         yourdestinationuser@yourserver
+destSqlPassword     yourpassword
+destTargetTable     destinationTableName
+destTargetDatalake  wasb:///yourdestinationlake

@@ -48,6 +48,49 @@ import java.util.Properties;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+class GlobalConfigDef extends Serializable {
+  var sqlCxnString= ""  
+  var sqlUser= ""  
+  var sqlPassword= ""  
+  var tag = ""  
+  var targetTable= ""  
+  var targetTableKey= ""  
+  var lastReadFile= ""  
+  var runForMinutes: Int = 60  
+  var eventHubsNamespace= ""  
+  var eventHubsName= ""  
+  var policyName= ""  
+  var policyKey= ""  
+  var readall: Boolean = false
+  var eventHubCxnString = ""
+  var sparkCheckpointDir = ""
+  var eventhubCheckpointDir = ""
+  var streamWindowSeconds: Int = 2
+  var partitionCount = ""
+  var consumerGroup = ""
+  var targetDatalake = ""
+  def loadConfig(appProps: java.util.Properties): Unit = {
+    sqlCxnString = appProps.getProperty("destSqlCxnString")  
+    sqlUser = appProps.getProperty("destSqlUser")  
+    sqlPassword = appProps.getProperty("destSqlPassword")
+    targetTable = appProps.getProperty("destTargetTable")
+    lastReadFile = appProps.getProperty("lastReadFile")
+    runForMinutes = appProps.getProperty("runForMinutes").toInt
+    eventHubsNamespace = appProps.getProperty("eventHubsNamespace")
+    eventHubsName = appProps.getProperty("eventHubsName")
+    policyName = appProps.getProperty("policyName")
+    policyKey = appProps.getProperty("policyKey")
+    eventHubCxnString = new com.microsoft.azure.servicebus.ConnectionStringBuilder(eventHubsNamespace, eventHubsName, policyName, policyKey).toString
+    sparkCheckpointDir = appProps.getProperty("checkpointDir") + "spark"
+    eventhubCheckpointDir = appProps.getProperty("checkpointDir") + "eventhub"
+    streamWindowSeconds = if (appProps.containsKey("streamWindowSeconds")) appProps.getProperty("streamWindowSeconds").toInt else 10
+    partitionCount = appProps.getProperty("partitionCount")
+    consumerGroup = appProps.getProperty("consumerGroup")
+    targetDatalake = appProps.getProperty("destTargetDatalake")
+  }
+}
+
+
 object EventHub2Sql {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("EventHub2SQL")
@@ -67,25 +110,21 @@ object EventHub2Sql {
     val appConfStream = fs.open(pt)
     val appProps = new Properties()
     appProps.load(appConfStream)
-    
-    val sparkCheckpointDir = appProps.getProperty("checkpointDir") + "spark"
-    val eventhubCheckpointDir = appProps.getProperty("checkpointDir") + "eventhub"
-    val streamWindowSeconds: Int = if (appProps.containsKey("streamWindowSeconds")) appProps.getProperty("streamWindowSeconds").toInt else 60
-    val runForMinutes: Int = if (appProps.containsKey("runForMinutes")) appProps.getProperty("runForMinutes").toInt else 60
-    println("runForMinutes " + runForMinutes.toString)
+    val GlobalConfig = new GlobalConfigDef()
+    GlobalConfig.loadConfig(appProps)
     
     val eventhubParameters = Map[String, String](
-      "eventhubs.policyname" -> appProps.getProperty("policyName"),
-      "eventhubs.policykey" -> appProps.getProperty("policyKey"),
-      "eventhubs.namespace" -> appProps.getProperty("eventHubsNamespace"),
-      "eventhubs.name" -> appProps.getProperty("eventHubsName"),
-      "eventhubs.partition.count" -> appProps.getProperty("partitionCount"), //executor core count must be twice that of partition count
-      "eventhubs.consumergroup" -> appProps.getProperty("consumerGroup"),
-      "eventhubs.checkpoint.dir" -> eventhubCheckpointDir, 
-      "eventhubs.checkpoint.interval" -> streamWindowSeconds.toString)
+      "eventhubs.policyname" -> GlobalConfig.policyName,
+      "eventhubs.policykey" -> GlobalConfig.policyKey,
+      "eventhubs.namespace" -> GlobalConfig.eventHubsNamespace,
+      "eventhubs.name" -> GlobalConfig.eventHubsName,
+      "eventhubs.partition.count" -> GlobalConfig.partitionCount, //executor core count must be twice that of partition count
+      "eventhubs.consumergroup" -> GlobalConfig.consumerGroup,
+      "eventhubs.checkpoint.dir" -> GlobalConfig.eventhubCheckpointDir, 
+      "eventhubs.checkpoint.interval" -> GlobalConfig.streamWindowSeconds.toString)
     
-    val ssc = new StreamingContext(sc, Seconds(streamWindowSeconds))     
-    ssc.checkpoint(sparkCheckpointDir)
+    val ssc = new StreamingContext(sc, Seconds(GlobalConfig.streamWindowSeconds))     
+    ssc.checkpoint(GlobalConfig.sparkCheckpointDir)
     
     val stream = EventHubsUtils.createUnionStream(ssc, eventhubParameters) //DStrem[Array[Byte]]
     val lines = stream.map(msg => new String(msg))
@@ -93,11 +132,11 @@ object EventHub2Sql {
     lines.foreachRDD {rdd => 
       if (!rdd.isEmpty())
       {
-        val sqlCxnString = sys.env("sqlCxnString")   
-        val sqlUser = sys.env("sqlUser")   
-        val sqlPassword = sys.env("sqlPassword") 
-        val targetTable = sys.env("targetTable") 
-        val targetDatalake = sys.env("targetDatalake")
+        val sqlCxnString = GlobalConfig.sqlCxnString   
+        val sqlUser = GlobalConfig.sqlUser   
+        val sqlPassword = GlobalConfig.sqlPassword 
+        val targetTable = GlobalConfig.targetTable 
+        val targetDatalake = GlobalConfig.targetDatalake
   
         val jdbcProp = new java.util.Properties 
         jdbcProp.setProperty("user", sqlUser)
@@ -122,6 +161,6 @@ object EventHub2Sql {
     }
     
     ssc.start()
-    ssc.awaitTerminationOrTimeout(runForMinutes * 60 * 1000)
+    ssc.awaitTerminationOrTimeout(GlobalConfig.runForMinutes * 60 * 1000)
   }
 }
