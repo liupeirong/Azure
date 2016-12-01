@@ -107,3 +107,8 @@
 /SQL2CloudPipeline/Sql2Eventhub/dependency-reduced-pom.xml
 /SQL2CloudPipeline/Eventhub2Sql/.tmpBin
 /SQL2CloudPipeline/Eventhub2Sql/target
+/SQL2CloudPipeline/Sql2Kafka/.settings
+*.classpath
+*.project
+/SQL2CloudPipeline/Sql2Kafka/target
+/SQL2CloudPipeline/Sql2Kafka/dependency-reduced-pom.xml

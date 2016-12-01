@@ -21,6 +21,14 @@ spark-shell --master yarn --deploy-mode client --executor-cores 4 -usejavacp --j
 spark-submit --master yarn --deploy-mode client --executor-cores 3 --num-executors 2 --jars /opt/libs/spark-streaming-eventhubs_2.11-2.0.1.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.streaming.blockInterval="1000ms" --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf --class com.pliu.eventhub.sql.example.EventHub2Sql /tmp/original-com-pliu-eventhub-sql-example-0.01.jar
 
 /////////////////////////////////
+//SQL => Kafka:
+/////////////////////////////////
+
+spark-shell --master yarn --deploy-mode client --executor-cores 2 -usejavacp --jars /opt/libs/kafka-clients-0.10.1.0.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf
+
+spark-submit --master yarn --deploy-mode client --executor-cores 14 --num-executors 2 --jars /opt/libs/kafka-clients-0.10.1.0.jar --driver-class-path /opt/libs/sqljdbc4.jar --conf spark.executor.extraClassPath=/opt/libs/sqljdbc4.jar --conf spark.myapp.conf=/user/pliu/myproperties.conf --class com.pliu.sql.kafka.example.Sql2Kafka /tmp/original-com-pliu-sql-kafka-example-0.01.jar
+
+/////////////////////////////////
 //myproperties.conf 
 /////////////////////////////////
 checkpointDir       /user/you/checkpoint
@@ -45,3 +53,5 @@ destSqlUser         yourdestinationuser@yourserver
 destSqlPassword     yourpassword
 destTargetTable     destinationTableName
 destTargetDatalake  wasb:///yourdestinationlake
+kafkaTopic          yourtopic
+kafkaServers        yourkafkabroker:9092
