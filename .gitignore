@@ -112,3 +112,6 @@
 *.project
 /SQL2CloudPipeline/Sql2Kafka/target
 /SQL2CloudPipeline/Sql2Kafka/dependency-reduced-pom.xml
+/SQL2CloudPipeline/Kafka2sql/.settings
+/SQL2CloudPipeline/Kafka2sql/target
+/SQL2CloudPipeline/Kafka2sql/dependency-reduced-pom.xml

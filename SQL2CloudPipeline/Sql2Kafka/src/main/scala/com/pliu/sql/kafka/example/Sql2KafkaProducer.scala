@@ -16,6 +16,8 @@ import org.apache.spark.sql.types.StringType
 import org.apache.spark.sql.functions._
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.StringSerializer
+import org.apache.kafka.common.serialization.ByteArraySerializer
 import java.time._
 import java.util.Properties
 import org.apache.hadoop.fs.FileSystem
@@ -87,8 +89,8 @@ object Sql2Kafka {
       ds.foreachPartition { p =>
           val kafkaProps = new Properties;
           kafkaProps.put("bootstrap.servers", GlobalConfig.kafkaServers)
-          kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
-          kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+          kafkaProps.put("value.serializer", classOf[ByteArraySerializer])
+          kafkaProps.put("key.serializer", classOf[StringSerializer])
           
           val producer = new KafkaProducer[String, Array[Byte]](kafkaProps);
           p.foreach {s => 
