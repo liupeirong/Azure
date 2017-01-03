@@ -5,6 +5,12 @@ mvn clean (this is necessary to build the min jar)
 mvn package
 
 /////////////////////////////////
+//Mount the libraries 
+/////////////////////////////////
+sudo mkdir /opt/libs
+sudo mount -t cifs //<storageaccount>.file.core.windows.net/<container> /opt/libs -o vers=3.0,username=<storageaccount>,password=<storageaccountkey>,dir_mode=0777,file_mode=0777
+
+/////////////////////////////////
 //SQL => Eventhub: 
 /////////////////////////////////
 
