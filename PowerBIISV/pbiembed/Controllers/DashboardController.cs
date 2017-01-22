@@ -66,12 +66,14 @@ namespace ISVWebApp.Controllers
         [HttpPost]
         public async Task<ActionResult> Report()
         {
+            ClaimsIdentity claimsId = ClaimsPrincipal.Current.Identity as ClaimsIdentity;
+            var appRoles = claimsId.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
             string reportId = Request.Form["SelectedReport"].ToString();
             using (var client = this.CreatePowerBIClient())
             {
                 var reportsResponse = await client.Reports.GetReportsAsync(this.workspaceCollection, this.workspaceId);
                 var report = reportsResponse.Value.FirstOrDefault(r => r.Id == reportId);
-                var embedToken = PowerBIToken.CreateReportEmbedToken(this.workspaceCollection, this.workspaceId, reportId);
+                var embedToken = PowerBIToken.CreateReportEmbedToken(this.workspaceCollection, this.workspaceId, reportId, username: "anyone", roles: appRoles);
 
                 var viewModel = new ReportViewModel
                 {
@@ -80,6 +82,19 @@ namespace ISVWebApp.Controllers
                 };
                 return View(viewModel);
             }
+        }
+
+        [Authorize]
+        public async Task<ActionResult> Roles()
+        {
+            ClaimsIdentity claimsId = ClaimsPrincipal.Current.Identity as ClaimsIdentity;
+            var appRoles = claimsId.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
+            // the following works in System.Identity.Tokens.JWT version 4.0.0 but not 4.0.2
+            // var appRoles = new List<String>();
+            // foreach (Claim claim in ClaimsPrincipal.Current.FindAll(claimsId.RoleClaimType))
+            //    appRoles.Add(claim.Value);
+            ViewData["appRoles"] = appRoles;
+            return View();
         }
 
         private IPowerBIClient CreatePowerBIClient()

@@ -94,7 +94,7 @@ namespace ISVWebApp
                                 && (db.Users.FirstOrDefault(b => ((b.UPN == UPN) && (b.TenantID == tenantID))) == null)
                                 )
                                 // the caller was neither from a trusted issuer or a registered user - throw to block the authentication flow
-                                throw new System.IdentityModel.Tokens.SecurityTokenValidationException();
+                                throw new System.IdentityModel.Tokens.SecurityTokenValidationException(); 
                             return Task.FromResult(0);
                         } ,                    
                         AuthenticationFailed = (context) =>
