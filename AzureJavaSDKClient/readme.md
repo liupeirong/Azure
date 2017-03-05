@@ -13,7 +13,7 @@ Note that as a pre-requisite, you must -
 Go to [this web site](http://javamgmtsdk.azurewebsites.net/azuremgmtsdksample) to try out this application.
 
 Not yet implemented: 
-* Sign out is not yet implemented. If you sign in and out as different users, then before you sign in to another user, sign out from Azure portal, close your browser, and open a new private browser session
-* Organizational ID works, Live ID is not yet implemented
+* Sign out is not yet implemented. If you sign in and out as different users, then before you sign in as another user, sign out from Azure portal, close your browser, and open a new private browser session
+* Organization ID works, Live ID is not yet implemented
 * The first time you consent for this app to access your Azure resources, you may see an error when you hit the "Get resource groups" button. This is because it takes a few seconds for this app to be registered as a service principal in your Azure AD. Wait a few seconds and try again, it should succeed.
 
