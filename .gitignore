@@ -115,3 +115,10 @@
 /SQL2CloudPipeline/Kafka2sql/.settings
 /SQL2CloudPipeline/Kafka2sql/target
 /SQL2CloudPipeline/Kafka2sql/dependency-reduced-pom.xml
+/AzureJavaSDKClient/target
+/LogAnalytics/GeoLogGenerator/bin/Debug
+/LogAnalytics/GeoLogGenerator/obj/Debug
+/LogAnalytics/GeoLogGenerator/packages
+/LogAnalytics/GeoLogConsumerRealTime/.settings
+/LogAnalytics/GeoLogConsumerRealTime/target
+/LogAnalytics/GeoLogConsumerRealTime/dependency-reduced-pom.xml
