@@ -122,3 +122,6 @@
 /LogAnalytics/GeoLogConsumerRealTime/.settings
 /LogAnalytics/GeoLogConsumerRealTime/target
 /LogAnalytics/GeoLogConsumerRealTime/dependency-reduced-pom.xml
+/LogAnalytics/GeoLogConsumerBatch/.settings
+/LogAnalytics/GeoLogConsumerBatch/target
+/LogAnalytics/GeoLogConsumerBatch/dependency-reduced-pom.xml
