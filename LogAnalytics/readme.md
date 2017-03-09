@@ -25,3 +25,17 @@ This sample simulates the generation of location based game logs. It uses Spark 
 ```javascript
   spark2-submit --master yarn --deploy-mode client  --executor-cores 4 --jars /path/to/spark-streaming-eventhubs_2.11-2.0.3.jar,/path/to/scalaj-http_2.11-2.3.0.jar,/path/to/config-1.3.1.jar,/opt/cloudera/parcels/CDH/jars/commons-lang3-3.3.2.jar --conf spark.driver.userClasspathFirst=true --conf spark.executor.extraClassPath=/opt/cloudera/parcels/CDH/jars/commons-lang3-3.3.2.jar --conf spark.executor.userClasspathFirst=true --class com.pliu.logconsumerrt.GeoLogConsumerRT /path/to/original-logconsumerrt-0.0.1.jar
 ```
+
+### GeoLogConsumreBatch: a Spark application that streams events from Azure Event Hub, stores data in HDFS or Azure Datalake Store
+* Put your Event Hub, HDFS/ADLS, and Streaming configuration in src\main\resources\logBatch.conf, ADLS path must be specified as "adl://lakename.azuredatalakestore.net/path"
+* You can optionally put the following dependency jars in a folder in the Spark driver and executors to avoid copying the large uber jar from your dev machine to the cluster during development
+ * spark-streaming-eventhubs_2.11-2.0.3.jar
+ * scalaj-http_2.11-2.3.0.jar
+ * config-1.3.1.jar
+* Sample command line: 
+```javascript
+  spark2-submit --master yarn --deploy-mode client  --executor-cores 4 --jars /path/to/spark-streaming-eventhubs_2.11-2.0.3.jar,/path/to/scalaj-http_2.11-2.3.0.jar,/path/to/config-1.3.1.jar,/opt/cloudera/parcels/CDH/jars/commons-lang3-3.3.2.jar --conf spark.driver.userClasspathFirst=true --conf spark.executor.extraClassPath=/opt/cloudera/parcels/CDH/jars/commons-lang3-3.3.2.jar --conf spark.executor.userClasspathFirst=true --class com.pliu.logconsumerbatch.GeoLogBatch /path/to/original-logconsumerbatch-0.0.1.jar
+```
+
+### GameLogAnalytics.pbit: a sample Power BI template that contains the data models and visuals for the analyzed data in this project
+* Instantiate this template with your own Azure Datalake Store account
