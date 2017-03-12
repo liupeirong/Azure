@@ -63,11 +63,8 @@ object GeoLogConsumerBatch {
         val gameStart = spark.sql("select eventts, playerId, sessionId, eventParams.city, eventParams.lat, eventParams.lon from logs where eventType = 'gameStart' ")
         val itemPurchased = spark.sql("select eventts, playerId, sessionId, eventParams.item, eventParams.quantity, eventParams.price from logs where eventType = 'itemPurchased' ")
         val levelReached = spark.sql("select eventts, playerId, sessionId, eventParams.level from logs where eventType = 'levelReached' ")
-        gameStart.show
         gameStart.write.mode(SaveMode.Append).parquet(geoDir)
-        itemPurchased.show
         itemPurchased.write.mode(SaveMode.Append).parquet(purchaseDir)
-        levelReached.show
         levelReached.write.mode(SaveMode.Append).parquet(levelDir)
       } catch {
         case e: Exception => println(e.getMessage())

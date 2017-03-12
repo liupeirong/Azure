@@ -23,7 +23,6 @@ namespace geoLogGen
         public bool isPrintOnly { get; set; }
         public string cityFile { get; set; }
 
-        // Assume there is only 1 file, and 1 set
         public GenConfig(string[] args)
         {
             try
@@ -35,8 +34,8 @@ namespace geoLogGen
                 isPrintOnly = (cArgs > 3) && (args[3] == "--print-only");
                 cityFile = cArgs > 4 ? args[4] : ".\\world_cities.csv";
 
-                // how many sessions can we generate per second, assuming ~3 log records per session
-                int sessionPerSec = isPowerBiPro ? 100 : 1;
+                // how many sessions can we generate per second, powerbi pro 1M/hour, powerbi free 10K/hour 
+                int sessionPerSec = isPowerBiPro ? 250 : 2;
                 // how much time to pause before generating another session
                 msPerSession = (int)(1000 / sessionPerSec);
                 Console.WriteLine(String.Format("duration:{0}hours, players:{1}, isPro:{2}, printOnly:{3}, citycsv:{4}",

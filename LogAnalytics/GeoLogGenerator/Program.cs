@@ -112,7 +112,6 @@ namespace geoLogGen
         }
 
 
-        // Handle output of cdr recs
         static void outputLog(LogRecord r, GenConfig config)
         {
             try
