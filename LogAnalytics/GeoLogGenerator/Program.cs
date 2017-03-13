@@ -86,7 +86,7 @@ namespace geoLogGen
                 futureLogQ.Enqueue(rec);
 
                 //end
-                int seconds2End = Math.Max(seconds2Level, seconds2Purchase) + coin.Next(1, 5);
+                int seconds2End = Math.Max(seconds2Level, seconds2Purchase) + coin.Next(3, 7);
                 curSession.setEvent(Session.eventTypeList.gameEnd, currentTime.AddSeconds(seconds2End));
                 rec = new LogRecord(curSession);
                 futureLogQ.Enqueue(rec);

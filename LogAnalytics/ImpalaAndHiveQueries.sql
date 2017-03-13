@@ -17,10 +17,10 @@ location "adl://mypond.azuredatalakestore.net/gamelog/purchase";
 
 -- To compact small part files into larger files -- 
 --     same for Hive and Impala -- 
---     add "limit 10000000" at the end to honor bucketing, otherwise, all files will be combined to 1 --
-insert overwrite table pqgeo select * from pqgeo;
-insert overwrite table pqlevel select * from pqlevel;
-insert overwrite table pqpurchase select * from pqpurchase;
+--     add "limit" at the end to honor bucketing, otherwise, all files will be combined to 1 --
+insert overwrite table pqgeo select * from pqgeo limit 2000000;
+insert overwrite table pqlevel select * from pqlevel limit 2000000;
+insert overwrite table pqpurchase select * from pqpurchase limit 2000000;
 
 
 -- Refresh csv tables in ADLS for visualization in Power BI --
@@ -29,7 +29,7 @@ drop table if exists playergeo;
 CREATE TABLE playergeo row format delimited fields terminated by ',' STORED AS textfile  
 location "adl://mypond.azuredatalakestore.net/gamebi/playergeo"
 as select from_unixtime(unix_timestamp(eventts), 'yyyy-MM-dd HH:mm') as slice, lat, lon, count(playerid) as players from pqgeo 
-where eventts >= date_sub(current_date, 7)
+where eventts > unix_timestamp('2017-03-12 13:00', 'yyyy-MM-dd HH:mm')
 group by from_unixtime(unix_timestamp(eventts), 'yyyy-MM-dd HH:mm'), lat, lon;
 
 drop table if exists purchasegeo;
@@ -37,7 +37,7 @@ CREATE TABLE purchasegeo row format delimited fields terminated by ',' STORED AS
 location "adl://mypond.azuredatalakestore.net/gamebi/purchasegeo"
 as select item, price, lat, lon, sum(quantity) as sumquantity
 from pqgeo g join pqpurchase p on g.sessionid = p.sessionid 
-where g.eventts >= date_sub(current_date, 7)
+where g.eventts > unix_timestamp('2017-03-12 13:00', 'yyyy-MM-dd HH:mm')
 group by item, price, lat, lon;
 
 drop table if exists purchasefacts;
@@ -49,9 +49,17 @@ as select item, price, lat, lon, level,
        stddev_samp(unix_timestamp(p.eventts) - unix_timestamp(g.eventts)) as stdSeconds2Purchase,
        count(g.playerid) as players
 from pqgeo g join pqpurchase p on g.sessionid = p.sessionid join pqlevel l on g.sessionid = l.sessionid
-where g.eventts >= date_sub(current_date, 7)
+where g.eventts > unix_timestamp('2017-03-12 13:00', 'yyyy-MM-dd HH:mm')
 group by item, price, lat, lon, level;
 
+-- Sample query to compare ADLS vs. attched disks
+select city, level, count(g.playerid) as players, sum(price * quantity) as sales
+from pqgeo g join pqpurchase p on g.sessionid = p.sessionid join pqlevel l on g.sessionid = l.sessionid
+group by city, level;
+
+select city, level, count(g.playerid) as players, sum(price * quantity) as sales
+from diskgeo g join diskpurchase p on g.sessionid = p.sessionid join disklevel l on g.sessionid = l.sessionid
+group by city, level;
 
 -- Sample ad-hoc queries in Impala-- 
 --     Time to purchase -- 

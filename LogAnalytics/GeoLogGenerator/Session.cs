@@ -88,8 +88,14 @@ namespace geoLogGen
             int playerIdx = rand.Next(0, players.numPlayers - 1);
             playerId = players.players[playerIdx];
 
-            level = (levelList)rand.Next(0, (int)levelList.master);
-
+            //20% master, 30% medium, 50% casual
+            level = levelList.beginner;
+            double nextRandDbl = rand.NextDouble();
+            if (nextRandDbl >= 0.8)
+                level = levelList.medium;
+            else if (nextRandDbl >= 0.5)
+                level = levelList.casual;
+            
             cities = locations;
             numCities = cities.numCities;
             citiesInChunk = numCities / 60; //rotate the world in 60 minutes
@@ -120,7 +126,7 @@ namespace geoLogGen
             // each minute of the hour find a random city in that chunk
             int curMin = eventTime.Minute;
 
-            int cityIdx = rand.Next(curMin * citiesInChunk, curMin < 50 - 1 ? (curMin + 1) * citiesInChunk : numCities );
+            int cityIdx = rand.Next(curMin * citiesInChunk, curMin < 57 ? (curMin + 1) * citiesInChunk : numCities );
             City city = cities.cities[cityIdx];
             eventParams = String.Format("{{\"city\":\"{0}\",\"lat\":{1},\"lon\":{2}}}", city.name, city.lat, city.lon);
         }
@@ -133,7 +139,21 @@ namespace geoLogGen
 
         private void generateItemPurchasedParams()
         {
-            int itemIdx = rand.Next(0, (int)purchaseItemList.pet + 1);
+            int itemIdx;
+            //10% pet, takes longer to buy pets
+            double nextRandDbl = rand.NextDouble();
+            if (nextRandDbl >= 0.9)
+            {
+                itemIdx = (int)purchaseItemList.pet;
+                eventTime = eventTime.AddSeconds(3);
+            }
+            else
+                itemIdx = rand.Next(0, (int)purchaseItemList.pet);
+
+            //masters take longer to buy medicine
+            if ((level == levelList.master) && (itemIdx == (int) purchaseItemList.medicine))
+                eventTime = eventTime.AddSeconds(2);
+
             purchaseItemList item = (purchaseItemList)itemIdx;
             int price = itemPrice[itemIdx];
             int quantity = rand.Next(1, 10);
