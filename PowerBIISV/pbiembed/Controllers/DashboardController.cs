@@ -111,12 +111,27 @@ namespace ISVWebApp.Controllers
         public ActionResult PublicReport()
         {
             string reportId = "69c06944-dcbb-4115-82b7-a98fd2a27d50";
-            int expireDays = 1;
+            int expireSeconds = 3600;
+            int unixTimestamp = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds + expireSeconds;
+            string pbieKey1 = "{\"typ\":\"JWT\",\"alg\":\"HS256\"}";
+            string pbieKey2 = String.Format("{{\"wid\":\"{0}\",\"rid\":\"{1}\",\"wcn\":\"{2}\",\"iss\":\"PowerBISDK\",\"ver\":\"0.2.0\",\"aud\":\"{3}\",\"exp\":{4}}}",
+                    workspaceId, reportId, workspaceCollection, Startup.powerbiResourceId, unixTimestamp);
+            string pbieKey1n2ToBase64 = Base64UrlEncode(pbieKey1) + "." + Base64UrlEncode(pbieKey2);
+            string pbieKey3 = HMAC256EncryptBase64UrlEncode(pbieKey1n2ToBase64);
 
+            ViewBag.accessToken = pbieKey1n2ToBase64 + "." + pbieKey3;
+            ViewBag.reportId = reportId;
+            return View();
+        }
+
+        public ActionResult PublicReportWithExpiredToken()
+        {
+            string reportId = "69c06944-dcbb-4115-82b7-a98fd2a27d50";
+            int expireDays = -1;
             int unixTimestamp = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds + expireDays * 24 * 3600;
             string pbieKey1 = "{\"typ\":\"JWT\",\"alg\":\"HS256\"}";
             string pbieKey2 = String.Format("{{\"wid\":\"{0}\",\"rid\":\"{1}\",\"wcn\":\"{2}\",\"iss\":\"PowerBISDK\",\"ver\":\"0.2.0\",\"aud\":\"{3}\",\"exp\":{4}}}",
-                workspaceId, reportId, workspaceCollection, Startup.powerbiResourceId, unixTimestamp);
+                   workspaceId, reportId, workspaceCollection, Startup.powerbiResourceId, unixTimestamp);
             string pbieKey1n2ToBase64 = Base64UrlEncode(pbieKey1) + "." + Base64UrlEncode(pbieKey2);
             string pbieKey3 = HMAC256EncryptBase64UrlEncode(pbieKey1n2ToBase64);
 

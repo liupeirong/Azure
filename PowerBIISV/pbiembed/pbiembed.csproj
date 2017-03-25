@@ -269,9 +269,10 @@
     <Content Include="Views\Products\Index.cshtml" />
     <Content Include="Views\Dashboard\Report.cshtml" />
     <Content Include="Views\Dashboard\Reports.cshtml" />
-    <Content Include="Scripts\powerbi.js.map" />
     <Content Include="Views\Dashboard\PublicReport.cshtml" />
     <Content Include="Views\Dashboard\Roles.cshtml" />
+    <Content Include="Scripts\powerbi.js.map" />
+    <Content Include="Views\Dashboard\PublicReportWithExpiredToken.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -288,9 +289,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="Scripts\typings\powerbi.d.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
