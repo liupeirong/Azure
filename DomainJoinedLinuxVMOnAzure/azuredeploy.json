@@ -90,7 +90,7 @@
     },
     "scriptsUri": {
       "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/liupeirong/azure-quickstart-templates/master/vm-linux-domain-joined",
+      "defaultValue": "https://raw.githubusercontent.com/liupeirong/Azure/master/DomainJoinedLinuxVMOnAzure",
       "metadata": {
         "description": "scripts location"
       }
