@@ -1,0 +1,45 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "value": "changeme"
+    },
+    "adminUserName": {
+      "value": "changeme"
+    },
+    "adminPassword": {
+      "value": "changeme"
+    },
+    "sshPubKey": {
+      "value": "ssh-rsa AAAA...changeme...=="
+    },
+    "existingVNetName": {
+      "value": "the vnet whose DNS is set up with your Azure AD Domain Service DNS"
+    },
+    "existingVNetResourceGroup": {
+      "value": "the resource group that your vnet belongs to"
+    },
+    "domainJoinUserName": {
+      "value": "the domain username that has privilege to join VMs to domain"
+    },
+    "domainJoinPassword": {
+      "value": "the password for the domain user"
+    },
+    "domainFQDN": {
+      "value": "your Azure AD Domain Service domain name, ex: contoso.local"
+    },
+    "PDC": {
+      "value": "host name of your Azure AD Domain Service Domain Controller 1"
+    },
+    "BDC": {
+      "value": "host name of your Azure AD Domain Service Domain Controller 2"
+    },
+    "PDCIP": {
+      "value": "IP of your Azure AD Domain Service Domain Controller 1"
+    },
+    "BDCIP": {
+      "value": "IP of your Azure AD Domain Service Domain Controller 2"
+    }
+  }
+}
