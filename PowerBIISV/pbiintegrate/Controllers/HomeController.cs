@@ -88,8 +88,20 @@ namespace pbiintegrate.Controllers
             ClientCredential clientcred = new ClientCredential(Startup.clientId, Startup.clientKey);
             // initialize AuthenticationContext with the token cache of the currently signed in user, as kept in the app's database
             AuthenticationContext authenticationContext = new AuthenticationContext(Startup.aadInstance + tenantID, new ADALTokenCache(signedInUserID));
-            AuthenticationResult authenticationResult = await authenticationContext.AcquireTokenSilentAsync(Startup.resourceId, clientcred, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
-            return authenticationResult.AccessToken;
+            AuthenticationResult authenticationResult;
+            try
+            {
+                authenticationResult = await authenticationContext.AcquireTokenSilentAsync(Startup.resourceId, clientcred, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                return authenticationResult.AccessToken;
+            }catch (AdalException e)
+            {
+                if (e.ErrorCode == AdalError.FailedToAcquireTokenSilently)
+                {
+                    authenticationContext.TokenCache.Clear();
+                    throw e;
+                }
+            }
+            return null;
         }
     }
 }
