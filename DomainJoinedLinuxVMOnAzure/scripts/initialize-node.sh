@@ -63,6 +63,7 @@ replace_ad_params /etc/sssd/sssd.conf
 cp -f ntp.conf /etc/ntp.conf
 replace_ad_params /etc/ntp.conf
 sed -i "s/session.*pam_oddjob_mkhomedir.so.*/session     optional      pam_oddjob_mkhomedir.so skel=\/etc\/skel umask=0077/" /etc/pam.d/system-auth
+cp -f nwnodns.conf /etc/NetworkManager/conf.d/
 
 cat > /etc/dhcp/dhclient-enter-hooks << EOF
 #!/bin/sh
