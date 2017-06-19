@@ -20,6 +20,13 @@
         "description": "Password for the Virtual Machine."
       }
     },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_A1",
+      "metadata": {
+        "description": "Virtual machine size."
+      }
+    },
     "existingVNetName": {
       "type": "string",
       "metadata": {
@@ -99,11 +106,10 @@
   "variables": {
     "imagePublisher": "OpenLogic",
     "imageOffer": "CentOS",
-    "imageVersion": "6.8",
+    "imageVersion": "7.2",
     "nicName": "myVMNic",
     "publicIPAddressName": "myPublicIP",
     "publicIPAddressType": "Dynamic",
-    "vmSize": "Standard_A1",
     "vnetID": "[resourceId(parameters('existingVNetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVNetName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('existingSubnetName'))]"
   },
@@ -152,7 +158,7 @@
       ],
       "properties": {
         "hardwareProfile": {
-          "vmSize": "[variables('vmSize')]"
+          "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
           "computerName": "[parameters('vmName')]",
