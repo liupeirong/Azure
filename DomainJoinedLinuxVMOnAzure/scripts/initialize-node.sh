@@ -88,8 +88,9 @@ chkconfig smb on
 # Join domain, must join domain first, otherwise sssd won't start
 echo "before join"
 cat /etc/resolv.conf
-shortHostName=`hostname`
-echo "short host name is $shortHostName"
+tmpHostName=`hostname`
+shortHostName=`hostname -s`
+echo "tmpHostname is $tmpHostName, short host name is $shortHostName"
 hostname ${shortHostName}.${ADDNS}
 n=0
 until [ $n -ge 3 ]
