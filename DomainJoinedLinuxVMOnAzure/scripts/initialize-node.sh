@@ -52,8 +52,13 @@ yum -y install samba4
 yum -y install openldap-clients
 yum -y install policycoreutils-python
 
+echo "before replace"
+cat /etc/resolv.conf
+cp -f nwnodns.conf /etc/NetworkManager/conf.d/
 cp -f resolv.conf /etc/resolv.conf
 replace_ad_params /etc/resolv.conf
+echo "after replace"
+cat /etc/resolv.conf
 cp -f krb5.conf /etc/krb5.conf
 replace_ad_params /etc/krb5.conf
 cp -f smb.conf /etc/samba/smb.conf
@@ -63,7 +68,6 @@ replace_ad_params /etc/sssd/sssd.conf
 cp -f ntp.conf /etc/ntp.conf
 replace_ad_params /etc/ntp.conf
 sed -i "s/session.*pam_oddjob_mkhomedir.so.*/session     optional      pam_oddjob_mkhomedir.so skel=\/etc\/skel umask=0077/" /etc/pam.d/system-auth
-cp -f nwnodns.conf /etc/NetworkManager/conf.d/
 
 cat > /etc/dhcp/dhclient-enter-hooks << EOF
 #!/bin/sh
@@ -80,6 +84,8 @@ service smb start
 chkconfig smb on
 
 # Join domain, must join domain first, otherwise sssd won't start
+echo "before join"
+cat /etc/resolv.conf
 shortHostName=`hostname`
 hostname ${shortHostName}.${ADDNS}
 n=0
