@@ -89,6 +89,7 @@ chkconfig smb on
 echo "before join"
 cat /etc/resolv.conf
 shortHostName=`hostname`
+echo "short host name is $shortHostName"
 hostname ${shortHostName}.${ADDNS}
 n=0
 until [ $n -ge 3 ]
