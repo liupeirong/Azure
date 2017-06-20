@@ -55,6 +55,8 @@ yum -y install policycoreutils-python
 echo "before replace"
 cat /etc/resolv.conf
 cp -f nwnodns.conf /etc/NetworkManager/conf.d/
+systemctl restart NetworkManager.service
+
 cp -f resolv.conf /etc/resolv.conf
 replace_ad_params /etc/resolv.conf
 echo "after replace"
