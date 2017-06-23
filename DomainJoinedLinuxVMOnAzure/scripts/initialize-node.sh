@@ -23,7 +23,7 @@ ADOUPATH=$9
 
 replace_ad_params() {
     target=${1}
-    shortdomain=`echo ${ADDNS} | sed 's/\.[^.]*$//'`
+    shortdomain=`echo ${ADDNS} | sed 's/\..*$//'`
     sed -i "s/REPLACEADDOMAIN/${ADDNS}/g" ${target}
     sed -i "s/REPLACEUPADDOMAIN/${ADDNS^^}/g" ${target}
     sed -i "s/REPLACESHORTADDOMAIN/${shortdomain}/g" ${target}
