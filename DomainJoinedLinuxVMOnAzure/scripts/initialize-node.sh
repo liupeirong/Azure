@@ -93,7 +93,7 @@ shortHostName=`hostname -s`
 echo "tmpHostname is $tmpHostName, short host name is $shortHostName"
 hostname ${shortHostName}.${ADDNS}
 n=0
-until [ $n -ge 3 ]
+until [ $n -ge 4 ]
 do
   if [ ! -z "$ADOUPATH" ]; then
     net ads join createcomputer="$ADOUPATH" -U${DOMAINADMINUSER}@${ADDNS}%${DOMAINADMINPWD}  
@@ -103,7 +103,7 @@ do
   result=$?
   [ $result -eq 0 ] && break
   n=$[$n+1]
-  sleep 15
+  sleep 20
 done
 if [ $result -eq 0 ]; then
   klist -k
