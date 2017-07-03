@@ -52,15 +52,12 @@ yum -y install samba4
 yum -y install openldap-clients
 yum -y install policycoreutils-python
 
-echo "before replace"
-cat /etc/resolv.conf
+# in CentOS7, tell NetworkManager not to overwrite /etc/resolv.conf
 cp -f nwnodns.conf /etc/NetworkManager/conf.d/
 systemctl restart NetworkManager.service
 
 cp -f resolv.conf /etc/resolv.conf
 replace_ad_params /etc/resolv.conf
-echo "after replace"
-cat /etc/resolv.conf
 cp -f krb5.conf /etc/krb5.conf
 replace_ad_params /etc/krb5.conf
 cp -f smb.conf /etc/samba/smb.conf
@@ -71,6 +68,7 @@ cp -f ntp.conf /etc/ntp.conf
 replace_ad_params /etc/ntp.conf
 sed -i "s/session.*pam_oddjob_mkhomedir.so.*/session     optional      pam_oddjob_mkhomedir.so skel=\/etc\/skel umask=0077/" /etc/pam.d/system-auth
 
+# in CentOS6, prevent /etc/resolv.conf from being overwritten
 cat > /etc/dhcp/dhclient-enter-hooks << EOF
 #!/bin/sh
 make_resolv_conf() {
@@ -86,11 +84,7 @@ service smb start
 chkconfig smb on
 
 # Join domain, must join domain first, otherwise sssd won't start
-echo "before join"
-cat /etc/resolv.conf
-tmpHostName=`hostname`
 shortHostName=`hostname -s`
-echo "tmpHostname is $tmpHostName, short host name is $shortHostName"
 hostname ${shortHostName}.${ADDNS}
 n=0
 until [ $n -ge 4 ]
@@ -110,5 +104,9 @@ if [ $result -eq 0 ]; then
   authconfig --enablesssd --enablemkhomedir --enablesssdauth --update
   service sssd restart
   chkconfig sssd on
+  hostname ${shortHostName}
+  exit 0
+else
+  hostname ${shortHostName}
+  exit 1
 fi
-hostname ${shortHostName}
