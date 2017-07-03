@@ -5,4 +5,4 @@ This example demonstrates how to create domain joined Linux VMs on Azure using A
 
 To deploy a Cloudera cluster with Kerberos enabled, there are two options:
 * Option 1: Once you have a set of VMs, you can follow the instructions in [setupcloudera folder](/DomainJoinedLinuxVMOnAzure/setupcloudera) to set up a domain joined Kerberos enabled cloudera cluster. Provision at least 4 Standard_DS13 VMs.  Cloudera may not run on smaller VMs. 
-* Option 2: Create a single VM, [manually install Cloudera Director](https://www.cloudera.com/documentation/director/2-2-x/topics/director_get_started_azure_install_director.html) on it, then go to the [ClouderaDirector folder](/DomainJoinedLinuxVMOnAzure/ClouderaDirector) and followed the instructions to automatically deploy a Kerberos enabled cluster. 
+* Option 2: Create a single VM, [manually install Cloudera Director](https://www.cloudera.com/documentation/director/2-2-x/topics/director_get_started_azure_install_director.html) on it, then go to the [clouderadirector folder](/DomainJoinedLinuxVMOnAzure/clouderadirector) and follow the instructions to automatically deploy a Kerberos enabled cluster. 
