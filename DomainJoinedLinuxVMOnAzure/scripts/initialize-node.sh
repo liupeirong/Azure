@@ -21,6 +21,41 @@ DOMAINADMINUSER=$7
 DOMAINADMINPWD=$8
 ADOUPATH=$9
 
+findOsVersion() {
+    # if it's there, use lsb_release
+    rpm -q redhat-lsb
+    if [ $? -eq 0 ]; then
+        os=$(lsb_release -si)
+        major_release=$(lsb_release -sr | cut -d '.' -f 1)
+
+    # if lsb_release isn't installed, use /etc/redhat-release
+    else
+        grep  "CentOS.* 6\." /etc/redhat-release
+        if [ $? -eq 0 ]; then
+            os="CentOS"
+            major_release="6"
+        fi
+	    grep  "CentOS.* 7\." /etc/redhat-release
+        if [ $? -eq 0 ]; then
+            os="CentOS"
+            major_release="7"
+        fi
+    fi
+
+    echo "OS: $os $major_release"
+
+    # select the OS and run the appropriate setup script
+    not_supported_msg="OS $os $release is not supported."
+    if [ "$os" != "CentOS" ]; then
+        echo "$not_supported_msg"
+        exit 1
+	fi
+    if [ "$major_release" != "6" ] && [ "$major_release" != "7" ]; then
+        echo "$not_supported_msg"
+        exit 1
+    fi
+}
+
 replace_ad_params() {
     target=${1}
     shortdomain=`echo ${ADDNS} | sed 's/\..*$//'`
@@ -52,9 +87,15 @@ yum -y install samba4
 yum -y install openldap-clients
 yum -y install policycoreutils-python
 
+os=""
+release=""
+findOsVersion
+
 # in CentOS7, tell NetworkManager not to overwrite /etc/resolv.conf
-cp -f nwnodns.conf /etc/NetworkManager/conf.d/
-systemctl restart NetworkManager.service
+if [ "$major_release" = "7" ]; then
+    cp -f nwnodns.conf /etc/NetworkManager/conf.d/
+    systemctl restart NetworkManager.service
+fi
 
 cp -f resolv.conf /etc/resolv.conf
 replace_ad_params /etc/resolv.conf
