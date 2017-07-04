@@ -16,13 +16,13 @@ Here are some tips to ensure a successful deployment:
 * If your MySQL uses SSL, turn off SSL
 * Go to the [parent folder](/DomainJoinedLinuxVMOnAzure) to deploy a small single VM first to verify the configuration is all correct before deploying a full fleged Cloudera cluster 
 * In order to deploy Cloudera Direct in an existing VNet, go to the [parent folder](/DomainJoinedLinuxVMOnAzure) to deploy a single VM that is domain joined, then [manually install Director](https://www.cloudera.com/documentation/director/latest/topics/director_get_started_azure_install_director.html)
-** To install JDK, 
+  * To install JDK, 
 ```javascript
   wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm
 ```
 * VM name prefix can't be longer than 15 chars for AADDS, so prefix in the config file can be 6 chars max
-* In the Director conf file, Cloudera Managed managed krb5.conf must be set to true
-* To deploy on CentOS7, create the following file and name it images.conf under /var/lib/cloudera-director-plugins/azure-provider-<version>/etc, then restart cloudera-director-server. 
+* In the Director conf file, Cloudera Managed krb5.conf must be set to true
+* To deploy on CentOS 7, create the following file and name it images.conf under /var/lib/cloudera-director-plugins/azure-provider-\<version>/etc, then restart cloudera-director-server. 
 ```javascript
   # This is the Centos 7 image published by Cloudera
   cloudera-centos-7-latest {
@@ -33,34 +33,34 @@ Here are some tips to ensure a successful deployment:
   }
 ```
 * To terminate a cluster
-** run the "cloudera-director terminate-remote" command
-** if database is not cleaned up, go to Director UI, and remove the databases for the environment
-** go to the Director UI, and delete the environment
-** go to the DNS server, and delete the DNS entries for the cluster from both the forward and reverse DNS zones
-** go to Active Directory, and remove the VMs that joined to the domain
+  * run the "cloudera-director terminate-remote" command
+  * if database is not cleaned up, go to Director UI, and remove the databases for the environment
+  * go to the Director UI, and delete the environment
+  * go to the DNS server, and delete the DNS entries for the cluster from both the forward and reverse DNS zones
+  * go to Active Directory, and remove the VMs that joined to the domain
 * If the cluster can not be cleanly terminated
-** stop cloudera-director-server service
-** delete the file /var/lib/cloudera-director-server/*
-** optionally delete log files /var/log/cloudera-director-server/*
-** manually delete all the databases created by Cloudera 
-** start cloudera-director-server service 
+  * stop cloudera-director-server service
+  * delete the file /var/lib/cloudera-director-server/*
+  * optionally delete log files /var/log/cloudera-director-server/*
+  * manually delete all the databases created by Cloudera 
+  * start cloudera-director-server service 
 * After the cluster starts, if you see Kerberos keytab renewer error with Permission denied: "/var/log/hue/kt_renewer.log", run
 ```javascript
   chown -R hue:hue /var/log/hue
   // restart Hue Service
 ```
 * After the cluster starts, 
-** ensure you are no longer able to browse HDFS using as built-in hdfs user: 
+  * ensure you are no longer able to browse HDFS using as built-in hdfs user: 
 ```javascript
   sudo su
   su hdfs
   hdfs dfs -ls /
   // this should fail
 ```
-** instead, first enable passwordauthentication in /etc/ssh/sshd_config, and restart sshd service
-** go to Cloudera Manager -> HDFS configuration -> Service Wide -> Security, change supergroup to the name of a group in AD that will have supergroup privileges in HDFS, for example, "hadoopadmin"   
-** in AD, create hadoopadmin group, then create a user in that group, ssh into a cluster node as that user, verify now you can browse hdfs and create a folder under /user
-** in AD, create another user that doesn't belong to the hadoopadmin group, ssh into a cluster node as that user, verify you can't write to /user folder
+  * instead, first enable passwordauthentication in /etc/ssh/sshd_config, and restart sshd service
+  * go to Cloudera Manager -> HDFS configuration -> Service Wide -> Security, change supergroup to the name of a group in AD that will have supergroup privileges in HDFS, for example, "hadoopadmin"   
+  * in AD, create hadoopadmin group, then create a user in that group, ssh into a cluster node as that user, verify now you can browse hdfs and create a folder under /user
+  * in AD, create another user that doesn't belong to the hadoopadmin group, ssh into a cluster node as that user, verify you can't write to /user folder
 * If you see a Hive SQL_SELECT_LIMIT=DEFAULT related error, fix it by going to the Hive Server and do the following:
 ```javascript
   wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.42.tar.gz
