@@ -65,10 +65,10 @@ The config files are modified from their [original versions published on Clouder
 ```javascript
   cloudera-director terminate-remote ./azure.simplec7.kerberso.conf --lp.remote.username=<user> --lp.remote.password=<password> --lp.remote.hostAndPort=<director host>
 ```
-* if database is not cleaned up, go to Director UI, and remove the databases for the environment
-* go to the Director UI, and delete the environment
-* go to the DNS server, and delete the DNS entries for the cluster from both the forward and reverse DNS zones
-* go to Active Directory, and remove the VMs that joined to the domain
+* If database is not cleaned up, go to Director UI, and remove the databases for the environment
+* Go to the Director UI, and delete the environment
+* Go to the DNS server, and delete the DNS entries for the cluster from both the forward and reverse DNS zones
+* Go to Active Directory, and remove the VMs that joined to the domain
 * If the cluster can not be cleanly terminated
   * stop cloudera-director-server service
   * delete the file /var/lib/cloudera-director-server/*
