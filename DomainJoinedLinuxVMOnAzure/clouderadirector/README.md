@@ -50,13 +50,7 @@ Here are some tips to ensure a successful deployment:
   // restart Hue Service
 ```
 * After the cluster starts, 
-  * ensure you are no longer able to browse HDFS using as built-in hdfs user: 
-```javascript
-  sudo su
-  su hdfs
-  hdfs dfs -ls /
-  // this should fail
-```
+  * ensure you are no longer able to browse HDFS as the built-in hdfs user, "hdfs dfs ls /" should fail 
   * instead, first enable passwordauthentication in /etc/ssh/sshd_config, and restart sshd service
   * go to Cloudera Manager -> HDFS configuration -> Service Wide -> Security, change supergroup to the name of a group in AD that will have supergroup privileges in HDFS, for example, "hadoopadmin"   
   * in AD, create hadoopadmin group, then create a user in that group, ssh into a cluster node as that user, verify now you can browse hdfs and create a folder under /user
