@@ -128,7 +128,7 @@ chkconfig smb on
 shortHostName=`hostname -s`
 hostname ${shortHostName}.${ADDNS}
 n=0
-until [ $n -ge 40 ]
+until [ $n -ge 4 ]
 do
   if [ ! -z "$ADOUPATH" ]; then
     net ads join createcomputer="$ADOUPATH" -U${DOMAINADMINUSER}@${ADDNS}%${DOMAINADMINPWD}  
@@ -138,12 +138,25 @@ do
   result=$?
   [ $result -eq 0 ] && break
   n=$[$n+1]
-  if [ $n -ge 10 ]; then
-     sleep 120
-  else
-     sleep 30
-  fi
+  sleep 30
 done
+
+# test if we have regiestered DNS
+n=0
+result=1
+until [ $n -ge 30 ]
+do
+  fqdn=`hostname -f`
+  ip=`hostname -i`
+  host $ip
+  if [[ $? == 0 && $fqdn == *.* ]]; then
+    result=0
+    break
+  fi
+  n=$[$n+1]
+  sleep 30
+done
+
 if [ $result -eq 0 ]; then
   klist -k
   authconfig --enablesssd --enablemkhomedir --enablesssdauth --update
