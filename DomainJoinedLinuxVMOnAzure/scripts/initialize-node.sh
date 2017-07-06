@@ -128,7 +128,7 @@ chkconfig smb on
 shortHostName=`hostname -s`
 hostname ${shortHostName}.${ADDNS}
 n=0
-until [ $n -ge 4 ]
+until [ $n -ge 40 ]
 do
   if [ ! -z "$ADOUPATH" ]; then
     net ads join createcomputer="$ADOUPATH" -U${DOMAINADMINUSER}@${ADDNS}%${DOMAINADMINPWD}  
@@ -138,7 +138,11 @@ do
   result=$?
   [ $result -eq 0 ] && break
   n=$[$n+1]
-  sleep 20
+  if [ $n -ge 10 ]; then
+     sleep 120
+  else
+     sleep 30
+  fi
 done
 if [ $result -eq 0 ]; then
   klist -k
