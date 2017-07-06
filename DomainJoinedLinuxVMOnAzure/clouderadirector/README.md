@@ -43,7 +43,7 @@ The config files are modified from their [original versions published on Clouder
   * go to Cloudera Manager -> HDFS configuration -> Service Wide -> Security, change supergroup to the name of a group in AD that will have supergroup privileges in HDFS, for example, "hadoopadmin"   
   * in AD, create hadoopadmin group, then create a user in that group, ssh into a cluster node as that user, verify now you can browse hdfs and create a folder under /user
   * in AD, create another user that doesn't belong to the hadoopadmin group, ssh into a cluster node as that user, verify you can't write to /user folder
-* If you see Kerberos keytab renewer error with Permission denied: "/var/log/hue/kt_renewer.log", run
+* If you see Kerberos keytab renewer error in Hue with Permission denied: "/var/log/hue/kt_renewer.log", run
 ```javascript
   chown -R hue:hue /var/log/hue
   // restart Hue Service
