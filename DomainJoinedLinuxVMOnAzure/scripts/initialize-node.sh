@@ -142,20 +142,22 @@ do
 done
 
 # test if we have regiestered DNS
-n=0
-result=1
-until [ $n -ge 30 ]
-do
-  fqdn=`hostname -f`
-  ip=`hostname -i`
-  host $ip
-  if [[ $? == 0 && $fqdn == *.* ]]; then
-    result=0
-    break
-  fi
-  n=$[$n+1]
-  sleep 30
-done
+if [ $result -eq 0 ]; then
+  n=0
+  result=1
+  until [ $n -ge 30 ]
+  do
+    fqdn=`hostname -f`
+    ip=`hostname -i`
+    host $ip
+    if [[ $? == 0 && $fqdn == *.* ]]; then
+      result=0
+      break
+    fi
+    n=$[$n+1]
+    sleep 30
+  done
+fi
 
 if [ $result -eq 0 ]; then
   klist -k
