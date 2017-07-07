@@ -141,6 +141,15 @@ do
   sleep 30
 done
 
+# this is necessary to register dns
+if [ $result -eq 0 ]; then
+  klist -k
+  authconfig --enablesssd --enablemkhomedir --enablesssdauth --update
+  service sssd restart
+  chkconfig sssd on
+fi
+hostname ${shortHostName}
+
 # test if we have regiestered DNS
 if [ $result -eq 0 ]; then
   n=0
@@ -160,13 +169,6 @@ if [ $result -eq 0 ]; then
 fi
 
 if [ $result -eq 0 ]; then
-  klist -k
-  authconfig --enablesssd --enablemkhomedir --enablesssdauth --update
   service sssd restart
-  chkconfig sssd on
-  hostname ${shortHostName}
-  exit 0
-else
-  hostname ${shortHostName}
-  exit 1
 fi
+exit $result
