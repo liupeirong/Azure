@@ -148,6 +148,7 @@ if [ $result -eq 0 ]; then
   service sssd restart
   chkconfig sssd on
 fi
+sleep 15
 hostname ${shortHostName}
 
 # test if we have regiestered DNS
