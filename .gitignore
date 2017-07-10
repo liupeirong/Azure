@@ -129,3 +129,5 @@
 /LogAnalytics/GeoLogGenerator/obj/Release
 /AzureJavaSDKClient/.settings
 /PowerBIISVJava/javaintegrate/target
+/PowerBIISV/pbipaembed/bin
+/PowerBIISV/pbipaembed/obj
