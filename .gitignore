@@ -127,3 +127,5 @@
 /LogAnalytics/GeoLogConsumerBatch/dependency-reduced-pom.xml
 /LogAnalytics/GeoLogGenerator/bin/Release
 /LogAnalytics/GeoLogGenerator/obj/Release
+/PowerBIISV/pbipaembed/bin
+/PowerBIISV/pbipaembed/obj

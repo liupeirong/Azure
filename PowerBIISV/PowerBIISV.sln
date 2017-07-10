@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pbiintegrate", "pbiintegrate\pbiintegrate.csproj", "{855CD1D5-2850-4330-91B2-48F8CF48978E}"
 EndProject
@@ -15,6 +15,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcmeOData", "AcmeOData\AcmeOData.csproj", "{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContosoOData", "ContosoOData\ContosoOData.csproj", "{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pbipaembed", "pbipaembed\pbipaembed.csproj", "{33EE731B-7513-4915-A56E-9A55DC83D60E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +40,10 @@ Global
 		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33EE731B-7513-4915-A56E-9A55DC83D60E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33EE731B-7513-4915-A56E-9A55DC83D60E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33EE731B-7513-4915-A56E-9A55DC83D60E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33EE731B-7513-4915-A56E-9A55DC83D60E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
