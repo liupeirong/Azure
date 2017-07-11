@@ -38,6 +38,7 @@ namespace UploadFileWebApi.Controllers
         }
 
         [HttpPost, Route("api/upload")]
+        //send a file to test it: https://stackoverflow.com/questions/1131425/send-a-file-via-http-post-with-c-sharp
         public async Task<IHttpActionResult> Upload()
         {
             if (!Request.Content.IsMimeMultipartContent("form-data"))
