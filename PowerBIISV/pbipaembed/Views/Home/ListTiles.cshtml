@@ -1,0 +1,14 @@
+﻿@model pbipaembed.Models.TilesViewModel
+
+@{
+    ViewBag.Title = "List Tiles";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Select a tile:</h2>
+@using (Html.BeginForm("EmbedTile", "Home", FormMethod.Post))
+{
+    @Html.DropDownList("SelectedTile", new SelectList(Model.Tiles, "Id", "Title"))
+    <input type="hidden" name="SelectedDashboard" value=@Model.DashboardId />
+    <input type="submit" value="Embed" />
+}

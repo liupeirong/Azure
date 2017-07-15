@@ -1,0 +1,13 @@
+﻿@model pbipaembed.Models.DatasetsViewModel
+
+@{
+    ViewBag.Title = "List Datasets";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Select a dataset:</h2>
+@using (Html.BeginForm("CreateReport", "Home", FormMethod.Post))
+{
+    @Html.DropDownList("SelectedDataset", new SelectList(Model.Datasets, "Id", "Name"))
+    <input type="submit" value="Create" />
+}

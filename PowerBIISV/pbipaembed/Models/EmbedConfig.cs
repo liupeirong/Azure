@@ -8,6 +8,7 @@ namespace pbipaembed.Models
         public string Id { get; set; }
         public string EmbedUrl { get; set; }
         public EmbedToken EmbedToken { get; set; }
+        public string Name { get; set; }
 
         public int MinutesToExpiration
         {

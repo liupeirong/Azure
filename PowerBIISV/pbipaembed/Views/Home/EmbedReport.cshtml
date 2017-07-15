@@ -7,22 +7,7 @@
 
 <script src="~/scripts/powerbi.js"></script>
 
-@if (!string.IsNullOrEmpty(Model.ErrorMessage))
-{
-    <div id="errorWrapper">
-        <h2>
-            Error
-        </h2>
-        @Model.ErrorMessage
-    </div>
-
-    return;
-}
-
-<h2>Embedded Report</h2>
-<div>
-    The following report is the first report found in the given group. Please feel free to change the code to match your needs.
-</div>
+<h2>Embedded Report - @Model.Name</h2>
 <div id="reportContainer" style="height: 600px"></div>
 
 <script>

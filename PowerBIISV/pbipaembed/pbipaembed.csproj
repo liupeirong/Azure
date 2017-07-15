@@ -141,8 +141,12 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\DashboardsViewModel.cs" />
+    <Compile Include="Models\DatasetsViewModel.cs" />
     <Compile Include="Models\EmbedConfig.cs" />
+    <Compile Include="Models\ReportsViewModel.cs" />
     <Compile Include="Models\TileEmbedConfig.cs" />
+    <Compile Include="Models\TilesViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -170,7 +174,9 @@
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\_references.js" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
@@ -186,6 +192,10 @@
     <Content Include="Views\Home\EmbedReport.cshtml" />
     <Content Include="Views\Home\EmbedTile.cshtml" />
     <Content Include="Views\Home\CreateReport.cshtml" />
+    <Content Include="Views\Home\ListReports.cshtml" />
+    <Content Include="Views\Home\ListDashboards.cshtml" />
+    <Content Include="Views\Home\ListDatasets.cshtml" />
+    <Content Include="Views\Home\ListTiles.cshtml" />
     <None Include="Web.config.private" />
     <None Include="Web.config.Debug.private">
       <DependentUpon>Web.config.private</DependentUpon>
