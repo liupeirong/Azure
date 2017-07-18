@@ -61,6 +61,8 @@ namespace pbipaembed.Controllers
                 var generateTokenRequestParameters = new GenerateTokenRequest(
                     accessLevel: "edit", allowSaveAs: true);
                 var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(GroupId, reportId, generateTokenRequestParameters);
+                // Refresh the dataset
+                // await client.Datasets.RefreshDatasetInGroupAsync(GroupId, report.DatasetId);
 
                 // Generate Embed Configuration.
                 var embedConfig = new EmbedConfig()
