@@ -37,7 +37,9 @@
         viewMode: models.ViewMode.Edit,
         settings: {
             filterPaneEnabled: true,
-            navContentPaneEnabled: true
+            navContentPaneEnabled: true,
+            useCustomSaveAsDialog: true
+
         }
     };
 
@@ -46,4 +48,15 @@
 
     // Embed the report and display it within the div container.
     var report = powerbi.embed(reportContainer, config);
+        
+    report.off("saveAsTriggered");
+    report.on("saveAsTriggered", function () {
+        var userReportName = prompt("Please enter report name", "foo");
+        if (userReportName != null) {
+            var saveAsParameters = {
+                name: userReportName
+            };
+            report.saveAs(saveAsParameters);
+        }
+    })
 </script>
