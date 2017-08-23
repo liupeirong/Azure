@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api.V2;
 using Microsoft.PowerBI.Api.V2.Models;
 using Microsoft.Rest;
+using Microsoft.Azure.KeyVault;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Web.Mvc;
@@ -13,15 +14,12 @@ namespace pbipaembed.Controllers
 {
     public class HomeController : Controller
     {
-        private static readonly string Username = ConfigurationManager.AppSettings["pbiUsername"];
-        private static readonly string Password = ConfigurationManager.AppSettings["pbiPassword"];
         private static readonly string AuthorityUrl = ConfigurationManager.AppSettings["authorityUrl"];
         private static readonly string ResourceUrl = ConfigurationManager.AppSettings["resourceUrl"];
         private static readonly string ClientId = ConfigurationManager.AppSettings["clientId"];
         private static readonly string ApiUrl = ConfigurationManager.AppSettings["apiUrl"];
         private static readonly string GroupId = ConfigurationManager.AppSettings["groupId"];
         private static readonly string EmbedUrlBase = ConfigurationManager.AppSettings["embedUrlBase"];
-        private static readonly UserPasswordCredential credential = new UserPasswordCredential(Username, Password);
         private static readonly AuthenticationContext authenticationContext = new AuthenticationContext(AuthorityUrl);
 
         public ActionResult Index()
@@ -31,6 +29,7 @@ namespace pbipaembed.Controllers
 
         private async Task<IPowerBIClient> CreatePowerBIClient()
         {
+            var credential = new UserPasswordCredential(MvcApplication.pbiUserName, MvcApplication.pbiPassword);
             var authenticationResult = await authenticationContext.AcquireTokenAsync(ResourceUrl, ClientId, credential);
             var tokenCredentials = new TokenCredentials(authenticationResult.AccessToken, "Bearer");
             var client = new PowerBIClient(new Uri(ApiUrl), tokenCredentials);
