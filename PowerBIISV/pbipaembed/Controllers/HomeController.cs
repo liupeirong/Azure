@@ -4,8 +4,8 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api.V2;
 using Microsoft.PowerBI.Api.V2.Models;
 using Microsoft.Rest;
-using Microsoft.Azure.KeyVault;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using pbipaembed.Models;
@@ -55,10 +55,16 @@ namespace pbipaembed.Controllers
             using (var client = await CreatePowerBIClient())
             {
                 var report = client.Reports.GetReportInGroup(GroupId, reportId);
+                // map user for RLS
+                var salesUser = new EffectiveIdentity(
+                    username: "adventure-works\\pamela0",
+                    roles: new List<string> { "Sales" },
+                    datasets: new List<string> { report.DatasetId } );
 
                 // Generate Embed Token.
                 var generateTokenRequestParameters = new GenerateTokenRequest(
-                    accessLevel: "edit", allowSaveAs: true);
+                    accessLevel: "edit", allowSaveAs: true,
+                    identities: new List<EffectiveIdentity> { salesUser });
                 var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(GroupId, reportId, generateTokenRequestParameters);
                 // Refresh the dataset
                 // await client.Datasets.RefreshDatasetInGroupAsync(GroupId, report.DatasetId);
