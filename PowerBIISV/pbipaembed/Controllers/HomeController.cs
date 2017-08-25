@@ -16,7 +16,7 @@ namespace pbipaembed.Controllers
     public class HomeController : Controller
     {
         private static readonly string AuthorityUrl = ConfigurationManager.AppSettings["authorityUrl"];
-        private static readonly string ResourceUrl = ConfigurationManager.AppSettings["resourceUrl"];
+        public static readonly string ResourceUrl = ConfigurationManager.AppSettings["resourceUrl"];
         private static readonly string ClientId = ConfigurationManager.AppSettings["clientId"];
         private static readonly string ApiUrl = ConfigurationManager.AppSettings["apiUrl"];
         private static readonly string GroupId = ConfigurationManager.AppSettings["groupId"];
@@ -204,7 +204,6 @@ namespace pbipaembed.Controllers
             }
         }
 
-        [Authorize]
         public async Task<ActionResult> ListDatasets()
         {
             var viewModel = new DatasetsViewModel();

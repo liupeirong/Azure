@@ -40,5 +40,18 @@ namespace pbipaembed.Controllers
 
             return View();
         }
+
+        [Authorize]
+        public ActionResult AdminConsent()
+        {
+            string authorizationRequest = String.Format(
+                 "{0}/oauth2/authorize?response_type=code&client_id={1}&resource={2}&redirect_uri={3}&prompt=admin_consent",
+                 Startup.Authority,
+                 Uri.EscapeDataString(Startup.clientId),
+                 Uri.EscapeDataString(HomeController.ResourceUrl),
+                 Uri.EscapeDataString(this.Request.Url.GetLeftPart(UriPartial.Authority).ToString() + "/")
+                 );
+            return new RedirectResult(authorizationRequest);
+        }
     }
 }

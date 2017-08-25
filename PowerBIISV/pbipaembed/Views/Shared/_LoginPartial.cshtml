@@ -6,6 +6,9 @@
                 @Html.ActionLink("Hello " + User.Identity.Name + "!", "Index", "UserProfile", routeValues: null, htmlAttributes: null)
             </li>
             <li>
+                @Html.ActionLink("Admin consent", "AdminConsent", "Account")
+            </li>
+            <li>
                 @Html.ActionLink("Sign out", "SignOut", "Account")
             </li>
         </ul>
