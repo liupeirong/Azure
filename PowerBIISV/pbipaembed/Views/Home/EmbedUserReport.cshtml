@@ -5,10 +5,11 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<div class="user">
 <script src="~/scripts/powerbi.js"></script>
-
-<h2 class="isv">Embedded Report - @Model.Name</h2>
+<h2>Embedded User Report - @Model.Name</h2>
 <div id="reportContainer" style="height: 600px"></div>
+</div>
 
 <script>
     // Read embed application token from Model
@@ -29,7 +30,7 @@
     // You can find more information at https://github.com/Microsoft/PowerBI-JavaScript/wiki/Embed-Configuration-Details.
     var config = {
         type: 'report',
-        tokenType: models.TokenType.Embed,
+        tokenType: models.TokenType.Aad,
         accessToken: accessToken,
         embedUrl: embedUrl,
         id: embedReportId,

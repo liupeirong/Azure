@@ -1,0 +1,16 @@
+﻿@model pbipaembed.Models.ReportsViewModel
+
+@{
+    ViewBag.Title = "List Reports";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="user">
+    <h2>Select a report:</h2>
+    @using (Html.BeginForm("EmbedUserReport", "Home", FormMethod.Post))
+    {
+        @Html.DropDownList("SelectedReport", new SelectList(Model.Reports, "Id", "Name"))
+        <input type="hidden" name="SelectedGroup" value=@Model.GroupId />
+        <input type="submit" value="Embed" />
+    }
+</div>

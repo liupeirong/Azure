@@ -6,5 +6,6 @@ namespace pbipaembed.Models
     public class ReportsViewModel
     {
         public List<Report> Reports { get; set; }
+        public string GroupId { get; set; }
     }
 }

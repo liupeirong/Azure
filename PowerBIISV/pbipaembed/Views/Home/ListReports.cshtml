@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Select a report:</h2>
+<h2 class="isv">Select a report:</h2>
 @using (Html.BeginForm("EmbedReport", "Home", FormMethod.Post))
 {
     @Html.DropDownList("SelectedReport", new SelectList(Model.Reports, "Id", "Name"))

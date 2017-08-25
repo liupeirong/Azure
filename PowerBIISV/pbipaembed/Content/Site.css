@@ -22,3 +22,11 @@ select,
 textarea {
     max-width: 280px;
 }
+
+.isv {
+    background-color: lightgreen;
+}
+
+.user {
+    background-color: orange;
+}

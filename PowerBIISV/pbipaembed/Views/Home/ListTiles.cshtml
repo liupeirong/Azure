@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Select a tile:</h2>
+<h2 class="isv">Select a tile:</h2>
 @using (Html.BeginForm("EmbedTile", "Home", FormMethod.Post))
 {
     @Html.DropDownList("SelectedTile", new SelectList(Model.Tiles, "Id", "Title"))
