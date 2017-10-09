@@ -135,3 +135,6 @@
 /UploadFileWebApi/packages
 /UploadFileWebApi/UploadFileWebApi/obj/Debug
 /UploadFileWebApi/UploadFileWebApi/obj/Release
+/PowerBIRest/Oauth2Odata/bin
+/PowerBIRest/Oauth2Odata/obj
+/PowerBIRest/PowerBIRest/obj/Release
