@@ -138,3 +138,7 @@
 /PowerBIRest/Oauth2Odata/bin
 /PowerBIRest/Oauth2Odata/obj
 /PowerBIRest/PowerBIRest/obj/Release
+/MTPbiOdata/OAuth2DataConnector/bin/Debug
+/MTPbiOdata/OAuth2DataConnector/obj/Debug
+/MTPbiOdata/Oauth2Odata/bin
+/MTPbiOdata/Oauth2Odata/obj/Debug
