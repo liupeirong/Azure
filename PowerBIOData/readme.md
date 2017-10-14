@@ -7,9 +7,9 @@ One thing to note is that the credential of the user logged into PowerBI.com is 
 For Power BI to access your API, your API must handle unauthorized request by returning a "WWW-Authenticate" header, as seen in [this example](/PowerBIOData/Oauth2Odata/CustomAuthorization.cs).
 
 ### Scenario 1: The OAuth2 protected Web API is used by a single tenant
-1. [Register the Web API in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/active-directory-app-registration) as a single tenant application (by default applications registered in Azure AD are single tenant)
-  1.1 In the __Properties__ page of the app, set the __APP ID URI__ to the same as the Web API URL (for example, https://mydataapi.azurewebsites.net)
-  1.2 In the __Reply URLs__ page, add "https://oauth.powerbi.com/views/oauthredirect.html" to the list of URLs, this is required for Power BI to connect to this API
+1. [Register the Web API in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/active-directory-app-registration) as a single tenant application (by default applications registered in Azure AD are single tenant)  
+  1.1. In the __Properties__ page of the app, set the __APP ID URI__ to the same as the Web API URL (for example, https://mydataapi.azurewebsites.net)  
+  1.2. In the __Reply URLs__ page, add "https://oauth.powerbi.com/views/oauthredirect.html" to the list of URLs, this is required for Power BI to connect to this API  
 2. Register a client app as a single tenant application to test the API (optional)
   2.1 In the __Required permissions__ page, add the Web API registered in the previous step to the list of APIs with delegated permissions
 3. Test the API (optional)
