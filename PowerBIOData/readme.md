@@ -10,20 +10,20 @@ For Power BI to access your API, your API must handle unauthorized request by re
 1. [Register the Web API in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/active-directory-app-registration) as a single tenant application (by default applications registered in Azure AD are single tenant)  
   1.1. In the __Properties__ page of the app, set the __APP ID URI__ to the same as the Web API URL (for example, https://mydataapi.azurewebsites.net)  
   1.2. In the __Reply URLs__ page, add "https://oauth.powerbi.com/views/oauthredirect.html" to the list of URLs, this is required for Power BI to connect to this API  
-2. Register a client app as a single tenant application to test the API (optional)
-  2.1 In the __Required permissions__ page, add the Web API registered in the previous step to the list of APIs with delegated permissions
-3. Test the API (optional)
-  3.1 In a clean browser session, issue the following request. You'll prompted to log in if not already, and Azure AD will ask for your consent to allow this app to access the Web API. The request will then come back to your browser with a parameter __code__ in the return URL
-    GET https://login.microsoftonline.com/{{tenant_id}}/oauth2/authorize?client_id={{client_app_id}}&response_type=code
-  3.2 Use CURL or Postman to issue the following request, copy "access_token" from the response
+2. Register a client app as a single tenant application to test the API (optional)  
+  2.1. In the __Required permissions__ page, add the Web API registered in the previous step to the list of APIs with delegated permissions  
+3. Test the API (optional)  
+  3.1. In a clean browser session, issue the following request. You'll prompted to log in if not already, and Azure AD will ask for your consent to allow this app to access the Web API. The request will then come back to your browser with a parameter __code__ in the return URL
+    GET https://login.microsoftonline.com/{{tenant_id}}/oauth2/authorize?client_id={{client_app_id}}&response_type=code  
+  3.2. Use CURL or Postman to issue the following request, copy "access_token" from the response  
     POST https://login.microsoftonline.com/{{tenant_id}}/oauth2/token
     HEADER Content-Type: application/x-www-form-urlencoded
     BODY: grant_type=authroization_code&client_id={{client_app_id}}&client_secret={{client_app_secret}}&code={{access code obtained in 3.2}}&resource={{APP ID URI registered in 1.1}}
-  3.3 Access your Web API, for example
+  3.3. Access your Web API, for example  
     https://mydataapi.azurewebsites.net/api/Values
     HEADER Authorization: Bearer {{access_token obtained in 3.2}}
-4 Access from Power BI
-  4.1 Open Power BI Desktop, __Get Data__ -> __Web__ or __OData Feed__, input the Web API URL (for example https://mydataapi.azurewebsites.net/api/Values), select __Organizational account__ and follow the wizard to sign in. If all is well, you should see you are signed in, and you can __Connect__ to see your data
+4. Access from Power BI  
+  4.1. Open Power BI Desktop, __Get Data__ -> __Web__ or __OData Feed__, input the Web API URL (for example https://mydataapi.azurewebsites.net/api/Values), select __Organizational account__ and follow the wizard to sign in. If all is well, you should see you are signed in, and you can __Connect__ to see your data  
 
 ### Scenario 2: The OAuth2 protected Web API will be used by multiple tenants
 1. [Register the Web API in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/active-directory-app-registration) as a multi-tenant application
