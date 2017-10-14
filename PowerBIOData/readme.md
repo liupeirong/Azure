@@ -18,7 +18,6 @@ For Power BI to access your API, your API must handle unauthorized request by re
 ```  
 GET https://login.microsoftonline.com/{{tenant_id}}/oauth2/authorize?client_id={{client_app_id}}&response_type=code  
 ```   
-        
   3.2. Use CURL or Postman to issue the following request, copy "access_token" from the response  
 
 ```  
