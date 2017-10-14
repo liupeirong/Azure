@@ -17,12 +17,14 @@ For Power BI to access your API, your API must handle unauthorized request by re
 ```  
 GET https://login.microsoftonline.com/{{tenant_id}}/oauth2/authorize?client_id={{client_app_id}}&response_type=code  
 ```   
+  
   3.2. Use CURL or Postman to issue the following request, copy "access_token" from the response  
 ```  
 POST https://login.microsoftonline.com/{{tenant_id}}/oauth2/token
 HEADER Content-Type: application/x-www-form-urlencoded
 BODY: grant_type=authroization_code&client_id={{client_app_id}}&client_secret={{client_app_secret}}&code={{access code obtained in 3.2}}&resource={{APP ID URI registered in 1.1}}  
 ```  
+  
   3.3. Access your Web API, for example  
     https://mydataapi.azurewebsites.net/api/Values  
     HEADER Authorization: Bearer {{access_token obtained in 3.2}}  
