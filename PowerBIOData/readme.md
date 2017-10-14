@@ -14,11 +14,13 @@ For Power BI to access your API, your API must handle unauthorized request by re
   In the __Required permissions__ page, add the Web API registered in the previous step to the list of APIs with delegated permissions  
 3. Test the API (optional)  
   3.1. In a clean browser session, issue the following request. You'll prompted to log in if not already, and Azure AD will ask for your consent to allow this app to access the Web API. The request will then come back to your browser with a parameter __code__ in the return URL  
+
 ```  
 GET https://login.microsoftonline.com/{{tenant_id}}/oauth2/authorize?client_id={{client_app_id}}&response_type=code  
 ```   
         
   3.2. Use CURL or Postman to issue the following request, copy "access_token" from the response  
+
 ```  
 POST https://login.microsoftonline.com/{{tenant_id}}/oauth2/token
 HEADER Content-Type: application/x-www-form-urlencoded
