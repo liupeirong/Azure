@@ -57,7 +57,7 @@ For multi-tenant application, the __APP ID URI__ must be a verified domain in th
         HEADER Authorization: Bearer {{access_token obtained in the previous step}}
         ```
     3. Access from Power BI  
-        * Open Power BI Desktop, __Get Data__ -> __Web__ or __OData Feed__, input the Web API URL (for example https://mydataapi.com/api/Values), select __Organizational account__ and follow the wizard to sign in. If all is well, you should see you are signed in, and you can __Connect__ to see your data
+        * Open Power BI Desktop, __Get Data__ -> __Web__ or __OData Feed__, input the Web API URL (for example https://<i></i>mydataapi.com/api/Values), select __Organizational account__ and follow the wizard to sign in. If all is well, you should see you are signed in, and you can __Connect__ to see your data
 3. If your Web API is serviced from a domain name that you don't own, for example, https://<i></i>mydataapi.azurewebsites.net, you have to set __APP ID URI__ to something acceptable to Azure AD. By default, it your tenant domain followed by a sub directory, for example, https://<i></i>mycompany.onmicrosoft.com/mydataapi  
     1. Register a client app as a multi-tenant application to access the API, steps are same as 2.i, but this is required rather than optional  
     2. Test the API (optional), steps are same as 2.ii  
