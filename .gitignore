@@ -142,3 +142,5 @@
 /MTPbiOdata/OAuth2DataConnector/obj/Debug
 /MTPbiOdata/Oauth2Odata/bin
 /MTPbiOdata/Oauth2Odata/obj/Debug
+/IoTKafkaSpark/.settings
+/IoTKafkaSpark/dependency-reduced-pom.xml
