@@ -1,15 +1,18 @@
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.streaming.Trigger
+import org.apache.spark.sql.streaming.{Trigger, OutputMode}
 import scala.concurrent.duration._
 import com.typesafe.config._
 
 object IoTStreaming {
   def main(args: Array[String]): Unit = {
+    //put the conf file in spark.driver.extraClassPath and spark.executor.extraClassPath for debugging
     val appconf = ConfigFactory.load("iotconf")
     val kafkaBrokers = appconf.getString("iotsim.kafkaBrokers")
     val kafkaTopic = appconf.getString("iotsim.kafkaTopic")
-    val maxOffsetsPerTrigger = appconf.getString("iotsim.maxOffsetPerTrigger")
+    val maxOffsetsPerTrigger = appconf.getString("iotsim.maxOffsetsPerTrigger")
+    val watermark = appconf.getString("iotsim.watermark")
+    val tumblingWindow = appconf.getString("iotsim.tumblingWindow")
     val workingDir = appconf.getString("iotsim.devicelogWorkingDir")
     val devicelogDir = appconf.getString("iotsim.devicelogDir")
     val devicelogCheckpointDir = appconf.getString("iotsim.devicelogCheckpointDir")
@@ -21,22 +24,22 @@ object IoTStreaming {
       .getOrCreate
     import spark.implicits._
     
-    // executors and executor cores vs partition
+    //for testing, use file source instead of Kafka
+    //val dfraw = spark.readStream.schema(devicelogSchema).option("header", "true").csv("/user/pliu/iotinput")
+
     val dfraw = spark.readStream.
       format("kafka").
       option("kafka.bootstrap.servers", kafkaBrokers).
       option("subscribe", kafkaTopic). 
       //no need to set consumer group, a unique group will be auto created
       //each partition will be assigned to one consumer in the group, each consumer can consume multiple partitions
+      //each executor core is a consumer, 
       //when the number of consumers equals to the number of kafka partitions, you achieve max parallelism without idle
-      //stick with about 5 cores per executor
-      option("startingOffsets", "earliest").
+      //stick with no more than 5 cores per executor
+      option("startingOffsets", "earliest"). //this is ignored when checkpoint passes in offsets
       option("maxOffsetsPerTrigger", maxOffsetsPerTrigger).  //this controls how many messages to read per trigger
       load()
-      
-    //for testing, use file source instead of Kafka
-    //val dfraw = spark.readStream.schema(devicelogSchema).option("header", "true").csv("/user/pliu/iotinput")
-
+    
     val dftyped = if (messageFormat == "csv") toTypedDF.fromCSV(dfraw, spark) else toTypedDF.fromJSON(dfraw, spark)
 
     // if the events include a timestamp field
@@ -46,18 +49,18 @@ object IoTStreaming {
     
     /* aggregation */
     val dfagg = df.
-      withWatermark("ts", "1 minute").
-      groupBy(window($"ts", "1 minute"), $"deviceid").
-      agg(avg($"sensor9")).
-      select($"window.start", $"window.end", $"deviceid", $"count").
+      withWatermark("ts", watermark).
+      groupBy(window($"ts", tumblingWindow), $"deviceid").
+      agg(avg($"sensor9").alias("sensor9avg")).
+      select($"window.start", $"window.end", $"deviceid", $"sensor9avg").
       withColumn("year", year($"ts")).
       withColumn("month", month($"ts"))
     
     /* alerting - not used in this example */
     //spark.conf.get("spark.sql.caseSensitive") by default its false
     val dfalert = df.
-    	filter($"tag" === "temperature" && $"sensor11" > 600).
-    	withColumn("message", concat(lit("temperature too high"),$"sensor11"))
+      filter($"endofcycle" === 1 && $"sensor11" > 600).
+      withColumn("message", concat(lit("temperature too high "),$"sensor11"))
 
     /* storing output */
     // the working folder is partitioned by year and month, so after the month ends, 
@@ -89,7 +92,23 @@ object IoTStreaming {
       parquet(devicelogDir + "/year=2017/month=10")
     */
             
-    //TODO use Kafka console producer to simulate device
+    /*TODO use Kafka console producer to simulate device
+    awk '
+     BEGIN { FS = OFS = "," }
+     FNR == NR {
+         split($0, f, /:/)
+         map[f[1]] = f[2]
+         next
+     }
+     {
+         if ($1 in map) { $1=map[$1] FS $1 }
+     }
+     FNR > 1 {
+         print 
+     }
+    ' map.csv data.csv | /usr/bin/kafka-console-producer --topic devicelog --broker-list $BROKERS --property parse.key=true --property key.separator=,
+ *   */
+ */
     //TODO create hive tables on parquet, all partitioned fields must be lower case
   }  
 }  
