@@ -3,16 +3,21 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.{Trigger, OutputMode}
 import scala.concurrent.duration._
 import com.typesafe.config._
+import org.apache.log4j.{Level, LogManager}
 
 object IoTStreaming {
   def main(args: Array[String]): Unit = {
-    //put the conf file in spark.driver.extraClassPath and spark.executor.extraClassPath for debugging
+    val queryLog = LogManager.getLogger("org.apache.spark.sql.execution.streaming.StreamExecution")
+    queryLog.setLevel(Level.INFO)
+    
+    //the conf file in spark.driver.extraClassPath and spark.executor.extraClassPath takes higher priority than the one compiled in code
     val appconf = ConfigFactory.load("iotconf")
     val kafkaBrokers = appconf.getString("iotsim.kafkaBrokers")
     val kafkaTopic = appconf.getString("iotsim.kafkaTopic")
     val maxOffsetsPerTrigger = appconf.getString("iotsim.maxOffsetsPerTrigger")
     val watermark = appconf.getString("iotsim.watermark")
     val tumblingWindow = appconf.getString("iotsim.tumblingWindow")
+    val triggerInterval = appconf.getString("iotsim.triggerInterval")
     val workingDir = appconf.getString("iotsim.devicelogWorkingDir")
     val devicelogDir = appconf.getString("iotsim.devicelogDir")
     val devicelogCheckpointDir = appconf.getString("iotsim.devicelogCheckpointDir")
@@ -53,8 +58,8 @@ object IoTStreaming {
       groupBy(window($"ts", tumblingWindow), $"deviceid").
       agg(avg($"sensor9").alias("sensor9avg")).
       select($"window.start", $"window.end", $"deviceid", $"sensor9avg").
-      withColumn("year", year($"ts")).
-      withColumn("month", month($"ts"))
+      withColumn("year", year($"start")).
+      withColumn("month", month($"start"))
     
     /* alerting - not used in this example */
     //spark.conf.get("spark.sql.caseSensitive") by default its false
@@ -69,7 +74,7 @@ object IoTStreaming {
       writeStream.
       format("parquet").
       partitionBy("year", "month").
-      trigger(Trigger.ProcessingTime(1.minutes)). //trigger controls how often to read from Kafka
+      trigger(Trigger.ProcessingTime(Duration(triggerInterval))). //trigger controls how often to read from Kafka
       option("path", workingDir).
       option("checkpointLocation",devicelogCheckpointDir).  //checkpoint controls offset to read from
       start()
@@ -77,7 +82,7 @@ object IoTStreaming {
     // for testing, use console sink. Note that only Append mode is supported for file sink. Append mode only works 
     // with watermark, and will only produce outputs when the next trigger kicks in AND
     // max seen event time - watermark > evaluated time window, so by default it's append mode
-    //    val query = dfagg.writeStream.format("console").option("truncate", false).start 
+    //    val query = dfagg.writeStream.trigger(Trigger.ProcessingTime(20.seconds)).format("console").option("truncate", false).start 
     // if you don't see result, try Update or Complete mode
     //    val query = dfagg.writeStream.format("console").outputMode(OutputMode.Update).option("truncate", false).start
 
@@ -107,7 +112,7 @@ object IoTStreaming {
          print 
      }
     ' map.csv data.csv | /usr/bin/kafka-console-producer --topic devicelog --broker-list $BROKERS --property parse.key=true --property key.separator=,
- *   */
+    
  */
     //TODO create hive tables on parquet, all partitioned fields must be lower case
   }  
