@@ -144,3 +144,5 @@
 /MTPbiOdata/Oauth2Odata/obj/Debug
 /IoTKafkaSpark/Streaming/.settings
 /IoTKafkaSpark/Streaming/dependency-reduced-pom.xml
+/IoTKafkaSpark/Compact/.settings
+/IoTKafkaSpark/Compact/dependency-reduced-pom.xml

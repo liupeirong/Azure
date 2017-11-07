@@ -1,3 +1,5 @@
+package org.pliu.iot.sim
+
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.{Trigger, OutputMode}
@@ -5,16 +7,19 @@ import scala.concurrent.duration._
 import com.typesafe.config._
 import org.apache.log4j.{Level, LogManager}
 
-object IoTStreaming {
+object streaming {
+  // spark2-submit --master yarn --deploy-mode client --num-executors 3 --executor-cores 3 --jars /opt/libs/config-1.3.1.jar --class org.pliu.i.sim.streaming ./original-sim-streaming-0.0.1.jar
   def main(args: Array[String]): Unit = {
+    // specify log4j level as below, or add log4j.properties file, and in spark-submit specify
+    // --driver-java-options='-Dlog4j.configuration=file:log4j.properties'
     val queryLog = LogManager.getLogger("org.apache.spark.sql.execution.streaming.StreamExecution")
     queryLog.setLevel(Level.INFO)
     
     //the conf file in spark.driver.extraClassPath and spark.executor.extraClassPath takes higher priority than the one compiled in code
-    val appconf = ConfigFactory.load("iotconf")
+    val appconf = ConfigFactory.load("iotsim")
     val kafkaBrokers = appconf.getString("iotsim.kafkaBrokers")
     val kafkaTopic = appconf.getString("iotsim.kafkaTopic")
-    val maxOffsetsPerTrigger = appconf.getString("iotsim.maxOffsetsPerTrigger")
+    val maxOffsetsPerTrigger = appconf.getInt("iotsim.maxOffsetsPerTrigger")
     val watermark = appconf.getString("iotsim.watermark")
     val tumblingWindow = appconf.getString("iotsim.tumblingWindow")
     val triggerInterval = appconf.getString("iotsim.triggerInterval")
@@ -88,15 +93,6 @@ object IoTStreaming {
 
     query.awaitTermination
 
-    /* compacting small files in working dir to larger files*/
-    /*
-    spark.read.parquet(workingDir + "/year=2017/month=10").
-      repartition($"deviceid").
-      write.partitionBy("deviceid").
-      mode(SaveMode.Overwrite).
-      parquet(devicelogDir + "/year=2017/month=10")
-    */
-            
     /*TODO use Kafka console producer to simulate device
     awk '
      BEGIN { FS = OFS = "," }

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.pliu.iot</groupId>
-  <artifactId>sim-streaming</artifactId>
+  <artifactId>compactfiles</artifactId>
   <version>0.0.1</version>
 
   <properties>
