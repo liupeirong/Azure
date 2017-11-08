@@ -62,7 +62,7 @@ object streaming {
       withWatermark("ts", watermark).
       groupBy(window($"ts", tumblingWindow), $"deviceid").
       agg(avg($"sensor9").alias("sensor9avg")).
-      select($"window.start", $"window.end", $"deviceid", $"sensor9avg").
+      select($"window.start", $"window.end", lower($"deviceid").alias("deviceid"), $"sensor9avg").
       withColumn("year", year($"start")).
       withColumn("month", month($"start"))
     
@@ -92,24 +92,5 @@ object streaming {
     //    val query = dfagg.writeStream.format("console").outputMode(OutputMode.Update).option("truncate", false).start
 
     query.awaitTermination
-
-    /*TODO use Kafka console producer to simulate device
-    awk '
-     BEGIN { FS = OFS = "," }
-     FNR == NR {
-         split($0, f, /:/)
-         map[f[1]] = f[2]
-         next
-     }
-     {
-         if ($1 in map) { $1=map[$1] FS $1 }
-     }
-     FNR > 1 {
-         print 
-     }
-    ' map.csv data.csv | /usr/bin/kafka-console-producer --topic devicelog --broker-list $BROKERS --property parse.key=true --property key.separator=,
-    
- */
-    //TODO create hive tables on parquet, all partitioned fields must be lower case
   }  
 }  
