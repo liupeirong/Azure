@@ -8,14 +8,7 @@ import com.typesafe.config._
 import org.apache.log4j.{Level, LogManager}
 
 object streaming {
-  // spark2-submit --master yarn --deploy-mode client --num-executors 3 --executor-cores 3 --jars /opt/libs/config-1.3.1.jar --class org.pliu.i.sim.streaming ./original-sim-streaming-0.0.1.jar
   def main(args: Array[String]): Unit = {
-    // specify log4j level as below, or add log4j.properties file, and in spark-submit specify
-    // --driver-java-options='-Dlog4j.configuration=file:log4j.properties'
-    val queryLog = LogManager.getLogger("org.apache.spark.sql.execution.streaming.StreamExecution")
-    queryLog.setLevel(Level.INFO)
-    
-    //the conf file in spark.driver.extraClassPath and spark.executor.extraClassPath takes higher priority than the one compiled in code
     val appconf = ConfigFactory.load("iotsim")
     val kafkaBrokers = appconf.getString("iotsim.kafkaBrokers")
     val kafkaTopic = appconf.getString("iotsim.kafkaTopic")
@@ -41,11 +34,6 @@ object streaming {
       format("kafka").
       option("kafka.bootstrap.servers", kafkaBrokers).
       option("subscribe", kafkaTopic). 
-      //no need to set consumer group, a unique group will be auto created
-      //each partition will be assigned to one consumer in the group, each consumer can consume multiple partitions
-      //each executor core is a consumer, 
-      //when the number of consumers equals to the number of kafka partitions, you achieve max parallelism without idle
-      //stick with no more than 5 cores per executor
       option("startingOffsets", "earliest"). //this is ignored when checkpoint passes in offsets
       option("maxOffsetsPerTrigger", maxOffsetsPerTrigger).  //this controls how many messages to read per trigger
       load()
@@ -84,11 +72,9 @@ object streaming {
       option("checkpointLocation",devicelogCheckpointDir).  //checkpoint controls offset to read from
       start()
      
-    // for testing, use console sink. Note that only Append mode is supported for file sink. Append mode only works 
-    // with watermark, and will only produce outputs when the next trigger kicks in AND
-    // max seen event time - watermark > evaluated time window, so by default it's append mode
-    //    val query = dfagg.writeStream.trigger(Trigger.ProcessingTime(20.seconds)).format("console").option("truncate", false).start 
-    // if you don't see result, try Update or Complete mode
+    // Append mode only works with watermark, and will only produce outputs when 
+    // max seen event time - watermark > end of the evaluated time window. Append mode is the default.
+    // If you don't see results in console sink, try Update or Complete mode
     //    val query = dfagg.writeStream.format("console").outputMode(OutputMode.Update).option("truncate", false).start
 
     query.awaitTermination
