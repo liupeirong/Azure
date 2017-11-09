@@ -18,7 +18,7 @@
   * For testing, use file source instead of Kafka makes it easy to control what data gets processed, at what rate, and what's the expected results.  All you need to do is to drop file into the target directory.
 
 * Many small files
-  * If the output sink is a file, you will see many small files.  If you have a Hive or Impala table on this file, query will become very slow even with small amount of data.  Partition the output by, for example, year/month/day, and run a separate batch job periodically to compact the files as shown [here](/IoTKafkaSpark/3.compact). 
+  * If the output sink is a file, you will see many small files.  If you have a Hive or Impala table on this file, query will become very slow even with small amount of data.  Partition the output by, for example, year/month/day, and run a separate batch job periodically to [compact](/IoTKafkaSpark/3.compact) the files. 
   
 To see the console output of the driver, run this Spark job in YARN in Client mode:
 ```bash
