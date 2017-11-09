@@ -2,7 +2,7 @@
 
 Spark streaming produces many small files which makes storage and query inefficient.  One way to solve this problem is to 
 * Store the output in a temporary folder, and partition the output by time period, for example, year/month/day
-* Run a batch job periodically, for example daily for the previous day, to compact the files in a partition to a destination folder. Optionally further partition by other business dimensions
+* Run a batch job periodically, for example daily for the previous day, to compact the files in a partition to a destination folder. Optionally further partition by other business dimensions.  Azure Data Lake Store (ADLS) is a great Cloud storage optimized for big data scenarios.  To store data on ADLS, change the destination folder to adl://_mydatalake_.azuredatalakestore.net/_myfolder_
 * Delete the partition that contains the data for the previous day after compaction succeeded
 * Create a table on the destination folder for [query](/IoTKafkaSpark/4.Query)
 
