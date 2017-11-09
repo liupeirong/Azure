@@ -36,4 +36,4 @@ $ awk '
 ```
 
 
-* With the data ingested to Kafka, move on to Spark to [stream and process the data] (/IoTKafkaSpark/2.Streaming)
+* With the data ingested to Kafka, move on to Spark to [stream and process the data](/IoTKafkaSpark/2.Streaming)
