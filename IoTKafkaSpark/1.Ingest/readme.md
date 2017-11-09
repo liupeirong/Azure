@@ -34,3 +34,6 @@ $ awk '
      }
 ' mapDevice2Partition.csv simulated_device_data.csv | /usr/bin/kafka-console-producer --topic devicelog --broker-list $BROKERS --property parse.key=true --property key.separator=,
 ```
+
+
+* With the data ingested to Kafka, move on to Spark to [stream and process the data](/IoTKafkaSpark/2.Streaming)
