@@ -10,15 +10,17 @@
 
   
 * Control Kafka processing
-  * Each Kafka partition is assigned to a Spark executor core, and the driver also needs a core.  As a general guideline, each executor should have no more than 5 cores.  With this in mind, you can specify the number of executors and executor cores to achieve max parallelism without wasting idle cores. 
+  * Each Kafka partition is assigned to a Spark executor core, and the driver also needs a core.  As a general guideline, each executor should have no more than 5 cores.  With this in mind, you can specify the number of executors and executor cores to achieve max parallelism to process Kafka partitions without wasting idle cores. 
   * No need to create a Kafka consumer group in structured streaming.  A unique consumer group will be auto created.
   * `startingOffsets` controls where to read Kafka message from.  It takes effect only when there's no checkpointing.  When `writeStream` has `checkpointLocation` specified, offset stored in the checkpoint will take effect when reading from Kafka.
   * `Trigger` controls how often Spark goes to read a batch of events from Kafka, and `maxOffsetsPerTrigger` controls how many events to read per batch.  `watermark` controls how long to wait for late events to arrive.  
-  * When `OutputMode` is set to `Append`, Spark will only output aggregations for a time window after `maxSeenEventTime - watermark_ > end of the time window`.  So to test, you can use trigger, maxOffsetsPerTrigger, and watermark to control the processing timing in order to verify if you are getting the expected results.  For example, if you are computing the sum of a series of values between 9:00 and 9:05, and watermark is 7 minutes, there will be no output until Spark sees an event with a timestamp of 9:12 or later.  `Append` mode is the default for console sink.  If you don't see any results in console when testing, try `Update` or `Complete` mode.
+  * When `OutputMode` is set to `Append`, Spark will only output aggregations for a time window after `maxSeenEventTime - watermark > endOfTimeWindow`.  So to test, you can use `trigger`, `maxOffsetsPerTrigger`, and `watermark` to control the processing timing in order to verify if you are getting the expected results.  For example, if you are computing the sum of a series of values between 9:00 and 9:05, and watermark is 7 minutes, there will be no output until Spark sees an event with a timestamp of 9:12 or later.  `Append` mode is the default for console sink.  If you don't see any results in console when testing, try `Update` or `Complete` mode.
   * For testing, use file source instead of Kafka makes it easy to control what data gets processed, at what rate, and what's the expected results.  All you need to do is to drop file into the target directory.
 
+* Many small files
+  * If the output sink is a file, then you will see many small files.  If you have a Hive or Impala table on this file, then query will become very slow even with small amount of data.  Partition the output by, for example, year/month/day, and run a separate batch job periodically to compact the files as shown [here](/IoTKafkaSpark/3.compact/). 
   
-To see the console output of the driver, run the Spark job in YARN in Client mode:
+To see the console output of the driver, run this Spark job in YARN in Client mode:
 ```bash
 spark2-submit --master yarn --deploy-mode client --num-executors 3 --executor-cores 3 --jars /opt/libs/config-1.3.1.jar --class org.pliu.iot.sim.streaming ./original-sim-streaming-0.0.1.jar
 ```
