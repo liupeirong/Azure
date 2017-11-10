@@ -19,6 +19,7 @@ object streaming {
     val workingDir = appconf.getString("iotsim.devicelogWorkingDir")
     val devicelogDir = appconf.getString("iotsim.devicelogDir")
     val devicelogCheckpointDir = appconf.getString("iotsim.devicelogCheckpointDir")
+    val biCheckpointDir = appconf.getString("iotsim.biCheckpointDir")
     val messageFormat = appconf.getString("iotsim.messageFormat")
     
     val spark = SparkSession
@@ -36,7 +37,7 @@ object streaming {
       option("subscribe", kafkaTopic). 
       option("startingOffsets", "earliest"). //this is ignored when checkpoint passes in offsets
       option("maxOffsetsPerTrigger", maxOffsetsPerTrigger).  //this controls how many messages to read per trigger
-      load()
+      load
     
     val dftyped = if (messageFormat == "csv") toTypedDF.fromCSV(dfraw, spark) else toTypedDF.fromJSON(dfraw, spark)
 
@@ -70,8 +71,20 @@ object streaming {
       trigger(Trigger.ProcessingTime(Duration(triggerInterval))). //trigger controls how often to read from Kafka
       option("path", workingDir).
       option("checkpointLocation",devicelogCheckpointDir).  //checkpoint controls offset to read from
-      start()
-     
+      start
+    
+    /* also push to another topic for visualization */
+    val querybi = dfagg.
+      select($"deviceid".alias("key"), 
+          concat(lit("{\"readat\":\""), $"start", lit("\",\"sensor9\":"), $"sensor9avg", lit("}")).alias("value")).
+      selectExpr("CAST(key as STRING)", "CAST(value AS STRING)").
+      writeStream.
+      format("kafka").
+      option("kafka.bootstrap.servers", kafkaBrokers).
+      option("topic", "bi").
+      option("checkpointLocation", biCheckpointDir).
+      start
+
     // Append mode only works with watermark, and will only produce outputs when 
     // max seen event time - watermark > end of the evaluated time window. Append mode is the default.
     // If you don't see results in console sink, try Update or Complete mode
