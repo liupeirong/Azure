@@ -5,7 +5,6 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.{Trigger, OutputMode}
 import scala.concurrent.duration._
 import com.typesafe.config._
-import org.apache.log4j.{Level, LogManager}
 
 object streaming {
   def main(args: Array[String]): Unit = {
@@ -76,7 +75,10 @@ object streaming {
     /* also push to another topic for visualization */
     val querybi = dfagg.
       select($"deviceid".alias("key"), 
-          concat(lit("{\"readat\":\""), $"start", lit("\",\"sensor9\":"), $"sensor9avg", lit("}")).alias("value")).
+          concat(lit("{\"deviceid\":\""), $"deviceid", 
+                 lit("\",\"readat\":\""), $"start", 
+                 lit("\",\"sensor9\":"), $"sensor9avg", 
+                 lit("}")).alias("value")).
       selectExpr("CAST(key as STRING)", "CAST(value AS STRING)").
       writeStream.
       format("kafka").
