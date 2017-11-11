@@ -2,7 +2,11 @@
 
 * Logging
   * Logging level WARN or above is usually sufficient for normal runs of Spark jobs.  With Spark structured streaming, there's no longer the "Streaming" tab in the Spark Web UI. You can either call an API to get the streaming progress and metrics, or set the logging level to INFO for `org.apache.spark.sql.execution.streaming.StreamExecution`, in which case it will output the progress info for each batch.
-  * Create log4j.properties and use it in spark-submit by specifying `--driver-java-options='-Dlog4j.configuration=file:log4j.properties'`
+  * Create log4j.properties as below example and use it in spark-submit by specifying `--driver-java-options='-Dlog4j.configuration=file:log4j.properties'`
+```
+log4j.logger.org=WARN
+log4j.logger.org.apache.spark.sql.execution.streaming.StreamExecution=INFO
+```
 
 
 * Configuration

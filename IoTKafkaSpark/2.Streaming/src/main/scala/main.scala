@@ -93,5 +93,6 @@ object streaming {
     //    val query = dfagg.writeStream.format("console").outputMode(OutputMode.Update).option("truncate", false).start
 
     query.awaitTermination
+    querybi.awaitTermination()
   }  
 }  
