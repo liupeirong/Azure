@@ -65,6 +65,7 @@ object streaming {
     // run the compaction job to compact the files in that month of the year to its destination folder
     val query = dfagg.
       writeStream.
+      queryName("storeinfile").
       format("parquet").
       partitionBy("year", "month").
       trigger(Trigger.ProcessingTime(Duration(triggerInterval))). //trigger controls how often to read from Kafka
@@ -81,6 +82,7 @@ object streaming {
                  lit("}")).alias("value")).
       selectExpr("CAST(key as STRING)", "CAST(value AS STRING)").
       writeStream.
+      queryName("push2kafkabi").
       format("kafka").
       option("kafka.bootstrap.servers", kafkaBrokers).
       option("topic", "bi").
@@ -93,6 +95,6 @@ object streaming {
     //    val query = dfagg.writeStream.format("console").outputMode(OutputMode.Update).option("truncate", false).start
 
     query.awaitTermination
-    querybi.awaitTermination()
+    querybi.awaitTermination
   }  
 }  

@@ -9,7 +9,7 @@ import com.typesafe.config._
 import org.apache.log4j.{Level, LogManager}
 import org.apache.spark.sql.ForeachWriter
 import org.apache.http.client.methods.HttpPost
-import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.entity.StringEntity
 
 object stream2powerbi {
@@ -38,7 +38,7 @@ object stream2powerbi {
        val post = new HttpPost(pbiUrl)
        post.addHeader("Content-Type", "application/json")
        post.setEntity(body)
-       val httpClient = new DefaultHttpClient
+       val httpClient = HttpClientBuilder.create.build
        val resp = httpClient.execute(post)
        if (resp.getStatusLine.getStatusCode != 200) 
          bilog.error("Failed to send data to PowerBI: " + resp.getStatusLine.getReasonPhrase)
@@ -61,5 +61,8 @@ object stream2powerbi {
       option("checkpointLocation", biSinkCheckpointDir).
       queryName("push2powerbi").
       start
+    
+    //without this, the yarn container will immediately stop which stops the spark session
+    query.awaitTermination
   } 
 }
