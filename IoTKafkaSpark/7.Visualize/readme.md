@@ -1,6 +1,6 @@
 # Spark structured streaming from Kafka to Power BI real time dashboard
 
-In the streaming job where Spark reads device data from Kafka and aggregates the results, it outputs the results in files and also sends the results to another Kafka topic.  Here another Spark structured streaming job reads from Kafka, and outputs the data to Power BI realtime dashboard with a feacheach sink. 
+In the [streaming job]((/IoTKafkaSpark/2.Streaming) where Spark reads device data from Kafka and aggregates the results, it outputs the results in files and also sends the results to another Kafka topic.  Here another Spark structured streaming job reads from Kafka, and outputs the data to Power BI realtime dashboard with a feacheach sink. 
 
 * You can create Power BI streaming, push, or pushStreaming datasets for real time data.  When you create these datasets using REST API, you will later push data to these API by authenticating again Power BI with Azure AD Oauth2.  However, if you create such a dataset in the Power BI portal, it gives you an application key to push data to Power BI, which makes it easier to code in Spark, especially for testing
 
