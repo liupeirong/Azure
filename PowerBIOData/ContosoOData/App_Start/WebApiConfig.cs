@@ -18,6 +18,7 @@ namespace ContosoOData
                 routeName: "ODataRoute",
                 routePrefix: null,
                 model: builder.GetEdmModel());
+            config.Count().Filter().OrderBy().Expand().Select().MaxTop(null);
         }
     }
 }

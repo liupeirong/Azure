@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContosoOData", "ContosoOData\ContosoOData.csproj", "{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}"
 EndProject
@@ -30,7 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISVWebApp", "ISVWebApp\ISVW
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oauth2Odata", "Oauth2Odata\Oauth2Odata.csproj", "{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}"
 EndProject
-Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "OAuth2DataConnector", "OAuth2DataConnector\OAuth2DataConnector.mproj", "{E04695AF-F3CC-4B63-85EE-7D32B79F5CF9}"
+Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "OAuth2DataConnector", "OAuth2DataConnector\OAuth2DataConnector.mproj", "{BCC053B5-95C1-409A-9C36-3605FA7E1164}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,12 +72,12 @@ Global
 		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Release|x86.ActiveCfg = Release|Any CPU
 		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Release|x86.Build.0 = Release|Any CPU
-		{E04695AF-F3CC-4B63-85EE-7D32B79F5CF9}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{E04695AF-F3CC-4B63-85EE-7D32B79F5CF9}.Debug|x86.ActiveCfg = Debug|x86
-		{E04695AF-F3CC-4B63-85EE-7D32B79F5CF9}.Debug|x86.Build.0 = Debug|x86
-		{E04695AF-F3CC-4B63-85EE-7D32B79F5CF9}.Release|Any CPU.ActiveCfg = Release|x86
-		{E04695AF-F3CC-4B63-85EE-7D32B79F5CF9}.Release|x86.ActiveCfg = Release|x86
-		{E04695AF-F3CC-4B63-85EE-7D32B79F5CF9}.Release|x86.Build.0 = Release|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Debug|x86.ActiveCfg = Debug|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Debug|x86.Build.0 = Debug|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Release|Any CPU.ActiveCfg = Release|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Release|x86.ActiveCfg = Release|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
