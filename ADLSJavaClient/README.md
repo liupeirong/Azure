@@ -1,4 +1,4 @@
-# Azure Data Lake Store Example that helps understand app integration with Azure AD
+# Azure Data Lake Store example that helps understand app integration with Azure AD
 
 This Java sample simply reads a file from Azure Data Lake Store (ADLS). It's based on [this original Azure sample](https://github.com/Azure-Samples/data-lake-store-java-upload-download-get-started/), but is meant to clarify common confusions when integrating an application with Azure AD (AAD). 
 
