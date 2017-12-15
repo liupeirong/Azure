@@ -138,3 +138,10 @@
 /PowerBIRest/Oauth2Odata/bin
 /PowerBIRest/Oauth2Odata/obj
 /PowerBIRest/PowerBIRest/obj/Release
+/NewAppDomainOnAzureWebApp/mylib/bin
+/NewAppDomainOnAzureWebApp/.vs/newappdomain/v15/sqlite3
+/NewAppDomainOnAzureWebApp/mylib/obj
+/NewAppDomainOnAzureWebApp/packages
+/NewAppDomainOnAzureWebApp/testappdomain/bin
+/NewAppDomainOnAzureWebApp/testappdomain/obj
+/PowerBIISV/pbiintegrate/.powerbirc
