@@ -1,0 +1,89 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContosoOData", "ContosoOData\ContosoOData.csproj", "{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublishScripts", "PublishScripts", "{3B870596-8880-4C5F-9B01-03172A690125}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{8686319B-AE71-4891-B441-F7AA068A07EB}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\Scripts\Deploy-AzureResourceGroup-2.ps1 = PublishScripts\Scripts\Deploy-AzureResourceGroup-2.ps1
+		PublishScripts\Scripts\Deploy-AzureResourceGroup-3.ps1 = PublishScripts\Scripts\Deploy-AzureResourceGroup-3.ps1
+		PublishScripts\Scripts\Deploy-AzureResourceGroup.ps1 = PublishScripts\Scripts\Deploy-AzureResourceGroup.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{FF06AA9A-381C-4C49-A0EB-3F37655E8644}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\Templates\AcmeOData.json = PublishScripts\Templates\AcmeOData.json
+		PublishScripts\Templates\AcmeOData.param.dev.json = PublishScripts\Templates\AcmeOData.param.dev.json
+		PublishScripts\Templates\ContosoOData.json = PublishScripts\Templates\ContosoOData.json
+		PublishScripts\Templates\ContosoOData.param.dev.json = PublishScripts\Templates\ContosoOData.param.dev.json
+		PublishScripts\Templates\ISVWebApp.json = PublishScripts\Templates\ISVWebApp.json
+		PublishScripts\Templates\ISVWebApp.param.dev.json = PublishScripts\Templates\ISVWebApp.param.dev.json
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcmeOData", "AcmeOData\AcmeOData.csproj", "{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISVWebApp", "ISVWebApp\ISVWebApp.csproj", "{F11C041E-D707-4B0E-B890-CAF41F928E04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oauth2Odata", "Oauth2Odata\Oauth2Odata.csproj", "{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}"
+EndProject
+Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "OAuth2DataConnector", "OAuth2DataConnector\OAuth2DataConnector.mproj", "{BCC053B5-95C1-409A-9C36-3605FA7E1164}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Debug|x86.Build.0 = Debug|Any CPU
+		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Release|x86.ActiveCfg = Release|Any CPU
+		{87EDC0A3-B422-4AE1-BCCD-5936B23F3136}.Release|x86.Build.0 = Release|Any CPU
+		{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}.Debug|x86.Build.0 = Debug|Any CPU
+		{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}.Release|x86.ActiveCfg = Release|Any CPU
+		{A8901CA4-0504-4EC6-A48C-2BA5C34218DC}.Release|x86.Build.0 = Release|Any CPU
+		{F11C041E-D707-4B0E-B890-CAF41F928E04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F11C041E-D707-4B0E-B890-CAF41F928E04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F11C041E-D707-4B0E-B890-CAF41F928E04}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F11C041E-D707-4B0E-B890-CAF41F928E04}.Debug|x86.Build.0 = Debug|Any CPU
+		{F11C041E-D707-4B0E-B890-CAF41F928E04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F11C041E-D707-4B0E-B890-CAF41F928E04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F11C041E-D707-4B0E-B890-CAF41F928E04}.Release|x86.ActiveCfg = Release|Any CPU
+		{F11C041E-D707-4B0E-B890-CAF41F928E04}.Release|x86.Build.0 = Release|Any CPU
+		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Debug|x86.Build.0 = Debug|Any CPU
+		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Release|x86.ActiveCfg = Release|Any CPU
+		{EF28D805-B99B-48B5-9F43-4BDC62DB72AC}.Release|x86.Build.0 = Release|Any CPU
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Debug|x86.ActiveCfg = Debug|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Debug|x86.Build.0 = Debug|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Release|Any CPU.ActiveCfg = Release|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Release|x86.ActiveCfg = Release|x86
+		{BCC053B5-95C1-409A-9C36-3605FA7E1164}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8686319B-AE71-4891-B441-F7AA068A07EB} = {3B870596-8880-4C5F-9B01-03172A690125}
+		{FF06AA9A-381C-4C49-A0EB-3F37655E8644} = {3B870596-8880-4C5F-9B01-03172A690125}
+	EndGlobalSection
+EndGlobal

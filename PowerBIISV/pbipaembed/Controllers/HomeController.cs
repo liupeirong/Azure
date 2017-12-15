@@ -104,7 +104,7 @@ namespace pbipaembed.Controllers
                     datasets: new List<string> { report.DatasetId } );
 
                 // Generate Embed Token.
-                var generateTokenRequestParameters = tenantID.StartsWith("1") ?
+                var generateTokenRequestParameters = tenantID.StartsWith("1") || report.Name.ToLower().CompareTo("adventureworks") != 0 ?
                     new GenerateTokenRequest(
                     accessLevel: "edit", allowSaveAs: true) : 
                     new GenerateTokenRequest(
