@@ -1,0 +1,13 @@
+﻿@model pbipaembed.Models.EmbedConfig
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div id="buttonsWrapper">
+    <h1 class="isv">Embed ISV Content</h1>
+    <h3><a id="btnListReports" href="~/ISVCanned/ListReports">List Reports</a>(requires sign in for RLS)</h3>
+    <h3><a id="btnListDashboard" href="~/ISVCanned/ListDashboards">List Dashboards</a></h3>
+    <h3><a id="btnListDatasets" href="~/ISVCanned/ListDatasets">List Datasets</a></h3>
+</div>

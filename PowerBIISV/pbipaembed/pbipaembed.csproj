@@ -27,6 +27,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <WebProject_DirectoryAccessLevelKey>1</WebProject_DirectoryAccessLevelKey>
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -218,6 +219,8 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\ISVCannedController.cs" />
+    <Compile Include="Controllers\MyReportController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\UserProfileController.cs" />
     <Compile Include="Global.asax.cs">
@@ -290,6 +293,19 @@
     <Content Include="Views\Home\ListUserReports.cshtml" />
     <Content Include="Views\Home\EmbedUserReport.cshtml" />
     <Content Include="Views\Home\ListUserGroups.cshtml" />
+    <Content Include="Views\MyReport\EmbedUserReport.cshtml" />
+    <Content Include="Views\MyReport\Index.cshtml" />
+    <Content Include="Views\MyReport\ListUserGroups.cshtml" />
+    <Content Include="Views\MyReport\ListUserReports.cshtml" />
+    <Content Include="Views\ISVCanned\CreateReport.cshtml" />
+    <Content Include="Views\ISVCanned\EmbedDashboard.cshtml" />
+    <Content Include="Views\ISVCanned\EmbedReport.cshtml" />
+    <Content Include="Views\ISVCanned\EmbedTile.cshtml" />
+    <Content Include="Views\ISVCanned\Index.cshtml" />
+    <Content Include="Views\ISVCanned\ListDashboards.cshtml" />
+    <Content Include="Views\ISVCanned\ListDatasets.cshtml" />
+    <Content Include="Views\ISVCanned\ListReports.cshtml" />
+    <Content Include="Views\ISVCanned\ListTiles.cshtml" />
     <None Include="Web.config.private">
       <SubType>Designer</SubType>
     </None>

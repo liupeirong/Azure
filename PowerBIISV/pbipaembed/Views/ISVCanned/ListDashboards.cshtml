@@ -1,0 +1,20 @@
+﻿@model pbipaembed.Models.DashboardsViewModel
+
+@{
+    ViewBag.Title = "List Dashboards";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="isv">Select a dashboard to embed:</h2>
+@using (Html.BeginForm("EmbedDashboard", "ISVCanned", FormMethod.Post))
+{
+    @Html.DropDownList("SelectedDashboard", new SelectList(Model.Dashboards, "Id", "DisplayName"))
+    <input type="submit" value="Embed" />
+}
+
+<h2 class="isv">Select a dashboard to tile:</h2>
+@using (Html.BeginForm("ListTiles", "ISVCanned", FormMethod.Post))
+{
+    @Html.DropDownList("SelectedDashboard", new SelectList(Model.Dashboards, "Id", "DisplayName"))
+    <input type="submit" value="Tile" />
+}

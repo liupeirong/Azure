@@ -1,0 +1,62 @@
+﻿@model pbipaembed.Models.EmbedConfig
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/scripts/powerbi.js"></script>
+
+<h2 class="isv">Embedded Report - @Model.Name</h2>
+<div id="reportContainer" style="height: 600px"></div>
+
+<script>
+    // Read embed application token from Model
+    var accessToken = "@Model.EmbedToken.Token";
+
+    // Read embed URL from Model
+    var embedUrl = "@Html.Raw(Model.EmbedUrl)";
+
+    // Read report Id from Model
+    var embedReportId = "@Model.Id";
+
+    // Get models. models contains enums that can be used.
+    var models = window['powerbi-client'].models;
+
+    // Embed configuration used to describe the what and how to embed.
+    // This object is used when calling powerbi.embed.
+    // This also includes settings and options such as filters.
+    // You can find more information at https://github.com/Microsoft/PowerBI-JavaScript/wiki/Embed-Configuration-Details.
+    var config = {
+        type: 'report',
+        tokenType: models.TokenType.Embed,
+        accessToken: accessToken,
+        embedUrl: embedUrl,
+        id: embedReportId,
+        //permissions: models.Permissions.Copy,
+        //viewMode: models.ViewMode.Edit,
+        settings: {
+            filterPaneEnabled: true,
+            navContentPaneEnabled: true//,
+            //useCustomSaveAsDialog: true
+
+        }
+    };
+
+    // Get a reference to the embedded report HTML element
+    var reportContainer = $('#reportContainer')[0];
+
+    // Embed the report and display it within the div container.
+    var report = powerbi.embed(reportContainer, config);
+        
+    report.off("saveAsTriggered");
+    report.on("saveAsTriggered", function () {
+        var userReportName = prompt("Please enter report name", "foo");
+        if (userReportName != null) {
+            var saveAsParameters = {
+                name: userReportName
+            };
+            report.saveAs(saveAsParameters);
+        }
+    })
+</script>

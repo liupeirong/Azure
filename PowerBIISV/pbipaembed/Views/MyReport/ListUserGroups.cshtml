@@ -1,0 +1,15 @@
+﻿@model pbipaembed.Models.GroupsViewModel
+
+@{
+    ViewBag.Title = "List User Groups";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="user">
+    <h2>Select a group:</h2>
+    @using (Html.BeginForm("ListUserReports", "Home", FormMethod.Post))
+    {
+        @Html.DropDownList("SelectedGroup", new SelectList(Model.Groups, "Id", "Name"))
+        <input type="submit" value="List" />
+    }
+</div>
