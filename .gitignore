@@ -1,7 +1,4 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
+﻿
 **/.vs
 **/bin
 **/obj
@@ -23,4 +20,9 @@
 *.ldf
 *.cache-main
 *.powerbirc
+*.vspscc
+*.vssscc
 dependency-reduced-pom.xml
+GISWork
+Blog2Speech
+IoTSimulator
