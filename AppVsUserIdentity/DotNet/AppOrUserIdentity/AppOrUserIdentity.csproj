@@ -177,6 +177,7 @@
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\apporusercred - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -206,13 +207,6 @@
     <Content Include="Views\Home\GetEulaAppCred.cshtml" />
     <Content Include="Views\Home\AcceptEulaAppCred.cshtml" />
     <Content Include="Views\Home\AcceptEulaUserCred.cshtml" />
-    <None Include="Web.config.private" />
-    <None Include="Web.config.Debug.private">
-      <DependentUpon>Web.config.private</DependentUpon>
-    </None>
-    <None Include="Web.config.Release.private">
-      <DependentUpon>Web.config.private</DependentUpon>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -224,6 +218,9 @@
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="packages.config" />
     <Content Include="Scripts\jquery-1.10.2.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
