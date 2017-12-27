@@ -1,0 +1,30 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<h2>Test EULA acceptance API with app or user credential</h2>
+You can also go to Azure portal, Subscriptions, Programmatic Deployment, to toggle on or off the list of offers.
+
+<form action="/Home/GetEulaAppCred" method="post">
+    Subscription: <input type="text" name="subscription" size="200" placeholder="your subscription id" /><br />
+    Publisher: <input type="text" name="publisher" value="cloudera" /><br />
+    Offer: <input type="text" name="offer" value="cloudera-centos-os" /><br />
+    Plan: <input type="text" name="plan" value="6_7" /><br />
+    <h3>Step 1. Try User Credential by Sign in first </h3>
+    If you are signed in from another app, sign out and sign back in.
+    <input type="submit" formaction="/Account/Signin" value="Sign in" /><br />
+    <h3>Step 2. Get EULA with User Credential </h3>
+    <input type="submit" formaction="/Home/GetEulaUserCred" formmethod="post" value="Get with User Credential" /><br />
+    <h3>Step 3. Go to Azure Portal and assign this app Reader role to your subscription </h3>
+    Wait for a few minutes for the registration to take place. 
+    <h3>Step 4. Sign out of this app </h3>
+    <input type="submit" formaction="/Account/Signout" value="Sign out" /><br />
+    <h3>Step 5. Get EULA with App Credential </h3>
+    <input type="submit" value="Get with App Credential" /><br />
+    <h3>Step 6. Accept EULA with App Credential, you'll get an error because the app only has reader role </h3>
+    <input type="submit" formaction="/Home/AcceptEulaAppCred" formmethod="post" value="Accept EULA with App Credential" /><br />
+    <h3>Step 7. Sign in again </h3>
+    <input type="submit" formaction="/Account/Signin" value="Sign in" /><br />
+    <h3>Step 8. Accept EULA with User Credential </h3>
+    <input type="submit" formaction="/Home/AcceptEulaUserCred" formmethod="post" value="Accept EULA with User Credential" /><br />
+</form>

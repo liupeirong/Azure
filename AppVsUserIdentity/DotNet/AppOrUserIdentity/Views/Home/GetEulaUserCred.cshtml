@@ -1,0 +1,15 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        var str = JSON.stringify(JSON.parse('@ViewBag.Content'.replace(/&quot;/g, '"')), null, 4);
+        document.getElementById("msg").innerHTML = str;
+    </script>
+}
+<div class="jumbotron">
+    <h2>UserCred - Get EULA response</h2>
+    <pre id ="msg" class="lead"></pre>
+</div>
