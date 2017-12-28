@@ -6,10 +6,12 @@ Here are the key points to demonstrate:
 ### To use app credential
 * This app only requires permission to __sign in users and read their profiles__.
 * A user needs to consent to the app on first use.  Once consented, a service principal is created in the user's tenant. If proper rights are granted to this service principal, for example, a Reader role on the target subscription, then no user needs to sign in for this app to perform read/get operation.  Meanwhile write/set operation will fail due to lack of write privilege.
+* A bearer token with app credential is obtained in [this function](/AppVsUserIdentity/DotNet/AppOrUserIdentity/Controllers/HomeController.cs#L149).
 
 ### To use user credential
 * This app requires permission to __sign in users and read their profiles__, as well as permission to __Windows Azure Management Service__.
 * A user has to sign in to perform read or write operations.  The service principal doesn't have to have any role on the target subscription, as long as the user has sufficient privileges to operate on the subscription. 
+* A bearer token with user credential is obtained in [this function](/AppVsUserIdentity/DotNet/AppOrUserIdentity/Controllers/HomeController.cs#L158).
 
 Notes:
 * This app uses default ADAL token cache which shouldn't be used in production code.
