@@ -11,10 +11,10 @@ $ awk -F, '{$1=$key FS $1;}1' OFS=, data_file.json | kafka-console-producer ... 
 ```
 
 
-* The way Kafka partitions data by default is to compute a hash on the partition key, then mod it by the number of partitions.  So while the hash key is likely unique, when mod by a small number of partitions, data could end up skewed in one or just a few partitions.  To evenly distribute the data into all partitions, you may use a numeric value 0..#partitions-1 as the key.
+* The way Kafka partitions data by default is to compute a hash on the partition key, then mod it by the number of partitions.  So while the hash key is likely unique, when mod by a small number of partitions, data could end up skewed in one or just a few partitions.  When the key is null, the producer will choose a random partition.  
 
 
-* If the sample data contains data values for all keys, as shown in this example - deviceid is the key and the simulated_device_data file contains multiple devices, create a file mapDevice2Partition.csv to map between deviceid and 0..#partitions-1 keys. Then use AWK to add the desired key to each line.  Below is the full sequence of commands needed to ingest simulated_device_data.csv to a Kafka topic, with each device going to its own partition.
+* If the sample data contains data values for all keys, as shown in this example - deviceid is the key and the simulated_device_data file contains multiple devices, create a file mapDevice2Partition.csv to map between deviceid and 0..#partitions-1 keys. Then use AWK to add the desired key to each line as shown in the below example.  This may help more evenly distribute data from N devices to N partitions, however, there's absolutely no guarantee. Kafka by default uses murmur2 hash on the bytes of the key mod by partition count to determine the partition, so two single digit numeric keys could end up in the same partition. You need to writer your own partitioner to change the default behaviour. The console producer doesn't support custom partitioner.   
 ```bash
 $ export BROKERS=worker1:9092,worker2:9092,worker3:9092
 $ export ZOOKEEPER=zookeeper:2181
