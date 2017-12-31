@@ -17,6 +17,9 @@ In the [streaming job](/IoTKafkaSpark/2.Streaming) where Spark reads device data
     </relocation>
   <relocations>
 ```
+
+* To troubleshoot requests sent to Power BI, [RequestBin](https://requestb.in/) could be a very effective tool. Replace the Power BI URL with RequestBin URL, and examine the requests.
+
 run the shaded uber jar in spark-sumbit:
 ```bash
 spark2-submit --master yarn --deploy-mode client --num-executors 2 --driver-java-options='-Dlog4j.configuration=file:log4j.properties' --class org.pliu.iot.bi.stream2powerbi ./powerbi-sink-0.0.1.jar
