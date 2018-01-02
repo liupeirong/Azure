@@ -23,7 +23,7 @@ N1172FJ-2,1,3,0,9053.00339110528,47.3061069800384,8125.71228068237,8.68102656244
 ```
 
 __Step 1__ Obtain Kafka broker and Zookeeper hostnames by running the following commands in your ssh session:
-```bash
+```sh
 sudo apt -y install jq
 CLUSTERNAME='{{Kafka cluster name}}'
 PASSWORD='{{Kafka cluster password}}'
