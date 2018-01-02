@@ -11,7 +11,7 @@ This lab is inspired by the [Azure Predictive Maintenance Prediction sample](htt
 * An HDInsight cluster for Spark with 2 workers, at the time of this writing, the lakafkalab HDInsight version is 3.6, and Spark is 2.1
 * Optionally a Windows machine from which you can ssh into the clusters, and run Power BI Desktop.  If you don't have a Windows machine, you can use Azure Cloud Shell to ssh into the cluster. You can also log on to [Power BI](https://powerbi.com) to get data from HDInsight Spark cluster.  
 
-### Ingest data to Kafka ###
+### 1 Ingest data to Kafka ###
 ssh into your Kafka cluster {{Kafka cluster name}}-ssh.azurehdinsight.com. The sample data simulated_device_data.csv is located in the "/" directory. We will ingest this data into Kafka. This data has the following format:
 ```csv
 DeviceId,Cycle,Counter,EndOfCycle,Sensor9,Sensor11,Sensor14,Sensor15
@@ -22,7 +22,7 @@ N1172FJ-1,1,2,0,9040.48238011606,47.7821727021101,8128.94564507941,8.26440855195
 N1172FJ-2,1,3,0,9053.00339110528,47.3061069800384,8125.71228068237,8.68102656244265
 ```
 
-__Step 1__ Obtain Kafka broker and Zookeeper hostnames by running the following commands in your ssh session:
+__Step 1.1__ Obtain Kafka broker and Zookeeper hostnames by running the following commands in your ssh session:
 ```sh
 CLUSTERNAME='{{Kafka cluster name}}'
 PASSWORD='{{Kafka cluster password}}'
@@ -33,7 +33,7 @@ echo '$KAFKABROKERS='$KAFKABROKERS
 export PATH=$PATH:/usr/hdp/current/kafka-broker/bin
 ```
 
-__Step 2__ Create a topic and randomly distribute data into partitions.
+__Step 1.2__ Create a topic and randomly distribute data into partitions.
 ```sh
 # The sample data contains 8 devices, create 8 partitions with the intention to partition by device
 kafka-topics.sh --create --replication-factor 1 --partitions 8 --topic kafkalab --zookeeper $KAFKAZKHOSTS
@@ -47,7 +47,7 @@ kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --pa
 ```
 Note that every partition has data.  But data from the same device could end up in different partitions. This is because data is treated as key-value pairs in Kafka. When key is null, data is randomly placed in partitions. 
 
-__Step 3__ Partition data by device id.
+__Step 1.3__ Partition data by device id.
 ```
 # delete the topic
 kafka-topics.sh --delete --topic kafkalab --zookeeper $KAFKAZKHOSTS
@@ -67,13 +67,13 @@ Partitioning data in Kafka allows Spark to run tasks to process multiple partiti
 
 In the next section, we will process the data that we just ingested into the Kafka topic. Note down the value of KAFKABROKERS and Kafka topic, which we will use in the following Spark job.
 
-### Process data in Spark ###
+### 2 Process data in Spark ###
 In this section, we will process the data ingested into Kafka in the previous section with Spark Structured Streaming, and learn how to control the streaming behaviour with windowing functions, output mode, and watermark. I've found that spark-shell is a better tool to use when learning about streaming than notebooks because console output is very helpful but doesn't work in notebooks. To run the following code, ssh into your spark cluster {{Spark cluster name}}-ssh.azurehdinsight.com, and start spark-shell with the following command and paste the code blocks into the spark-shell console as you move along the following steps.
 ```sh
 spark-shell --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.1.0
 ```
 
-__Step 1__ Simple pass through streaming job that outputs Kafka messages to console.
+__Step 2.1__ Simple pass through streaming job that outputs Kafka messages to console.
 Replace the value of KafkaBrokers, then paste the code into spark-shell to run:
 ```scala
 import org.apache.spark.sql.types._
@@ -105,7 +105,7 @@ query.status
 query.stop
 ```
 
-__Step 2__ Aggregate with a tumbling window and a key. This sample dataset doesn't have a time stamp in its payload, so we add the current time stamp. Note that the job finishes in single batch.
+__Step 2.2__ Aggregate with a tumbling window and a key. This sample dataset doesn't have a time stamp in its payload, so we add the current time stamp. Note that the job finishes in single batch.
 ```scala
 val tumblingWindow = "5 seconds"
 
@@ -123,7 +123,7 @@ val query = df.writeStream.
       start
 ```
 
-__Step 3__ Set maxOffsetPerBatch to 2000 and see how the behaviour changes. 
+__Step 2.3__ Set maxOffsetPerBatch to 2000 and see how the behaviour changes. 
 ```scala
 query.stop
 
@@ -152,7 +152,7 @@ val query = df.writeStream.
 ```
 Note that the job now finishes in about 6 batches because there are about 12000 rows in Kafka.
 
-__Step 4__ Change the outputMode to "complete" to see how the behaviour changes.
+__Step 2.4__ Change the outputMode to "complete" to see how the behaviour changes.
 ```scala
 query.stop
 
@@ -163,7 +163,7 @@ val query = df.writeStream.
       start
 ```
 
-__Step 5__ Change the outputMode to "append" (default). 
+__Step 2.5__ Change the outputMode to "append" (default). 
 
 Watermark is required for aggregation in "append" mode. Watermark controls how late an event could arrive to be calculated in aggregation. For a given time window ending T, if the last seen event time is more current than T + watermark, then aggregation up to T is completed for output. Any events that happened before T and arrive later will be ignored. Note the first few batches will be empty, waiting for the late arrival events.
 
@@ -186,7 +186,7 @@ val query = df.writeStream.
       start
 ```
 
-__Step 6__ Save results to a file by updating workingDir and checkpointDir below:
+__Step 2.6__ Save results to a file by updating workingDir and checkpointDir below:
 
 ```scala
 query.stop
@@ -222,10 +222,10 @@ query.lastProgress
 query.stop
 ```
 
-### Visualize data in Power BI ###
+### 3 Visualize data in Power BI ###
 Data can be persisted for historical analysis in Power BI, or it can be pushed to Power BI for real time analysis. 
 
-__Step 1__ Save the output to a table for historical analysis. 
+__Step 3.1__ Save the output to a table for historical analysis. 
 
 Note that the output from the previous section consists of many small parquet files. To improve query efficiency we will repartition the data by device id when we save the table. 
 ```scala
@@ -238,7 +238,7 @@ val dftable = spark.
 
 Open Power BI Desktop, __Get Data__, __Azure HDInsight Spark__, input your HDInsight server name {{Spark cluster name}}.azurehdinsight.net and credential. You should see the "labbi" table  saved above.
 
-__Step 2__ Push streaming results directly to Power BI. 
+__Step 3.2__ Push streaming results directly to Power BI. 
 
 * Login to powerbi.com.
 * In __My Workspace__, __Datasets__, __Create__, __Streaming Dataset__, __API__, give it a name, and a structure like the following:
@@ -255,7 +255,7 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.entity.StringEntity
 
-val pbiUrl = {{your Power BI API endpoint}} 
+val pbiUrl = "{{your Power BI API endpoint}}"
 //val pbiUrl = "https://requestb.in/{{your bin}}"
 
 // make each batch smaller so that we can see the line chart moves as each batch of aggregation flows into Power BI
