@@ -12,7 +12,7 @@ This lab is inspired by the [Azure Predictive Maintenance Prediction sample](htt
 * Optionally a Windows machine from which you can ssh into the clusters, and run Power BI Desktop.  If you don't have a Windows machine, you can use Azure Cloud Shell to ssh into the cluster. You can also log on to [Power BI](https://powerbi.com) to get data from HDInsight Spark cluster.  
 
 ### Ingest data to Kafka ###
-ssh into your Kafka cluster {{Kafka cluster name}}-ssh.azurehdinsight.com. The sample data simulated_device_data.csv is located in the home directory. We will ingest this data into Kafka. This data has the following format:
+ssh into your Kafka cluster {{Kafka cluster name}}-ssh.azurehdinsight.com. The sample data simulated_device_data.csv is located in the "/" directory. We will ingest this data into Kafka. This data has the following format:
 ```csv
 DeviceId,Cycle,Counter,EndOfCycle,Sensor9,Sensor11,Sensor14,Sensor15
 N1172FJ-2,1,1,1,9048.49521305798,47.6290124202935,8127.91067233134,8.2332657671585
@@ -24,7 +24,6 @@ N1172FJ-2,1,3,0,9053.00339110528,47.3061069800384,8125.71228068237,8.68102656244
 
 __Step 1__ Obtain Kafka broker and Zookeeper hostnames by running the following commands in your ssh session:
 ```sh
-sudo apt -y install jq
 CLUSTERNAME='{{Kafka cluster name}}'
 PASSWORD='{{Kafka cluster password}}'
 export KAFKAZKHOSTS=`curl -sS -u admin:$PASSWORD -G https://$CLUSTERNAME.azurehdinsight.net/api/v1/clusters/$CLUSTERNAME/services/ZOOKEEPER/components/ZOOKEEPER_SERVER | jq -r '["\(.host_components[].HostRoles.host_name):2181"] | join(",")' | cut -d',' -f1,2`
@@ -41,12 +40,12 @@ kafka-topics.sh --create --replication-factor 1 --partitions 8 --topic kafkalab 
 # Check the topic created
 kafka-topics.sh --describe --topic kafkalab --zookeeper $KAFKAZKHOSTS
 # Remove the csv header row, ingest to Kafka topic
-awk '{if (NR>1) {print}}' simulated_device_data.csv | kafka-console-producer.sh --broker-list $KAFKABROKERS --topic kafkalab
+awk '{if (NR>1) {print}}' simulated_device_data.csv | /kafka-console-producer.sh --broker-list $KAFKABROKERS --topic kafkalab
 # Observe the data ingested in each partition
 kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 0 --from-beginning --max-messages 10
 kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 1 --from-beginning --max-messages 10
 ```
-Note that data from the same device could end up in different partitions. Data is treated as key-value pairs in Kafka. When key is null, data is randomly placed in partitions. 
+Note that every partition has data.  But data from the same device could end up in different partitions. This is because data is treated as key-value pairs in Kafka. When key is null, data is randomly placed in partitions. 
 
 __Step 3__ Partition data by device id.
 ```
@@ -57,32 +56,32 @@ kafka-topics.sh --list --zookeeper $KAFKAZKHOSTS
 # recreate the topic
 kafka-topics.sh --create --replication-factor 1 --partitions 8 --topic kafkalab --zookeeper $KAFKAZKHOSTS
 # ingest the data, this time specify the first field is the partition key and the separator between the key and the rest of the data
-awk '{if (NR>1) {print}}' simulated_device_data.csv | kafka-console-producer.sh --broker-list $KAFKABROKERS --topic kafkalab --property parse.key=true --property key.separator=,
+awk '{if (NR>1) {print}}' /simulated_device_data.csv | kafka-console-producer.sh --broker-list $KAFKABROKERS --topic kafkalab --property parse.key=true --property key.separator=,
 # observe the data in each partition
 kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 0 --from-beginning --max-messages 10 --property print.key=true --property key.separator=:
 kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 1 --from-beginning --max-messages 10 --property print.key=true --property key.separator=:
 ```
-Note that this time data from the same device will always go to the same partition, however, multiple devices could still go to the same partition. Kafka uses murmur2 hash on the partition key mod by the number of partitions to determine the partition. In order to distribute data with different partition keys to go to different partitions, you will need to write your own partitioner. Custom partitioner is not supported in Kafka console producer. 
+Note that this time data from the same device will always go to the same partition, however, multiple devices could still go to the same partition, and certain partitions don't have data. This is because Kafka uses murmur2 hash on the partition key mod by the number of partitions to determine the partition. In order to distribute data to different partitions with different partition keys, you will need to write your own partitioner. Custom partitioner is not supported in Kafka console producer. 
 
 Partitioning data in Kafka allows Spark to run tasks to process multiple partitions simultaneously. 
 
 In the next section, we will process the data that we just ingested into the Kafka topic. Note down the value of KAFKABROKERS and Kafka topic, which we will use in the following Spark job.
 
 ### Process data in Spark ###
-In this section, we will process the data ingested into Kafka in the previous section with Spark Structured Streaming, and learn how to control the streaming behaviour with windowing functions, output mode, and watermark. I've found that spark-shell is a better tool to use when learning about streaming than notebooks because console output is very helpful but doesn't work in notebooks. To run the following code, ssh into your spark cluster {{Spark cluster name}}-ssh.azurehdinsight.com, and start spark-shell with this command and paste the code into the spark-shell console. 
+In this section, we will process the data ingested into Kafka in the previous section with Spark Structured Streaming, and learn how to control the streaming behaviour with windowing functions, output mode, and watermark. I've found that spark-shell is a better tool to use when learning about streaming than notebooks because console output is very helpful but doesn't work in notebooks. To run the following code, ssh into your spark cluster {{Spark cluster name}}-ssh.azurehdinsight.com, and start spark-shell with the following command and paste the code blocks into the spark-shell console as you move along the following steps.
 ```sh
 spark-shell --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.1.0
 ```
 
 __Step 1__ Simple pass through streaming job that outputs Kafka messages to console.
-Replace the value of KafkaBrokers and KafkaTopic, then paste the code into spark-shell to run:
+Replace the value of KafkaBrokers, then paste the code into spark-shell to run:
 ```scala
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
 import spark.implicits._ 
 
 val kafkaBrokers = "{{your KAFKABROKERS}}"
-val kafkaTopic = "{{your Kafka topic}}"
+val kafkaTopic = "kafkalab"
 
 val dfraw = spark.readStream.
       format("kafka").
@@ -91,7 +90,10 @@ val dfraw = spark.readStream.
       option("startingOffsets", "earliest"). 
       load
 
-val query = dfraw.wrikafkalabream.
+val df = dfraw.
+      select($"key".cast(StringType), $"value".cast(StringType))
+      
+val query = df.writeStream.
       format("console").  
       option("truncate", false).
       start
@@ -103,7 +105,7 @@ query.status
 query.stop
 ```
 
-__Step 2__ Aggregate with a tumbling window and a key. Note that the job finishes in single batch.
+__Step 2__ Aggregate with a tumbling window and a key. This sample dataset doesn't have a time stamp in its payload, so we add the current time stamp. Note that the job finishes in single batch.
 ```scala
 val tumblingWindow = "5 seconds"
 
@@ -114,7 +116,7 @@ val df = dfraw.
       count.
       select($"window.end".alias("windowend"), lower($"key").alias("deviceid"), $"count")
 
-val query = df.wrikafkalabream.
+val query = df.writeStream.
       format("console").  
       option("truncate", false).
       outputMode("update").
@@ -189,8 +191,8 @@ __Step 6__ Save results to a file by updating workingDir and checkpointDir below
 ```scala
 query.stop
 
-val workingDir = "/user/{{your user name}}/lab"
-val checkpointDir = "/user/{{your user name}}/checkpoint"
+val workingDir = "/user/sshuser/lab"
+val checkpointDir = "/user/sshuser/checkpoint"
 
 val query = df.writeStream.
       format("parquet").  
@@ -201,8 +203,8 @@ val query = df.writeStream.
 
 Observe the files by running the following shell commands:
 ```sh
-hdfs dfs -ls /user/{{your user name}}/lab
-hdfs dfs -ls /user/{{your user name}}/checkpoint
+hdfs dfs -ls /user/sshuser/lab
+hdfs dfs -ls /user/sshuser/checkpoint
 ```
 
 In spark-shell, if you run the query again, you will see it doesn't reprocess the messages, this is because checkpointing records the offset of the Kafka messages processed. 
@@ -236,16 +238,16 @@ val dftable = spark.
 
 Open Power BI Desktop, __Get Data__, __Azure HDInsight Spark__, input your HDInsight server name {{Spark cluster name}}.azurehdinsight.net and credential. You should see the "labbi" table  saved above.
 
-__Step 2__ __Step Push streaming results directly to Power BI. 
+__Step 2__ Push streaming results directly to Power BI. 
 
-* Login to powerbi.com
+* Login to powerbi.com.
 * In __My Workspace__, __Datasets__, __Create__, __Streaming Dataset__, __API__, give it a name, and a structure like the following:
     * *windowend: datetime*
     * *count: number*
-* Click __Create__, when the page goes back to the list of the datasets, find the newly created dataset, and click the __API Info__ ! icon next to the dataset, __cURL__ tab, copy and paste the API endpoint, including API key, to *pbiUrl* in the below code
-* Create a new Dashboard in Power BI, add a Tile with a line chart and the newly created streaming dataset, with __axis__ set to __windowend__, and __value__ set to __count__ of the dataset. 
-* Run the following code into spark-shell, and watch the line chart changing as new data streaming into Power BI
-* You can troubleshoot using [requestbin](https://requestb.in) if data is not flowing into Power BI
+* Click __Create__, __cURL__ tab, copy and paste the API endpoint, including API key, to *pbiUrl* in the below code.
+* Create a new Dashboard in Power BI, add a Tile with a line chart and the newly created streaming dataset, with __axis__ set to __windowend__, __value__ set to __count__ of the dataset, and display last 10 minutes of data. 
+* Run the following code into spark-shell, and watch the line chart changing as new data streaming into Power BI.
+* You can troubleshoot using [requestbin](https://requestb.in) if data is not flowing into Power BI.
 
 ```scala
 import org.apache.spark.sql.ForeachWriter

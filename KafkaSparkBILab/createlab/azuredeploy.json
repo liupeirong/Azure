@@ -50,8 +50,8 @@
     }
   },
   "variables": {
-    "kafkaCluster": "[concat(parameters('clusterName'), 'kafka')]",
-    "sparkCluster": "[concat(parameters('clusterName'), 'spark')]",
+    "kafkaCluster": "[concat('kafka', parameters('clusterName'))]",
+    "sparkCluster": "[concat('spark', parameters('clusterName'))]",
     "defaultStorageAccount": {
       "name": "[uniqueString(resourceGroup().id)]",
       "type": "Standard_LRS"
