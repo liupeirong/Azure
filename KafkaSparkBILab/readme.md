@@ -7,8 +7,8 @@ This lab demonstrates an end-to-end example to ingest data into Kafka, process d
 This lab is inspired by the [Azure Predictive Maintenance Prediction sample](https://gallery.cortanaintelligence.com/Collection/Predictive-Maintenance-Template-3).  The sample data is based on the "Turbofan Engine Degradation Simulation Data Set" in the [NASA Ames Prognostics Data Repository](http://ti.arc.nasa.gov/tech/dash/pcoe/prognostic-data-repository/). The lab environment can be automatically provisioned with the [Azure Resource Manager template]().  The lab environment currently consists of the following resources:
 
 * A virtual network in which everything will be provisioned
-* An HDInsight cluster for Kafka with 3 workers, at the time of this writing, the latest HDInsight version is 3.6, and Kafka is 0.10
-* An HDInsight cluster for Spark with 2 workers, at the time of this writing, the latest HDInsight version is 3.6, and Spark is 2.1
+* An HDInsight cluster for Kafka with 3 workers, at the time of this writing, the lakafkalab HDInsight version is 3.6, and Kafka is 0.10
+* An HDInsight cluster for Spark with 2 workers, at the time of this writing, the lakafkalab HDInsight version is 3.6, and Spark is 2.1
 * Optionally a Windows machine from which you can ssh into the clusters, and run Power BI Desktop.  If you don't have a Windows machine, you can use Azure Cloud Shell to ssh into the cluster. You can also log on to [Power BI](https://powerbi.com) to get data from HDInsight Spark cluster.  
 
 ### Ingest data to Kafka ###
@@ -35,32 +35,32 @@ export PATH=$PATH:/usr/hdp/current/kafka-broker/bin
 ```
 
 __Step 2__ Create a topic and randomly distribute data into partitions
-```bash
+```sh
 # The sample data contains 8 devices, create 8 partitions with the intention to partition by device
-kafka-topics.sh --create --replication-factor 1 --partitions 8 --topic test --zookeeper $KAFKAZKHOSTS
+kafka-topics.sh --create --replication-factor 1 --partitions 8 --topic kafkalab --zookeeper $KAFKAZKHOSTS
 # Check the topic created
-kafka-topics.sh --describe --topic test --zookeeper $KAFKAZKHOSTS
+kafka-topics.sh --describe --topic kafkalab --zookeeper $KAFKAZKHOSTS
 # Remove the csv header row, ingest to Kafka topic
-awk '{if (NR>1) {print}}' simulated_device_data.csv | kafka-console-producer.sh --broker-list $KAFKABROKERS --topic test
+awk '{if (NR>1) {print}}' simulated_device_data.csv | kafka-console-producer.sh --broker-list $KAFKABROKERS --topic kafkalab
 # Observe the data ingested in each partition
-kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic test --partition 0 --from-beginning --max-messages 10
-kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic test --partition 1 --from-beginning --max-messages 10
+kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 0 --from-beginning --max-messages 10
+kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 1 --from-beginning --max-messages 10
 ```
 Note that data from the same device could end up in different partitions. Data is treated as key-value pairs in Kafka. When key is null, data is randomly placed in partitions. 
 
 __Step 3__ Partition data by device id
 ```
 # delete the topic
-kafka-topics.sh --delete --topic test --zookeeper $KAFKAZKHOSTS
+kafka-topics.sh --delete --topic kafkalab --zookeeper $KAFKAZKHOSTS
 # make sure it's deleted
 kafka-topics.sh --list --zookeeper $KAFKAZKHOSTS
 # recreate the topic
-kafka-topics.sh --create --replication-factor 1 --partitions 8 --topic test --zookeeper $KAFKAZKHOSTS
+kafka-topics.sh --create --replication-factor 1 --partitions 8 --topic kafkalab --zookeeper $KAFKAZKHOSTS
 # ingest the data, this time specify the first field is the partition key and the separator between the key and the rest of the data
-awk '{if (NR>1) {print}}' simulated_device_data.csv | kafka-console-producer.sh --broker-list $KAFKABROKERS --topic test --property parse.key=true --property key.separator=,
+awk '{if (NR>1) {print}}' simulated_device_data.csv | kafka-console-producer.sh --broker-list $KAFKABROKERS --topic kafkalab --property parse.key=true --property key.separator=,
 # observe the data in each partition
-kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic test --partition 0 --from-beginning --max-messages 10 --property print.key=true --property key.separator=:
-kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic test --partition 1 --from-beginning --max-messages 10 --property print.key=true --property key.separator=:
+kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 0 --from-beginning --max-messages 10 --property print.key=true --property key.separator=:
+kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 1 --from-beginning --max-messages 10 --property print.key=true --property key.separator=:
 ```
 Note that this time data from the same device will always go to the same partition, however, multiple devices could still go to the same partition. Kafka uses murmur2 hash on the partition key mod by the number of partitions to determine the partition. In order to distribute data with different partition keys to go to different partitions, you will need to write your own partitioner. Custom partitioner is not supported in Kafka console producer. 
 
@@ -70,7 +70,7 @@ In the next section, we will process the data that we just ingested into the Kaf
 
 ### Process data in Spark ###
 In this section, we will process the data ingested into Kafka in the previous section with Spark Structured Streaming, and learn how to control the streaming behaviour with windowing functions, output mode, and watermark. I've found that spark-shell is a better tool to use when learning about streaming than notebooks because console output is very helpful but doesn't work in notebooks. To run the following code, ssh into your spark cluster {{Spark cluster name}}-ssh.azurehdinsight.com, and start spark-shell with this command and paste the code into the spark-shell console. 
-```bash
+```sh
 spark-shell --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.1.0
 ```
 
@@ -91,7 +91,7 @@ val dfraw = spark.readStream.
       option("startingOffsets", "earliest"). 
       load
 
-val query = dfraw.writeStream.
+val query = dfraw.wrikafkalabream.
       format("console").  
       option("truncate", false).
       start
@@ -114,7 +114,7 @@ val df = dfraw.
       count.
       select($"window.end".alias("windowend"), lower($"key").alias("deviceid"), $"count")
 
-val query = df.writeStream.
+val query = df.wrikafkalabream.
       format("console").  
       option("truncate", false).
       outputMode("update").
