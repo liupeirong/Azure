@@ -34,7 +34,7 @@ echo '$KAFKABROKERS='$KAFKABROKERS
 export PATH=$PATH:/usr/hdp/current/kafka-broker/bin
 ```
 
-__Step 2__ Create a topic and randomly distribute data into partitions
+__Step 2__ Create a topic and randomly distribute data into partitions.
 ```sh
 # The sample data contains 8 devices, create 8 partitions with the intention to partition by device
 kafka-topics.sh --create --replication-factor 1 --partitions 8 --topic kafkalab --zookeeper $KAFKAZKHOSTS
@@ -48,7 +48,7 @@ kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --pa
 ```
 Note that data from the same device could end up in different partitions. Data is treated as key-value pairs in Kafka. When key is null, data is randomly placed in partitions. 
 
-__Step 3__ Partition data by device id
+__Step 3__ Partition data by device id.
 ```
 # delete the topic
 kafka-topics.sh --delete --topic kafkalab --zookeeper $KAFKAZKHOSTS
@@ -74,8 +74,8 @@ In this section, we will process the data ingested into Kafka in the previous se
 spark-shell --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.1.0
 ```
 
-__Step 1__ Simple pass through streaming job that outputs Kafka messages to console
-Replace the value of KafkaBrokers and KafkaTopic, then paste the code into spark-shell to run
+__Step 1__ Simple pass through streaming job that outputs Kafka messages to console.
+Replace the value of KafkaBrokers and KafkaTopic, then paste the code into spark-shell to run:
 ```scala
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
@@ -96,7 +96,7 @@ val query = dfraw.wrikafkalabream.
       option("truncate", false).
       start
 ```
-This simply consumes the messages from Kafka and outputs them in the console. You can run the following commands to examine the query status and stop the query
+This simply consumes the messages from Kafka and outputs them in the console. You can run the following commands to examine the query status and stop the query:
 ```scala
 query.lastProgress
 query.status
@@ -121,5 +121,182 @@ val query = df.wrikafkalabream.
       start
 ```
 
+__Step 3__ Set maxOffsetPerBatch to 2000 and see how the behaviour changes. 
+```scala
+query.stop
+
+val maxOffsetPerTrigger = 2000
+
+val dfraw = spark.readStream.
+      format("kafka").
+      option("kafka.bootstrap.servers", kafkaBrokers).
+      option("subscribe", kafkaTopic). 
+      option("startingOffsets", "earliest"). 
+      option("maxOffsetsPerTrigger", maxOffsetPerTrigger).  //maxOffsetPerTrigger controls how many messages to read per trigger
+      load
+
+val df = dfraw.
+      select($"key".cast(StringType), $"value".cast(StringType)).
+      withColumn("ts", current_timestamp).
+      groupBy(window($"ts", tumblingWindow), $"key").
+      count.
+      select($"window.end".alias("windowend"), lower($"key").alias("deviceid"), $"count")
+
+val query = df.writeStream.
+      format("console").  
+      option("truncate", false).
+      outputMode("update").
+      start
+```
+Note that the job now finishes in about 6 batches because there are about 12000 rows in Kafka.
+
+__Step 4__ Change the outputMode to "complete" to see how the behaviour changes.
+```scala
+query.stop
+
+val query = df.writeStream.
+      format("console").  
+      option("truncate", false).
+      outputMode("complete"). // outputs complete results aggregated so far instead of the changed results from last batch
+      start
+```
+
+__Step 5__ Change the outputMode to "append" (default). 
+
+Watermark is required for aggregation in "append" mode. Watermark controls how late an event could arrive to be calculated in aggregation. For a given time window ending T, if the last seen event time is more current than T + watermark, then aggregation up to T is completed for output. Any events that happened before T and arrive later will be ignored. Note the first few batches will be empty, waiting for the late arrival events.
+
+```scala
+query.stop
+
+val watermark = "10 seconds"
+
+val df = dfraw.
+      select($"key".cast(StringType), $"value".cast(StringType)).
+      withColumn("ts", current_timestamp).
+      withWatermark("ts", watermark). // watermark controls late arrival events
+      groupBy(window($"ts", tumblingWindow), $"key").
+      count.
+      select($"window.end".alias("windowend"), lower($"key").alias("deviceid"), $"count")
+
+val query = df.writeStream.
+      format("console").  
+      option("truncate", false). // default is "append" mode
+      start
+```
+
+__Step 6__ Save results to a file by updating workingDir and checkpointDir below:
+
+```scala
+query.stop
+
+val workingDir = "/user/{{your user name}}/lab"
+val checkpointDir = "/user/{{your user name}}/checkpoint"
+
+val query = df.writeStream.
+      format("parquet").  
+      option("path", workingDir).
+      option("checkpointLocation",checkpointDir).
+      start
+```
+
+Observe the files by running the following shell commands:
+```sh
+hdfs dfs -ls /user/{{your user name}}/lab
+hdfs dfs -ls /user/{{your user name}}/checkpoint
+```
+
+In spark-shell, if you run the query again, you will see it doesn't reprocess the messages, this is because checkpointing records the offset of the Kafka messages processed. 
+```
+query.stop
+
+val query = df.writeStream.
+      format("parquet").  
+      option("path", workingDir).
+      option("checkpointLocation",checkpointDir).
+      start
+
+query.status
+query.lastProgress
+query.stop
+```
+
 ### Visualize data in Power BI ###
-__Demo 3__ Output to persistent table for BI queries, or push to Power BI in real time
+Data can be persisted for historical analysis in Power BI, or it can be pushed to Power BI for real time analysis. 
+
+__Step 1__ Save the output to a table for historical analysis. 
+
+Note that the output from the previous section consists of many small parquet files. To improve query efficiency we will repartition the data by device id when we save the table. 
+```scala
+val dftable = spark.
+      read.parquet(workingDir).
+      write.
+      partitionBy("deviceid"). // repartition, otherwise many small files
+      saveAsTable("labbi")  //table saved in /hive/warehouse by default
+```
+
+Open Power BI Desktop, __Get Data__, __Azure HDInsight Spark__, input your HDInsight server name {{Spark cluster name}}.azurehdinsight.net and credential. You should see the "labbi" table  saved above.
+
+__Step 2__ __Step Push streaming results directly to Power BI. 
+
+* Login to powerbi.com
+* In __My Workspace__, __Datasets__, __Create__, __Streaming Dataset__, __API__, give it a name, and a structure like the following:
+    * *windowend: datetime*
+    * *count: number*
+* Click __Create__, when the page goes back to the list of the datasets, find the newly created dataset, and click the __API Info__ ! icon next to the dataset, __cURL__ tab, copy and paste the API endpoint, including API key, to *pbiUrl* in the below code
+* Create a new Dashboard in Power BI, add a Tile with a line chart and the newly created streaming dataset, with __axis__ set to __windowend__, and __value__ set to __count__ of the dataset. 
+* Run the following code into spark-shell, and watch the line chart changing as new data streaming into Power BI
+* You can troubleshoot using [requestbin](https://requestb.in) if data is not flowing into Power BI
+
+```scala
+import org.apache.spark.sql.ForeachWriter
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.entity.StringEntity
+
+val pbiUrl = {{your Power BI API endpoint}} 
+//val pbiUrl = "https://requestb.in/{{your bin}}"
+
+// make each batch smaller so that we can see the line chart moves as each batch of aggregation flows into Power BI
+val maxOffsetPerTrigger = 50
+
+val dfraw = spark.readStream.
+      format("kafka").
+      option("kafka.bootstrap.servers", kafkaBrokers).
+      option("subscribe", kafkaTopic). 
+      option("startingOffsets", "earliest"). 
+      option("maxOffsetsPerTrigger", maxOffsetPerTrigger). 
+      load
+
+val df = dfraw.
+      select($"key".cast(StringType), $"value".cast(StringType)).
+      withColumn("ts", current_timestamp).
+      groupBy(window($"ts", tumblingWindow), $"key").
+      count.
+      select($"window.end".alias("windowend"), lower($"key").alias("deviceid"), $"count")
+
+// Power BI is a custom sink
+val powerbiForeachSink = new ForeachWriter[String] {
+     override def open(partitionId: Long, version: Long): Boolean = { 
+       true 
+     }
+     override def process(record: String) = {
+       if (record != null && !record.isEmpty)
+         {
+           val body = new StringEntity("[" + record + "]")
+           val post = new HttpPost(pbiUrl)
+           post.addHeader("Content-Type", "application/json")
+           post.setEntity(body)
+           val httpClient = HttpClientBuilder.create.build
+           val resp = httpClient.execute(post)
+         }
+     }
+     override def close(errorOrNull: Throwable): Unit = {} 
+    }
+
+val query = df.select(to_json(struct($"windowend", $"count"))).as[(String)].
+      writeStream.
+      outputMode("update").
+      foreach(powerbiForeachSink).
+      start
+
+```
