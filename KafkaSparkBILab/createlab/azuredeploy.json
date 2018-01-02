@@ -165,6 +165,11 @@
               "hardwareProfile": {
                 "vmSize": "Standard_A3"
               },
+              "dataDisksGroups": [
+                {
+                  "disksPerNode": "1"
+                }
+              ],
               "osProfile": {
                 "linuxOperatingSystemProfile": {
                   "username": "[parameters('sshUserName')]",
