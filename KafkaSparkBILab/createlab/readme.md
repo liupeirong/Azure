@@ -1,8 +1,8 @@
 To create the lab:
 
-1. Install [Azure Cli]()
-2. Have an Azure subscription with a region that has at least 50 cores for Standard A SKUs.
-3. On Windows, run the azurecreategroup.bat with the first parameter as the Azure region with sufficient cores, and second parameter a unique string no longer than 6 characters to identify the clusters. For example
+1. Install the cross-platform [Azure Cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest).
+2. Have an Azure subscription with at least one region that has 50+ cores for Standard A SKUs.
+3. On Windows, run the azurecreategroup.bat with the first parameter as the Azure region with sufficient cores, and the second parameter a unique string no longer than 6 characters to identify the clusters. For example
 ```sh
 azurecreategroup eastus2 xr301
 ```
