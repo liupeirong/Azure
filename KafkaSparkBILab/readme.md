@@ -4,7 +4,9 @@ This lab demonstrates an end-to-end example to ingest data into Kafka, process d
 
 ![Alt text](/KafkaSparkBILab/diagram.png?raw=true "Data Pipeline")
 
-This lab is inspired by the [Azure Predictive Maintenance Prediction sample](https://gallery.cortanaintelligence.com/Collection/Predictive-Maintenance-Template-3).  The sample data is based on the "Turbofan Engine Degradation Simulation Data Set" in the [NASA Ames Prognostics Data Repository](http://ti.arc.nasa.gov/tech/dash/pcoe/prognostic-data-repository/). The lab environment can be automatically provisioned with the [Azure Resource Manager template]().  The lab environment currently consists of the following resources:
+This lab is inspired by the [Azure Predictive Maintenance Prediction sample](https://gallery.cortanaintelligence.com/Collection/Predictive-Maintenance-Template-3).  The sample data is based on the "Turbofan Engine Degradation Simulation Data Set" in the [NASA Ames Prognostics Data Repository](http://ti.arc.nasa.gov/tech/dash/pcoe/prognostic-data-repository/). The lab environment can be automatically provisioned with the [Azure Resource Manager template]().  
+
+You can run the bat file in the [createlab](/KafkaSparkBILab/createlab) folder to create the lab. The lab environment currently consists of the following resources:
 
 * A virtual network in which everything will be provisioned
 * An HDInsight cluster for Kafka with 3 workers, at the time of this writing, the lakafkalab HDInsight version is 3.6, and Kafka is 0.10
