@@ -42,7 +42,7 @@ kafka-topics.sh --create --replication-factor 1 --partitions 8 --topic kafkalab 
 # Check the topic created
 kafka-topics.sh --describe --topic kafkalab --zookeeper $KAFKAZKHOSTS
 # Remove the csv header row, ingest to Kafka topic
-awk '{if (NR>1) {print}}' simulated_device_data.csv | /kafka-console-producer.sh --broker-list $KAFKABROKERS --topic kafkalab
+awk '{if (NR>1) {print}}' /simulated_device_data.csv | kafka-console-producer.sh --broker-list $KAFKABROKERS --topic kafkalab
 # Observe the data ingested in each partition
 kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 0 --from-beginning --max-messages 10
 kafka-console-consumer.sh --bootstrap-server $KAFKABROKERS --topic kafkalab --partition 1 --from-beginning --max-messages 10
