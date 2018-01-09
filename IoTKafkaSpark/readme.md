@@ -6,4 +6,4 @@ In this sample scenario, a set of devices send their sensor data to Kafka, Spark
 
 ![Alt text](/IoTKafkaSpark/diagram.png?raw=true "Data Pipeline")
 
-We use the "Turbofan Engine Degradation Simulation Data Set" in the [NASA Ames Prognostics Data Repository](http://ti.arc.nasa.gov/tech/dash/pcoe/prognostic-data-repository/) as sample data, and the [Azure Predictive Maintenance Prediction sample](https://gallery.cortanaintelligence.com/Collection/Predictive-Maintenance-Template-3) as basis for ML model.   
+We use the "Turbofan Engine Degradation Simulation Data Set" in the [NASA Ames Prognostics Data Repository](https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/) as sample data, and the [Azure Predictive Maintenance Prediction sample](https://gallery.cortanaintelligence.com/Collection/Predictive-Maintenance-Template-3) as basis for ML model.   

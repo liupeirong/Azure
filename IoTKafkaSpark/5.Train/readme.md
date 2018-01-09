@@ -1,3 +1,3 @@
 # Train model using Spark ML
 
-Coming soon
+Side by side comparison of building the ML model with R and Spark.
