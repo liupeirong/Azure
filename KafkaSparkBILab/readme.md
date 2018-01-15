@@ -304,3 +304,4 @@ val query = df.select(to_json(struct($"windowend", $"count"))).as[(String)].
       start
 
 ```
+![Alt text](/KafkaSparkBILab/pbi.gif?raw=true "Power BI realtime dashboard")
