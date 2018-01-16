@@ -20,6 +20,8 @@ In the [streaming job](/IoTKafkaSpark/2.Streaming) where Spark reads device data
 
 * To troubleshoot requests sent to Power BI, [RequestBin](https://requestb.in/) could be a very effective tool. Replace the Power BI URL with RequestBin URL, and examine the requests.
 
+* Power BI real time tiles for streaming datasets don't support filters or legends.  So if you have data for all devices in a single dataset, you can't create a tile for each device.  To create a tile for each device, you must push data for different devices into their respective tables.
+
 run the shaded uber jar in spark-sumbit:
 ```bash
 spark2-submit --master yarn --deploy-mode client --num-executors 2 --driver-java-options='-Dlog4j.configuration=file:log4j.properties' --class org.pliu.iot.bi.stream2powerbi ./powerbi-sink-0.0.1.jar
