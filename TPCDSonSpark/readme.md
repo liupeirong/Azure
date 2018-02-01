@@ -24,12 +24,13 @@ TPCDS has been modified to run on Spark as a Spark SQL performance tests by Data
         numPartitions
         ```
 
-    * Follow the [readme in the repo]https://github.com/databricks/spark-sql-perf) or [this scala file](/TPCDSonSpark/run_tpcds.scala) to generate the data.
+    * Follow this [readme](https://github.com/databricks/spark-sql-perf) or [this scala file](/TPCDSonSpark/run_tpcds.scala) to generate the data.
 
 4. Run TPCDS queries
     * Add the following package and jar to Spark command line, the jar is the one you built in step 2 above:
         ```sh
-        --packages com.typesafe.scala-logging:scala-logging-slf4j_2.10:2.1.2 --jars /path/to/spark-sql-perf_2.11-0.5.0-SNAPSHOT.jar
+        --packages com.typesafe.scala-logging:scala-logging-slf4j_2.10:2.1.2 
+        --jars /path/to/spark-sql-perf_2.11-0.5.0-SNAPSHOT.jar
         ```
 
     * If you are comparing performance in different Spark environments, make sure Spark and Java settings are as same as possible, for example:
@@ -42,7 +43,7 @@ TPCDS has been modified to run on Spark as a Spark SQL performance tests by Data
         ```
 
     * If you are comparing performance in difference Spark environments, make sure parameters to runExperiment function are same.
-    * Follow the [readme in the repo]https://github.com/databricks/spark-sql-perf) or [this scala file](/TPCDSonSpark/run_tpcds.scala#L76) to run the tests.
+    * Follow this [readme](https://github.com/databricks/spark-sql-perf) or [this scala file](/TPCDSonSpark/run_tpcds.scala#L76) to run the tests.
 
 5. Get TPCDS results
     * experiment.getCurrentResults documented in [readme](https://github.com/databricks/spark-sql-perf) is not the same format as the results written to HDFS. If you want to look at the results from the result file written to HDFS, follow the code in [this scala file](/TPCDSonSpark/run_tpcds.scala#L97). 
