@@ -1,6 +1,9 @@
 # Running TPCDS on Spark #
 
-TPCDS has been modified to run on Spark as a Spark SQL performance tests by Databricks.  You can run either existing notebooks in Databricks, or from scratch in your own Spark environment.  The following instructions describe steps to take in both cases.  These steps have been tested on a Cloudera cluster with Spark 2.2.0, an HDInsight cluster with Spark 2.1.1, and Azure Databricks with Spark 2.2.1.  
+TPCDS has been modified to run on Spark as a Spark SQL performance tests by Databricks.  You can run either existing notebooks in Databricks, or from scratch in your own Spark environment.  The following instructions describe steps to take in both cases.  These steps have been tested on 
+* Cloudera cluster with Spark 2.2.0
+* HDInsight cluster with Spark 2.1.1
+* Azure Databricks with Spark 2.2.1
 
 ### To run TPCDS in your own Spark environment
 1. On every Spark node, clone and build [Databricks TPCDS kit](https://github.com/databricks/tpcds-kit) as stated in the readme. Note that you must ```git clone https://github.com/databricks/tpcds-kit.git```, not https://github.com/gregrahn/tpcds-kit.git as stated in the readme. 
