@@ -3,7 +3,7 @@
 TPCDS has been modified to run on Spark as a Spark SQL performance tests by Databricks.  You can run either existing notebooks in Databricks, or from scratch in your own Spark environment.  The following instructions describe steps to take in both cases.  These steps have been tested on a Cloudera cluster with Spark 2.2.0, an HDInsight cluster with Spark 2.1.1, and Azure Databricks with Spark 2.2.1.  
 
 ### To run TPCDS in your own Spark environment
-1. On every Spark node, clone and build [Databricks TPCDS kit](https://github.com/databricks/tpcds-kit) as stated in the readme of that repo. Note that you must ```git clone https://github.com/databricks/tpcds-kit.git```, not https://github.com/__databricks__/tpcds-kit.git as stated in the readme of that repo. 
+1. On every Spark node, clone and build [Databricks TPCDS kit](https://github.com/databricks/tpcds-kit) as stated in the readme. Note that you must ```git clone https://github.com/databricks/tpcds-kit.git```, not https://github.com/databricks/tpcds-kit.git as stated in the readme. 
 
 2. On the Spark driver, clone an build [Databricks Spark SQL Performance tools](https://github.com/databricks/spark-sql-perf):
     * ```git clone https://github.com/databricks/spark-sql-perf.git```
@@ -23,13 +23,15 @@ clusterByPartitionColumns
 filterOutNullPartitionValues
 numPartitions
 ```
+
     * Follow the [readme in the repo]https://github.com/databricks/spark-sql-perf) or [this scala file](/TPCDSonSpark/run_tpcds.scala) to generate the data.
 
 4. Run TPCDS queries
     * Add the following package and jar to Spark command line, the jar is the one you built in step 2 above:
 ```
---packages com.typesafe.scala-logging:scala-logging-slf4j_2.10:2.1.2 --jars /path-to/spark-sql-perf_2.11-0.5.0-SNAPSHOT.jar
+--packages com.typesafe.scala-logging:scala-logging-slf4j_2.10:2.1.2 --jars /path/to/spark-sql-perf_2.11-0.5.0-SNAPSHOT.jar
 ```
+
     * If you are comparing performance in different Spark environments, make sure Spark and Java settings are as same as possible, for example:
 ```
 --conf spark.executor.memory=7g 
@@ -38,11 +40,12 @@ numPartitions
 --num-executors=1 
 --conf spark.executor.extraJavaOptions="-XX:ReservedCodeCacheSize=256m -XX:+UseCodeCacheFlushing -Xss4m"
 ```
+
     * If you are comparing performance in difference Spark environments, make sure parameters to runExperiment function are same.
-    * Follow the [readme in the repo]https://github.com/databricks/spark-sql-perf) or [this scala file](/TPCDSonSpark/run_tpcds.scala) to run the tests.
+    * Follow the [readme in the repo]https://github.com/databricks/spark-sql-perf) or [this scala file](/TPCDSonSpark/run_tpcds.scala#L76) to run the tests.
 
 5. Get TPCDS results
-    * experiment.getCurrentResults documented in [readme]https://github.com/databricks/spark-sql-perf) is not the same format as the results written to HDFS. If you want to look at the results from the result file written to HDFS, follow the code in [this scala file](/TPCDSonSpark/run_tpcds.scala). 
+    * experiment.getCurrentResults documented in [readme](https://github.com/databricks/spark-sql-perf) is not the same format as the results written to HDFS. If you want to look at the results from the result file written to HDFS, follow the code in [this scala file](/TPCDSonSpark/run_tpcds.scala#L97). 
     
 ### To run TPCDS in databricks
 1. Import [tpcds_datagen notebook](https://github.com/databricks/spark-sql-perf/blob/master/src/main/notebooks/tpcds_datagen.scala). This notebook takes care of installing tpcds-kit on every worker node. If you are comparing performance in different Spark environments, make sure all data gen parameters are same as described in Step 3 in the previous section. 
