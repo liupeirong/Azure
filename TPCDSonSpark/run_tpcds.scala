@@ -77,6 +77,7 @@ tables.createExternalTables(rootDir, format, databaseName, overwrite = true, dis
 /////////////////////////////////
 import com.databricks.spark.sql.perf.tpcds.TPCDS
 val tpcds = new TPCDS (sqlContext = sqlContext)
+sql(s"use $databaseName")
 
 // test run parameters
 val resultLocation = "/path/to/hdfs/tpcdsresult"
@@ -85,7 +86,6 @@ val queries = tpcds.tpcds2_4Queries // queries to run.
 val timeout = 24*60*60 // timeout, in seconds.
 spark.conf.set("spark.sql.broadcastTimeout", "10000") // good idea for Q14, Q88.
 
-sql(s"use $databaseName")
 val experiment = tpcds.runExperiment(
   queries, 
   iterations = iterations,
