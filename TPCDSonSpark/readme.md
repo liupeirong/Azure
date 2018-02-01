@@ -16,30 +16,30 @@ TPCDS has been modified to run on Spark as a Spark SQL performance tests by Data
         * In Cloudera, you must enable "Hive Service" for Spark2.
     * Data is generated in an HDFS folder, not local file system.
     * If you are comparing performance in different Spark environments, make sure data is generated with the same parameters, for example, the following parameters to the genData function must match in each environment: 
-```csv
-format
-partitionTables
-clusterByPartitionColumns
-filterOutNullPartitionValues
-numPartitions
-```
+        ```csv
+        format
+        partitionTables
+        clusterByPartitionColumns
+        filterOutNullPartitionValues
+        numPartitions
+        ```
 
     * Follow the [readme in the repo]https://github.com/databricks/spark-sql-perf) or [this scala file](/TPCDSonSpark/run_tpcds.scala) to generate the data.
 
 4. Run TPCDS queries
     * Add the following package and jar to Spark command line, the jar is the one you built in step 2 above:
-```sh
---packages com.typesafe.scala-logging:scala-logging-slf4j_2.10:2.1.2 --jars /path/to/spark-sql-perf_2.11-0.5.0-SNAPSHOT.jar
-```
+        ```sh
+        --packages com.typesafe.scala-logging:scala-logging-slf4j_2.10:2.1.2 --jars /path/to/spark-sql-perf_2.11-0.5.0-SNAPSHOT.jar
+        ```
 
     * If you are comparing performance in different Spark environments, make sure Spark and Java settings are as same as possible, for example:
-```sh
---conf spark.executor.memory=7g 
---conf spark.driver.maxResultSize=4g 
---conf spark.driver.memory=7g 
---num-executors=1 
---conf spark.executor.extraJavaOptions="-XX:ReservedCodeCacheSize=256m -XX:+UseCodeCacheFlushing -Xss4m"
-```
+        ```sh
+        --conf spark.executor.memory=7g 
+        --conf spark.driver.maxResultSize=4g 
+        --conf spark.driver.memory=7g 
+        --num-executors=1 
+        --conf spark.executor.extraJavaOptions="-XX:ReservedCodeCacheSize=256m -XX:+UseCodeCacheFlushing -Xss4m"
+        ```
 
     * If you are comparing performance in difference Spark environments, make sure parameters to runExperiment function are same.
     * Follow the [readme in the repo]https://github.com/databricks/spark-sql-perf) or [this scala file](/TPCDSonSpark/run_tpcds.scala#L76) to run the tests.
