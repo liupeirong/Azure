@@ -59,4 +59,13 @@
             report.saveAs(saveAsParameters);
         }
     })
+
+    report.on("dataSelected", function (event) {
+        var data = event.detail.dataPoints;
+        var selected = "";
+        for (var ii = 0; ii < data.length; ++ii) {
+            selected += data[ii].identity[0].equals + ";"
+        }
+        alert(selected);
+    });
 </script>
