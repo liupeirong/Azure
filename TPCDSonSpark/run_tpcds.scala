@@ -105,7 +105,7 @@ val results = experiment.getCurrentResults.
   select('Name, 'Runtime)
 
 // if we are looking at the results in the results file  
-val results = spark.read.json(resultLocation).  //.filter(timestamp = 12345)
+val results = spark.read.json(resultLocation).  //.filter($"timestamp" === 1518659108336L)
   select(explode($"results")).
   withColumn("Name", substring($"col.name", 2, 100)).
   withColumn("RunTime", ($"col.parsingTime" + $"col.analysisTime" + $"col.optimizationTime" + $"col.planningTime" + $"col.executionTime") / 1000.0).
