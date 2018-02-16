@@ -25,11 +25,11 @@ val filterNull = false
 val shuffle = true
 val dsdgen_nonpartitioned = 10
 val dsdgen_partitioned = 10000
-sqlContext.setConf("spark.sql.parquet.compression.codec", "snappy")
+spark.conf.set("spark.sql.parquet.compression.codec", "snappy")
 // TPCDS has around 2000 dates.
 spark.conf.set("spark.sql.shuffle.partitions", "2000")
 // Don't write too huge files.
-sqlContext.setConf("spark.sql.files.maxRecordsPerFile", "20000000")
+spark.conf.set("spark.sql.files.maxRecordsPerFile", "20000000")
 
 import com.databricks.spark.sql.perf.tpcds.TPCDSTables
 val tables = new TPCDSTables(sqlContext,dsdgenDir=tpcdskitDir, scaleFactor = scaleFactor, useDoubleForDecimal = useDecimal, useStringForDate = useDate)
@@ -82,9 +82,17 @@ sql(s"use $databaseName")
 // test run parameters
 val resultLocation = "/path/to/hdfs/tpcdsresult"
 val iterations = 1 // how many iterations of queries to run.
-val queries = tpcds.tpcds2_4Queries // queries to run.
 val timeout = 24*60*60 // timeout, in seconds.
 spark.conf.set("spark.sql.broadcastTimeout", "10000") // good idea for Q14, Q88.
+
+val exclude_queries = Seq("q77-v2.4") // run subset of queries
+//val queries = tpcds.tpcds2_4Queries // queries to run.
+def queries = {
+  exclude_queries match {
+    case Seq() => tpcds.tpcds2_4Queries
+    case _ => tpcds.tpcds2_4Queries.filter(q => !exclude_queries.contains(q.name))
+  }
+}
 
 val experiment = tpcds.runExperiment(
   queries, 
