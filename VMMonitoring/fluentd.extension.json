@@ -48,7 +48,7 @@
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('sh setup-fluentd.sh ', variables('singleQuote'), parameters('logStorageAccountName'), variables('singleQuote'), variables('singleQuote'), parameters('logStorageAccountKey'), variables('singleQuote'), '> /var/log/setup-fluentd.log 2>&1')]"
+          "commandToExecute": "[concat('sh setup-fluentd.sh ', variables('singleQuote'), parameters('logStorageAccountName'), variables('singleQuote'), ' ', variables('singleQuote'), parameters('logStorageAccountKey'), variables('singleQuote'), ' > /var/log/setup-fluentd.log 2>&1')]"
         }
       }
     }
