@@ -25,6 +25,7 @@ cat >> /etc/td-agent/td-agent.conf <<EOF
   azure_storage_type       blob
   store_as                 gzip
   auto_create_container    true
+  read_from_head           true
   path                     logs/
   azure_object_key_format  %{path}%{time_slice}_%{index}.%{file_extension}
   time_slice_format        %Y%m%d%H%M
