@@ -3,7 +3,8 @@
 logStorageAccountName=${1}
 logStorageAccountKey=${2}
 
-set -e
+#yum checkupdate returns non zero when there is anything to update. disable for now.
+#set -e
 
 config_td_agent_log_to_storage() {
 cat >> /etc/td-agent/td-agent.conf <<EOF
@@ -55,8 +56,32 @@ cat >> /etc/td-agent/td-agent.conf <<EOF
 EOF
 }
 
-curl -L https://toolbelt.treasuredata.com/sh/install-redhat-td-agent3.sh | sh
+install_td_agent_and_plugin() {
+# the td-agent installation script below uses sudo which we cant do without tty
+# so copy the content here
+#curl -L https://toolbelt.treasuredata.com/sh/install-redhat-td-agent3.sh | sh
+
+# add GPG key
+rpm --import https://packages.treasuredata.com/GPG-KEY-td-agent
+
+# add treasure data repository to yum
+cat >/etc/yum.repos.d/td.repo <<'EOF';
+[treasuredata]
+name=TreasureData
+baseurl=http://packages.treasuredata.com/3/redhat/\$releasever/\$basearch
+gpgcheck=1
+gpgkey=https://packages.treasuredata.com/GPG-KEY-td-agent
+EOF
+
+# update your sources, returns 100 if there is anything to update, breaks set -e
+yum check-update
+# install the toolbelt
+yum install -y td-agent
+
 td-agent-gem install fluent-plugin-azurestorage
+}
+
+install_td_agent_and_plugin
 config_td_agent_log_to_storage
 #by default, azure log, including extension log, is only readable by root, not by td_agent
 chmod a+r /var/log/azure
