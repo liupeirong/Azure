@@ -27,13 +27,15 @@ cat >> /etc/td-agent/td-agent.conf <<EOF
   auto_create_container    true
   path                     logs/
   azure_object_key_format  %{path}%{time_slice}_%{index}.%{file_extension}
-  time_slice_format        %Y%m%d%H%M  #write file every minute, default hour
+  time_slice_format        %Y%m%d%H%M
   <buffer>
     @type file
     path /var/log/td-agent/buffer/azurestorage
-    timekey 300 # 5 minute partition
-    timekey_wait 1m # 1 minute wait to flush
-    timekey_use_utc true # use utc
+# 1 minute per partition
+    timekey 60
+# 10 seconds flush
+    timekey_wait 10s
+    timekey_use_utc true
   </buffer>
 </match>
 #<match msi.extension>
@@ -44,13 +46,13 @@ cat >> /etc/td-agent/td-agent.conf <<EOF
 #  s3_region us-west-2
 #  path logs/
 #  s3_object_key_format  %{path}%{time_slice}_%{index}.%{file_extension}
-#  time_slice_format %Y%m%d%H%M  #write file every minute, default hour
+#  time_slice_format %Y%m%d%H%M
 #  <buffer>
 #    @type file
 #    path /var/log/td-agent/buffer/s3
-#    timekey 300 # 5 minute partition
-#    timekey_wait 1m # 1 minute wait to flush
-#    timekey_use_utc true # use utc
+#    timekey 300
+#    timekey_wait 1m
+#    timekey_use_utc true
 #  </buffer>
 #</match>
 EOF
