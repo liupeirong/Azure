@@ -1,0 +1,82 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "log storage account name"
+      }
+    },
+    "logStorageAccountSAS": {
+      "type": "securestring",
+      "metadata": {
+        "description": "log storage account key"
+      }
+    },
+    "dnsLabelPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "DNS Label for the Public IP. Must be lowercase. It should match with the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$ or it will raise an error."
+      }
+    },
+    "vmResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "vm Resource ID"
+      }
+    }
+  },
+  "variables": {
+    "singleQuote": "'"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('dnsLabelPrefix'), '/linux-diagnostics')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Diagnostics",
+        "type": "LinuxDiagnostic",
+        "typeHandlerVersion": "3.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "ladCfg": {
+            "diagnosticMonitorConfiguration": {
+              "metrics": {
+                "resourceId": "parameters('vmResourceId')]"
+              }
+            }
+          },
+          "fileLogs": [
+            {
+              "file": "/var/log/azure/Microsoft.ManagedIdentity.ManagedIdentityExtensionForLinux/1.0.0.10/msixtn-daemon-0.log",
+              "sinks": "MSIDaemonLogJsonBlob"
+            },
+            {
+              "file": "/var/log/azure/Microsoft.ManagedIdentity.ManagedIdentityExtensionForLinux/1.0.0.10/msixtn-handler-0.log",
+              "sinks": "MSIHandlerLogJsonBlob"
+            }
+          ]
+        },
+        "protectedSettings": {
+          "storageAccountName": "[parameters('logStorageAccountName')]",
+          "storageAccountSasToken": "[parameters('logStorageAccountSAS')]",
+          "sinksConfig": {
+            "sink": [
+              {
+                "name": "MSIDaemonLogJsonBlob",
+                "type": "JsonBlob"
+              },
+              {
+                "name": "MSIHandlerLogJsonBlob",
+                "type": "JsonBlob"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
