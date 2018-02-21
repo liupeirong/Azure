@@ -1,0 +1,60 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "log storage account name"
+      }
+    },
+    "logStorageAccountKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "log storage account key"
+      }
+    },
+    "dnsLabelPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "DNS Label for the Public IP. Must be lowercase. It should match with the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$ or it will raise an error."
+      }
+    },
+    "artifactsUri": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The root uri of template."
+      }
+    }
+  },
+  "variables": {
+    "singleQuote": "'"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('dnsLabelPrefix'), '/setup-fluentd')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('dnsLabelPrefix'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[concat(parameters('artifactsUri'), '/setup-fluentd.sh')]"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('sh setup-fluentd.sh ', variables('singleQuote'), parameters('logStorageAccountName'), variables('singleQuote'), variables('singleQuote'), parameters('logStorageAccountKey'), variables('singleQuote'), '> /var/log/setup-fluentd.log 2>&1')]"
+        }
+      }
+    }
+
+  ]
+}
