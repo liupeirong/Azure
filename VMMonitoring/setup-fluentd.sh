@@ -24,7 +24,7 @@ cat >> /etc/td-agent/td-agent.conf <<EOF
   azure_storage_access_key ${logStorageAccountKey}
   azure_container          msicontainer
   azure_storage_type       blob
-  store_as                 gzip
+  store_as                 text
   auto_create_container    true
   path                     logs/
   azure_object_key_format  %{path}%{time_slice}_%{index}.%{file_extension}
