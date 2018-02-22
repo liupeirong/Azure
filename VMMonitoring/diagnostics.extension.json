@@ -27,9 +27,6 @@
       }
     }
   },
-  "variables": {
-    "singleQuote": "'"
-  },
   "resources": [
     {
       "apiVersion": "2017-03-30",
