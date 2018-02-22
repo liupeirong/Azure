@@ -52,11 +52,13 @@
           "fileLogs": [
             {
               "file": "/var/log/azure/Microsoft.ManagedIdentity.ManagedIdentityExtensionForLinux/1.0.0.10/msixtn-daemon-0.log",
-              "sinks": "MSIDaemonLogJsonBlob"
+              "table": "MSIDaemonLogTable",
+              "sinks": "MSIDaemonLogBlob"
             },
             {
               "file": "/var/log/azure/Microsoft.ManagedIdentity.ManagedIdentityExtensionForLinux/1.0.0.10/msixtn-handler-0.log",
-              "sinks": "MSIHandlerLogJsonBlob"
+              "table": "MSIHandlerLogTable",
+              "sinks": "MSIHandlerLogBlob"
             }
           ]
         },
@@ -66,11 +68,11 @@
           "sinksConfig": {
             "sink": [
               {
-                "name": "MSIDaemonLogJsonBlob",
+                "name": "MSIDaemonLogBlob",
                 "type": "JsonBlob"
               },
               {
-                "name": "MSIHandlerLogJsonBlob",
+                "name": "MSIHandlerLogBlob",
                 "type": "JsonBlob"
               }
             ]
