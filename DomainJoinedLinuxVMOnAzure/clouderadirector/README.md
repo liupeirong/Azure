@@ -13,6 +13,7 @@ The config files are modified from their [original versions published on Clouder
   * To install JDK, 
 ```javascript
   wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm
+  sudo yum -y localinstall jdk-8u131-linux-x64.rpm
 ```
 * Edit the conf file to match your environment
   * VM name prefix can't be longer than 15 chars for AADDS, so prefix in the config file can be 6 chars max
