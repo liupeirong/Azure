@@ -62,19 +62,36 @@ namespace pbipaembed.Controllers
             using (var client = await CreatePowerBIClientForISV())
             {
                 var report = client.Reports.GetReportInGroup(GroupId, reportId);
-                // map user for RLS
-                var salesUser = new EffectiveIdentity(
-                    username: "adventure-works\\pamela0",
-                    roles: new List<string> { "Sales" },
-                    datasets: new List<string> { report.DatasetId } );
-
+                GenerateTokenRequest generateTokenRequestParameters = new GenerateTokenRequest(
+                            accessLevel: "edit", allowSaveAs: true); //no role specified means you can access everything!
                 // Generate Embed Token.
-                var generateTokenRequestParameters = tenantID.StartsWith("1") || report.Name.ToLower().CompareTo("adventureworks") != 0 ?
-                    new GenerateTokenRequest(
-                    accessLevel: "edit", allowSaveAs: true) : 
-                    new GenerateTokenRequest(
-                    accessLevel: "edit", allowSaveAs: true,
-                    identities: new List<EffectiveIdentity> { salesUser });
+                if (!tenantID.StartsWith("1"))  // the owner tenant of this app starts with 1, which can access everything
+                {
+                    switch (report.Name.ToLower())
+                    {
+                        case "adventureworks":
+                            // for non Analysis Service, map user to Username()
+                            var salesUser = new EffectiveIdentity(
+                                username: "adventure-works\\pamela0",
+                                roles: new List<string> { "Sales" },
+                                datasets: new List<string> { report.DatasetId });
+                            generateTokenRequestParameters = new GenerateTokenRequest(
+                            accessLevel: "edit", allowSaveAs: true,
+                            identities: new List<EffectiveIdentity> { salesUser });
+                            break;
+                        case "testaasrls":
+                            // for Analysis Service, map user to CustomData()
+                            var embedUser = new EffectiveIdentity(
+                                username: MvcApplication.pbiUserName,
+                                customData: "embed",
+                                roles: new List<string> { "Sales Embedded" },
+                                datasets: new List<string> { report.DatasetId });
+                            generateTokenRequestParameters = new GenerateTokenRequest(
+                            accessLevel: "edit", allowSaveAs: true,
+                            identities: new List<EffectiveIdentity> { embedUser });
+                            break;
+                    }
+                }
                 var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(GroupId, reportId, generateTokenRequestParameters);
                 // Refresh the dataset
                 // await client.Datasets.RefreshDatasetInGroupAsync(GroupId, report.DatasetId);
