@@ -1,19 +1,17 @@
-Many ISVs (Independent Software Vendors) developing multi-tenant applications with Power BI isolate tenants by providing separate data sources for each tenant. They can use [Power BI REST API](https://msdn.microsoft.com/en-us/library/mt147898.aspx) to clone reporting assets for each tenant, and update the data source connection info accordingly.  This doc illustrates how you can programmatically update the connection info for Azure Blob Storage Account.
+Many ISVs (Independent Software Vendors) developing multi-tenant applications with Power BI isolate tenants by providing separate data sources for each tenant. They can use [Power BI REST API](https://msdn.microsoft.com/en-us/library/mt147898.aspx) to clone reporting assets for each tenant, and update the respective data source connection info.  This doc illustrates how you can programmatically update the connection info for Azure Blob Storage Account.
  
-## Programmatically update Azure Blob Storage Account as Power BI data source
-
-Assuming you know how to get workspace id, and the dataset id inside that workspace which contains Azure Blob Storage data source, here are the REST calls you need to make
+## Programmatically update Azure Blob Storage Account in Power BI
 
 1. In Power BI Desktop, parameterize Account Blob Storage Account Name for your report.
   
-  * Create a new parameter
-  ![Alt text](/PowerBIISV/Docs/Images/NewParameter.png?raw=true "Create a new parameter")
-  * Define the parameter
-  ![Alt text](/PowerBIISV/Docs/Images/BlobAccountParameter.png?raw=true "Define the parameter")
-  * Reference the parameter
-  ![Alt text](/PowerBIISV/Docs/Images/UseParameter.png?raw=true "Reference the parameter")
+  - Create a new parameter
+![Alt text](/PowerBIISV/Docs/Images/NewParameter.png?raw=true "Create a new parameter")
+  - Define the parameter
+![Alt text](/PowerBIISV/Docs/Images/BlobAccountParameter.png?raw=true "Define the parameter")
+  - Reference the parameter
+![Alt text](/PowerBIISV/Docs/Images/UseParameter.png?raw=true "Reference the parameter")
   
-2. Call REST API to set the parameter
+2. Assuming you know how to get workspace id, and the dataset id inside that workspace which contains Azure Blob Storage data source, call REST API to set the parameter
 ```
    POST https://api.powerbi.com/v1.0/myorg/groups/{{group_id}}/datasets/{{dataset_id}}/UpdateParameters
    Headers
