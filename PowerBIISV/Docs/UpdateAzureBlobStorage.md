@@ -1,4 +1,4 @@
-Many ISVs (Independent Software Vendors) developing multi-tenant applications with Power BI isolate tenants by providing separate data sources for each tenant. They can use [Power BI REST API](https://msdn.microsoft.com/en-us/library/mt147898.aspx) to clone reporting assets for each tenant, and update the respective data source connection info.  This doc illustrates how you can programmatically update the connection info for Azure Blob Storage Account.
+Many ISVs (Independent Software Vendors) developing multi-tenant applications with Power BI isolate tenants by providing separate data sources for each tenant. They can use [Power BI REST API](https://msdn.microsoft.com/en-us/library/mt147898.aspx) to clone reporting assets and update data source connection info for each tenant.  This doc illustrates how you can programmatically update the connection info for Azure Blob Storage Account.
  
 ## Programmatically update Azure Blob Storage Account in Power BI
 
@@ -45,7 +45,20 @@ Many ISVs (Independent Software Vendors) developing multi-tenant applications wi
     Headers
         Authorization: Bearer {{bearer_token}}
 ```    
-
+Response will look like this:
+```json
+    {
+        "@odata.context": "http://some-redirect.analysis.windows.net/v1.0/myorg/groups/{{group_id}}/$metadata#gatewayDatasources",
+        "value": [
+            {
+                "id": "{{gateway_datasource_id}}",
+                "gatewayId": "{{gateway_id}}",
+                "datasourceType": "AzureBlobs",
+                "connectionDetails": "{\"account\":\"{{storage_account_name}}\",\"domain\":\"blob.core.windows.net\"}"
+            }
+        ]
+    }
+```
 5. Call REST API to set the Storage Account key
 ```
     PATCH https://api.powerbi.com/v1.0/myorg/gateways/{{gateway_id}}/datasources/{{gateway_datasource_id}}
