@@ -4,12 +4,17 @@ Many ISVs (Independent Software Vendors) developing multi-tenant applications wi
 
 1. In Power BI Desktop, parameterize Account Blob Storage Account Name for your report.
   - Create a new parameter
+
 ![Alt text](/PowerBIISV/Docs/Images/NewParameter.png?raw=true "Create a new parameter")
-  - Define the parameter
-![Alt text](/PowerBIISV/Docs/Images/BlobAccountParameter.png?raw=true "Define the parameter")
-  - Reference the parameter
-![Alt text](/PowerBIISV/Docs/Images/UseParameter.png?raw=true "Reference the parameter")
   
+  - Define the parameter
+
+![Alt text](/PowerBIISV/Docs/Images/BlobAccountParameter.png?raw=true "Define the parameter")
+
+  - Reference the parameter
+
+![Alt text](/PowerBIISV/Docs/Images/UseParameter.png?raw=true "Reference the parameter")
+ 
 2. Assuming you know how to get workspace id, and the dataset id inside that workspace which contains Azure Blob Storage data source, call REST API to set the parameter
 ```
    POST https://api.powerbi.com/v1.0/myorg/groups/{{group_id}}/datasets/{{dataset_id}}/UpdateParameters
