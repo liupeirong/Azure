@@ -26,7 +26,7 @@ Many ISVs (Independent Software Vendors) developing multi-tenant applications wi
             "updateDetails": [ 
                 { 
                     "name": "StorageAccountName", 
-                    "newValue": "{{target_storage_account}}" 
+                    "newValue": "{{storage_account_name}}" 
                 }
             ] 
         } 
