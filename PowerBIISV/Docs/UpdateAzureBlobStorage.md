@@ -3,7 +3,6 @@ Many ISVs (Independent Software Vendors) developing multi-tenant applications wi
 ## Programmatically update Azure Blob Storage Account in Power BI
 
 1. In Power BI Desktop, parameterize Account Blob Storage Account Name for your report.
-  
   - Create a new parameter
 ![Alt text](/PowerBIISV/Docs/Images/NewParameter.png?raw=true "Create a new parameter")
   - Define the parameter
