@@ -92,6 +92,23 @@ namespace pbipaembed.Controllers
                             break;
                     }
                 }
+                else
+                {
+                    switch (report.Name.ToLower())
+                    {
+                        case "testaasrls":
+                            // for Analysis Service, map user to CustomData()
+                            var embedUser = new EffectiveIdentity(
+                                username: MvcApplication.pbiUserName,
+                                customData: "joe@acme.com",
+                                roles: new List<string> { "Sales BiDi" },
+                                datasets: new List<string> { report.DatasetId });
+                            generateTokenRequestParameters = new GenerateTokenRequest(
+                            accessLevel: "edit", allowSaveAs: true,
+                            identities: new List<EffectiveIdentity> { embedUser });
+                            break;
+                    }
+                }
                 var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(GroupId, reportId, generateTokenRequestParameters);
                 // Refresh the dataset
                 // await client.Datasets.RefreshDatasetInGroupAsync(GroupId, report.DatasetId);
