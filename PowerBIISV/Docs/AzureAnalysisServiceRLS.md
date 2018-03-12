@@ -30,7 +30,7 @@ The role will then simply be defined on the ```DimUserSecurity``` table as follo
 Bi-directional cross-filtering has implications on data modeling as well as performance.  Read the whitepaper linked in [this topic](https://powerbi.microsoft.com/en-us/blog/bidirectional-cross-filtering-whitepaper-2/) to ensure you fully understand it before using it. 
   
   * Observed difference between Option 1 and 2 
-> It appears that when you use DAX to filter the rows, the filtering applies even if the Power BI visuals don't use any of the columns in the filtered table. However, when you use bi-directional filtering, it only works when Power BI visuals reference the filtered table. This dependency makes it harder to design visuals without the knowledge of RLS, and makes it hard to hide the security tables you don't want to expose to the users. 
+> It appears that when you use DAX to filter the rows, the filtering applies even if the Power BI visuals don't use any of the columns in the filtered table. However, when you use bi-directional filtering, it only works when Power BI visuals reference the filtered table. This dependency makes it hard to design visuals without the knowledge of RLS, and makes it hard to hide the security tables you don't want to expose to the users. 
 
 3. In order to embed Power BI in an application, you must have a Power BI Pro user that the app uses to communicate with Power BI. Add the Power BI Pro user's [UPN (User Principal Name)](https://docs.microsoft.com/en-us/power-bi/service-admin-rls) as a member of the role:
 
