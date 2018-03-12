@@ -6,7 +6,7 @@ This doc describes how to use Row Level Security with Azure Analysis Service, es
 
 ![Alt text](/PowerBIISV/Docs/Images/many2many.png?raw=true "Many to Many relationship")
 
-2. In Analysis Service, you can do one of two things to add a Role and define what the role can access:
+2. In Analysis Service, you can do one of two things to add a role and define what the role can access:
 
   * Option 1: Define a filter on the table and column for what that role can access based on [CUSTOMDATA()](https://msdn.microsoft.com/en-us/library/hh213140.aspx)
 
