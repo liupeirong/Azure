@@ -40,4 +40,4 @@ Uninstall-Module SqlServer -MaximumVersion {max version to delete}
 * Add the Service Principal as an admin of the Azure Analysis Service server
     * Connect to Azure Analysis Service (AAS) using Sql Server Management Studio
     * Right-click on the AAS instance, __Properties__, __Security__, __Add...__![Alt text](/DotNetAnalysisService/Images/aasAdmin.png?raw=true "AAS Admin")
-    * a dialog pops up for you to choose a user, close the dialog without choosing a user, another dialog pops up, in __Manual Entry__, enter the service principal in the format of app:appid@tenantid, click __Add__![Alt text](/DotNetAnalysisService/Images/addServicePrincipal.png?raw=true "add service principal")
+    * a dialog pops up for you to choose a user, close the dialog without choosing a user, another dialog pops up, in __Manual Entry__, enter the service principal in the format of ```app:appid@tenantid```, click __Add__![Alt text](/DotNetAnalysisService/Images/addServicePrincipal.png?raw=true "add service principal")
