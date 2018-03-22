@@ -6,7 +6,7 @@ This C# example demonstrates how to automate management tasks of Azure Analysis 
 * [Upgrade to the latest version of PowerShell](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell)
 * Install the SqlServer PowerShell module by running ```Install-Module SqlServer``` as an administrator
 
-__If you use a Service Principal to add a member __
+__If you use a Service Principal to add a member__
 * Verify Azure PowerShell version is at least 5.5.0:
 
 ```
@@ -39,7 +39,7 @@ Uninstall-Module SqlServer -MaximumVersion {max version to delete}
 
 * Add the Service Principal as an admin of the Azure Analysis Service server
     * Connect to Azure Analysis Service (AAS) using Sql Server Management Studio
-    * Right-click on the AAS instance, __Properties__, __Security__, __Add...___
+    * Right-click on the AAS instance, __Properties__, __Security__, __Add...__
     
 ![Alt text](/DotNetAnalysisService/Images/aasAdmin.png?raw=true "AAS Admin")
 
