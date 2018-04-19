@@ -1,8 +1,8 @@
 This sample converts [Darknet Yolo](https://github.com/pjreddie/darknet) to an Azure IoT edge module. The code in the iot-edge-darknet-module folder is largely similar to [this original GitHub repo](https://github.com/vjrantal/iot-edge-darknet-module). The differences are:
 - It's a simplified version which supports CPU only. 
-- It copies the darknet binary to the final Docker image in order to run demo mode.
-- It includes code that takes detection threshold from IoT Hub in Azure.
-- It connects to the IP/RTSP camera. 
+- It [copies the darknet binary](/DarknetYoloIoTEdge/iot-edge-darknet-module/Dockerfile#L14) to the final Docker image in order to run demo mode.
+- It [takes detection threshold](/DarknetYoloIoTEdge/iot-edge-darknet-module/sender.py#L28) from IoT Hub in Azure.
+- It [connects](/DarknetYoloIoTEdge/iot-edge-darknet-module/module.py#L28) to the IP/RTSP camera. 
 
 ### Start local Docker registry so that the docker image doesn't have to be pushed to Cloud during development
 ```sh
@@ -39,9 +39,9 @@ In the module's Docker container configuration, specify:
 ```
 
 ### Note on IP camera:
-To do live stream image detection from an IP camera, here's the syntax: 
-if the Camera IP is: ```http://<user>:<pwd>@<ip>/axis-cgi/mjpg/video.cgi?resolution=1280x720&camera=1&compression=0```
-then specify its RTSP to VideoCapture in Python or cvCaptureFromFile in C: ```rtsp://<user>:<pwd>@<ip>/axis-media/media.amp```
+To do live stream image detection from an IP camera, use the following syntax:
+if the Camera IP is ```http://<user>:<pwd>@<ip>/axis-cgi/mjpg/video.cgi?resolution=1280x720&camera=1&compression=0```,
+then pass its RTSP address ```rtsp://<user>:<pwd>@<ip>/axis-media/media.amp``` to ```VideoCapture``` in Python or ```cvCaptureFromFile``` in C. 
 
 ### To change detection threshold from Azure IoT Hub
 Go to the IoT edge device, then *Set Modules*, *Enable* module twin's desired properties, type in the desired property, for example:
@@ -54,7 +54,6 @@ Go to the IoT edge device, then *Set Modules*, *Enable* module twin's desired pr
 ```
 
 ### To run in demo mode
-Download yolov3.weights, then run
 ```sh
-./darknet detector demo cfg/coco.data cfg/yolov3.cfg /path/to/yolov3.weights rtsp://<user>:<pwd>@<ip>/axis-media/media.amp
+docker run --privileged -e DISPLAY=$DISPLAY -e CAMERA_URL=$CAMERA_URL <docker registry>/darknet-iot ./darknet detector demo ./cfg/coco.data ./cfg/yolo.cfg ./cfg/yolov.weights
 ```
