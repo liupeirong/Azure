@@ -8,6 +8,7 @@ from sender import Sender
 
 # Can be used to change used camera in case multiple available
 CAMERA_INDEX = int(os.getenv('OPENCV_CAMERA_INDEX', 0))
+CAMERA_URL = str(os.getenv('CAMERA_URL', 0))
 
 # Can be used for testing purposes to limit the amount of detections
 # performed (0 means loop forever)
@@ -23,7 +24,9 @@ if IS_EDGE:
 else:
     sender = False
 
-video_capture = cv2.VideoCapture(CAMERA_INDEX)
+# video_capture = cv2.VideoCapture(CAMERA_INDEX)
+# support IP/RTSP camera
+video_capture = cv2.VideoCapture(CAMERA_URL)
 detector = Detector()
 detection_index = 0
 
