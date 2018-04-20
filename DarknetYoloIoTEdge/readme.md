@@ -54,7 +54,7 @@ Go to the IoT edge device, then *Set Modules*, *Enable* module twin's desired pr
 ```
 
 ### To run in demo mode
-In the host machine, you may need to run ```xhost +local:docker``` or ```xhost local:``` to allow x11 forwarding from Docker.
+In the host machine, run ```xhost +local:docker``` to allow x11 forwarding from Docker.
 
 from command line:
 ```sh
