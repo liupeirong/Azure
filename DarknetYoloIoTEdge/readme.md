@@ -11,12 +11,12 @@ docker run -d -p 5000:5000 --restart=always --name registry registry:2
 
 ### Build the IoT module:
 ```sh 
-docker build -f base/Dockerfile -t localhost:5000/iot-edge-darknet-base .
-docker push localhost:5000/iot-edge-darknet-base
-docker build -f darknet/Dockerfile -t localhost:5000/darknet-iot .
-docker push localhost:5000/darknet-iot
-docker build -t localhost:5000/iot-edge-darknet-module .
-docker push localhost:5000/iot-edge-darknet-module
+docker build -f base/Dockerfile -t <docker registry>/iot-edge-darknet-base .
+docker push <docker registry>/iot-edge-darknet-base
+docker build -f darknet/Dockerfile -t <docker registry>/darknet-iot .
+docker push <docker registry>/darknet-iot
+docker build -t <docker registry>/iot-edge-darknet-module .
+docker push <docker registry>/iot-edge-darknet-module
 ```
 
 ### Deploy the IoT module:
@@ -54,22 +54,28 @@ Go to the IoT edge device, then *Set Modules*, *Enable* module twin's desired pr
 ```
 
 ### To run in demo mode
+In the host machine, you may need to run ```xhost +local:docker``` or ```xhost local:``` to allow x11 forwarding from Docker.
+
 from command line:
 ```sh
-docker run --privileged -e DISPLAY=$DISPLAY -e CAMERA_URL=$CAMERA_URL <docker registry>/iot-edge-darknet-module ./darknet detector demo ./cfg/coco.data ./cfg/yolo.cfg ./cfg/yolov.weights
+docker run --privileged -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -e CAMERA_URL=$CAMERA_URL <docker registry>/iot-edge-darknet-module ./darknet detector demo cfg/coco.data cfg/yolo.cfg yolo.weights rtsp://<user>:<pwd>@<ip>/axis-media/media.amp 
 ```
 
 from Azure portal, go to *Set Modules*, select the target module, type the following in the Docker container configuration:
 ```json
 {
- "HostConfig": {
-   "Privileged": true
- },
  "Env": [
    "CAMERA_URL=rtsp://<user>:<pwd>@<ip>/axis-media/media.amp",
-   "DISPLAY=<ip>:0.0",
- ]
+   "DISPLAY=:0"
+ ],
+ "HostConfig": {
+   "Privileged": true,
+   "Binds": [
+     "/tmp/.X11-unix:/tmp/.X11-unix"
+   ]
+ },
+ "WorkingDir": "/",
  "Cmd": [
-   "./darknet detector demo ./cfg/coco.data ./cfg/yolo.cfg ./cfg/yolov.weights -thresh 0.6"
+   "./darknet", "detector", "demo", "cfg/coco.data", "cfg/yolo.cfg", "yolo.weights", "rtsp://<user>:<pwd>@<ip>/axis-media/media.amp", "-thresh", "0.2"
  ]
 }
