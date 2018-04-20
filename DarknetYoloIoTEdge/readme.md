@@ -54,6 +54,22 @@ Go to the IoT edge device, then *Set Modules*, *Enable* module twin's desired pr
 ```
 
 ### To run in demo mode
+from command line:
 ```sh
-docker run --privileged -e DISPLAY=$DISPLAY -e CAMERA_URL=$CAMERA_URL <docker registry>/darknet-iot ./darknet detector demo ./cfg/coco.data ./cfg/yolo.cfg ./cfg/yolov.weights
+docker run --privileged -e DISPLAY=$DISPLAY -e CAMERA_URL=$CAMERA_URL <docker registry>/iot-edge-darknet-module ./darknet detector demo ./cfg/coco.data ./cfg/yolo.cfg ./cfg/yolov.weights
 ```
+
+from Azure portal, go to *Set Modules*, select the target module, type the following in the Docker container configuration:
+```json
+{
+ "HostConfig": {
+   "Privileged": true
+ },
+ "Env": [
+   "CAMERA_URL=rtsp://<user>:<pwd>@<ip>/axis-media/media.amp",
+   "DISPLAY=<ip>:0.0",
+ ]
+ "Cmd": [
+   "./darknet detector demo ./cfg/coco.data ./cfg/yolo.cfg ./cfg/yolov.weights -thresh 0.6"
+ ]
+}
