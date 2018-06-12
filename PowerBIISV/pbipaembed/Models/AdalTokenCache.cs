@@ -32,8 +32,8 @@ namespace pbipaembed.Models
         public override void Clear()
         {
             base.Clear();
-            var cacheEntry = db.UserTokenCacheList.FirstOrDefault(c => c.webUserUniqueId == userId);
-            db.UserTokenCacheList.Remove(cacheEntry);
+            foreach(var cacheEntry in db.UserTokenCacheList)
+                db.UserTokenCacheList.Remove(cacheEntry);
             db.SaveChanges();
         }
 
@@ -73,14 +73,23 @@ namespace pbipaembed.Models
             // if state changed
             if (this.HasStateChanged)
             {
-                Cache = new UserTokenCache
+                var existing = db.UserTokenCacheList.FirstOrDefault(c => c.webUserUniqueId == userId);
+                if (existing != null)
                 {
-                    webUserUniqueId = userId,
-                    cacheBits = MachineKey.Protect(this.Serialize(), "ADALCache"),
-                    LastWrite = DateTime.Now
-                };
-                // update the DB and the lastwrite 
-                db.Entry(Cache).State = Cache.UserTokenCacheId == 0 ? EntityState.Added : EntityState.Modified;
+                    existing.cacheBits = MachineKey.Protect(this.Serialize(), "ADALCache");
+                    existing.LastWrite = DateTime.Now;
+                    db.Entry(existing).State = EntityState.Modified;
+                }
+                else
+                {
+                    Cache = new UserTokenCache
+                    {
+                        webUserUniqueId = userId,
+                        cacheBits = MachineKey.Protect(this.Serialize(), "ADALCache"),
+                        LastWrite = DateTime.Now
+                    };
+                    db.Entry(Cache).State = EntityState.Added;
+                }
                 db.SaveChanges();
                 this.HasStateChanged = false;
             }
@@ -89,11 +98,6 @@ namespace pbipaembed.Models
         void BeforeWriteNotification(TokenCacheNotificationArgs args)
         {
             // if you want to ensure that no concurrent write take place, use this notification to place a lock on the entry
-        }
-
-        public override void DeleteItem(TokenCacheItem item)
-        {
-            base.DeleteItem(item);
         }
     }
 }
