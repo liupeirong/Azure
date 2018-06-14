@@ -32,17 +32,13 @@ az vm identity show -g [my_resource_group] -n [my_vm]
 # principal id comes from the output of the above command
 az role assignment create --assignee-object-id [msi_principal_id] --role 'Storage Blob Data Reader (Preview)' --scope "/subscriptions/[my_subscription]/resourcegroups/[my_resource_group]/providers/Microsoft.Storage/storageAccounts/[my_storage_account]"
 ```
-3. Acquire auth token from MSI to access storage
+3. Acquire auth token from the MSI to access storage
 ```bash
 curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fstorage.azure.com%2F' -H Metadata:true
 ```
 4. Use the token to access storage
 ```bash
 curl https://[my_storage_account].blob.core.windows.net/[my_container]/[my_file] -H "x-ms-version: 2017-11-09" -H "Authorization: Bearer [token]"
-```
-5. You can also log in to Azure Cli using MSI by running the following command on the MSI enabled VM, the MSI must have been granted access to at least one Azure service.
-```bash
-az login --identity
 ```
 
 ## Using User Assigned MSI
@@ -57,12 +53,12 @@ az identity show -g [my_resource_group] -n [my_msi_name]
 ```bash
 az vm identity assign -g [my_resource_group] -n [my_vm] --identities "/subscriptions/[my_subscription]/resourcegroups/[my_resource_group]/providers/Microsoft.ManagedIdentity/userAssignedIdentities/[my_msi_name]"
 ```
-3. Grant user assigned  MSI access to storage
+3. Grant the MSI access to storage
 ```bash
 # principal id comes from the output of the commands in step 1
 az role assignment create --assignee [msi_principal_id] --role 'Storage Blob Data Reader (Preview)' --scope "/subscriptions/[my_subscription]/resourcegroups/[my_resource_group]/providers/Microsoft.Storage/storageAccounts/[my_storage_account]"
 ```
-4. acquire token for the user assigned MSI from the VM
+4. Acquire auth token from the MSI to access storage
 ```bash
 # client id comes from the output of the commands in step 1
 curl "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fstorage.azure.com%2F&client_id=[msi_client_id]" -H Metadata:true
@@ -71,3 +67,10 @@ curl "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-
 ```bash
 curl https://[my_storage_account].blob.core.windows.net/[my_container]/[my_file] -H "x-ms-version: 2017-11-09" -H "Authorization: Bearer [token]"
 ```
+
+## Login to Azure Cli with MSI
+You can also log in to Azure Cli using MSI by running the following command on the MSI enabled VM, the MSI must be granted access to at least one Azure service. 
+```bash
+az login --identity
+```
+Once logged in, you could also generate SAS tokens to be used with tools like azcopy which don't support OAuth.
