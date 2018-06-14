@@ -46,6 +46,9 @@ public class App
 
     private static String retrieveMSIToken(String resource, String userAssignedMSIClientId)
     {
+        //setting the resourceManagerEndpointUrl is a workaround for issue
+        //https://github.com/Azure/autorest-clientruntime-for-java/issues/438,
+        //should not be necessary in future releases of the SDK  
         String token = null;
         Map<String, String> endpoints = new HashMap<String, String>();
         endpoints.put("resourceManagerEndpointUrl", resource);
