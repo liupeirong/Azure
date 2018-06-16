@@ -98,8 +98,14 @@ public class ReportController {
                 apiUrl, 
                 workspaceId, reportId));
 
-        String body = new StringBuilder()
+        String body = roles.equals("") ? 
+            new StringBuilder()
             .append("{")
+            .append("  \"accessLevel\": \"edit\",")
+            .append("  \"allowSaveAs\": true")
+            .append("}")
+            .toString() :
+            new StringBuilder().append("{")
             .append("  \"accessLevel\": \"edit\",")
             .append("  \"allowSaveAs\": true,")
             .append("  \"identities\": [") 
