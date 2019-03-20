@@ -23,8 +23,6 @@ namespace pbipaembed.Controllers
         private static readonly string EmbedUrlBase = ConfigurationManager.AppSettings["embedUrlBase"];
         private static readonly AuthenticationContext authenticationContext = new AuthenticationContext(AuthorityUrl);
 
-        private string accessToken;
-
         public ActionResult Index()
         {
             return View();

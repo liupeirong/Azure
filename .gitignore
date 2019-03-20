@@ -28,3 +28,4 @@ dependency-reduced-pom.xml
 GISWork
 Blog2Speech
 IoTSimulator
+*.private

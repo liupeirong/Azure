@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using ContosoOData.Models;
-using System.Web.OData;
+using Microsoft.AspNet.OData;
 using System.Web.Http;
 
 namespace ContosoOData.Controllers
