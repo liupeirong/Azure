@@ -1,8 +1,0 @@
-﻿@model ISVWebApp.Models.ReportsViewModel
-
-<p>Select a report:</p>
-@using (Html.BeginForm("Report", "Dashboard", FormMethod.Post))
-{
-    @Html.DropDownList("SelectedReport", new SelectList(Model.Reports, "Id", "Name"))
-    <input type="submit" value="Show" />
-}
